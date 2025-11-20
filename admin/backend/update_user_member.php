@@ -1,0 +1,23 @@
+<?php
+require_once 'dbconnect.php';
+
+$db = new db_connect();
+if (!$db->connect()) {
+    die("Database connection failed: " . $db->error);
+}
+
+$sql = "ALTER TABLE `user_member`
+        ADD COLUMN IF NOT EXISTS `phone` VARCHAR(20) NOT NULL AFTER `email`,
+        ADD COLUMN IF NOT EXISTS `role` VARCHAR(20) NOT NULL AFTER `phone`,
+        ADD COLUMN IF NOT EXISTS `sex` VARCHAR(10) NOT NULL AFTER `role`,
+        ADD COLUMN IF NOT EXISTS `id_number` VARCHAR(20) NOT NULL AFTER `sex`,
+        MODIFY COLUMN `password` VARCHAR(255) NOT NULL";
+
+if ($db->conn->query($sql)) {
+    echo "Table user_member updated successfully";
+} else {
+    echo "Error updating table: " . $db->conn->error;
+}
+
+$db->conn->close();
+?> 
