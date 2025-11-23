@@ -208,17 +208,16 @@ $("#FrmRegister_Member").submit(function (e) {
                     // Handle popup buttons
                     $('#login-now').off('click').on('click', function() {
                         const memberId = $('#member-id').text();
-                        window.location.href = "login_member?id=" + encodeURIComponent(memberId);
-                    });
+                        window.location.href = "login.php"                    });
                     
                     $('#close-popup').off('click').on('click', function() {
                         $('#success-popup').fadeOut(300);
-                        window.location.href = "login_member";
+                        window.location.href = "login.php";
                     });
                 } else {
                     alertify.success(response.message);
                     setTimeout(function () {
-                        window.location.href = "login_member";
+                        window.location.href = "login.php";
                     }, 3000);
                 }
             } else {
@@ -323,7 +322,7 @@ $("#FrmRegister_Customer").submit(function (e) {
             if (response.status === 'success') {
                 alertify.success(response.message);  
                 setTimeout(function () {
-                    window.location.href = "login_customer"; 
+                    window.location.href = "login.php"; 
                 }, 1000);
             } else {
                 alertify.error(response.message); 
