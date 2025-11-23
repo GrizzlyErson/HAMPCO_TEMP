@@ -139,17 +139,21 @@
                 data: formData,
                 contentType: false,
                 processData: false,
-                dataType: "text",  // expecting plain text response
+                dataType: "json",
                 success: function (response) {
-                    if (response.trim() === 'success') {  // check the string directly
-                        alertify.success('Product added successfully');  
+                    if (response && response.status === 'success') {
+                        alertify.success(response.message || 'Product added successfully');
                         setTimeout(function () {
-                            location.reload(); 
-                        }, 1000);
+                            location.reload();
+                        }, 800);
                     } else {
-                        alertify.error('Failed to add product');
+                        alertify.error((response && response.message) ? response.message : 'Failed to add product');
                         $('.spinner').hide();
                     }
+                },
+                error: function(xhr, status, err) {
+                    console.error('AddProduct error', xhr.responseText, status, err);
+                    alertify.error('Server error while adding product');
                 }
             });
         });

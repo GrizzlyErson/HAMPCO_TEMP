@@ -497,7 +497,7 @@ class global_class extends db_connect
         return $result;
     }
 
-    public function AddProduct($name, $description, $price, $category, $image = null)
+    public function AddProduct($name, $description, $price, $category, $image = null, $stocks = 0)
     {
         try {
             $filename = null;
@@ -505,13 +505,17 @@ class global_class extends db_connect
                 $filename = $this->handleFileUpload($image);
             }
 
+            // Ensure stocks is integer
+            $stocks = intval($stocks);
+
             $query = $this->conn->prepare("
                 INSERT INTO `product` 
-                (`prod_name`, `prod_description`, `prod_price`, `prod_category_id`, `prod_image`, `prod_status`) 
-                VALUES (?, ?, ?, ?, ?, 1)
+                (`prod_name`, `prod_description`, `prod_price`, `prod_category_id`, `prod_stocks`, `prod_image`, `prod_status`) 
+                VALUES (?, ?, ?, ?, ?, ?, 1)
             ");
 
-            $query->bind_param("ssdss", $name, $description, $price, $category, $filename);
+            // Bind types: s (name), s (description), d (price), i (category), i (stocks), s (filename)
+            $query->bind_param("ssdiis", $name, $description, $price, $category, $stocks, $filename);
             
             if ($query->execute()) {
                 return ['status' => 'success', 'message' => 'Product added successfully'];
@@ -522,5 +526,30 @@ class global_class extends db_connect
             error_log("Error in AddProduct: " . $e->getMessage());
             return ['status' => 'error', 'message' => 'Failed to add product: ' . $e->getMessage()];
         }
+    }
+
+    // Handle file upload for product images
+    private function handleFileUpload($file)
+    {
+        if (!isset($file['tmp_name']) || empty($file['tmp_name'])) {
+            return null;
+        }
+
+        $originalName = $file['name'] ?? '';
+        $ext = pathinfo($originalName, PATHINFO_EXTENSION);
+        $filename = uniqid('prod_') . ($ext ? '.' . $ext : '');
+
+        // Upload directory at repo root /upload
+        $uploadDir = dirname(dirname(__DIR__)) . '/upload/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $targetPath = $uploadDir . $filename;
+        if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+            return $filename;
+        }
+
+        return null;
     }
 }

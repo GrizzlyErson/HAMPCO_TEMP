@@ -173,6 +173,33 @@ try {
             }
             break;
 
+        case 'AddProduct':
+            // Expected fields from form: rm_name, rm_description, rm_price, rm_product_Category, rm_product_image (file)
+            $name = isset($_POST['rm_name']) ? trim($_POST['rm_name']) : '';
+            $description = isset($_POST['rm_description']) ? trim($_POST['rm_description']) : '';
+            $price = isset($_POST['rm_price']) ? $_POST['rm_price'] : 0;
+            $category = isset($_POST['rm_product_Category']) ? $_POST['rm_product_Category'] : null;
+            $image = isset($_FILES['rm_product_image']) ? $_FILES['rm_product_image'] : null;
+
+            // Basic validation
+            if (empty($name) || empty($price) || empty($category)) {
+                echo json_encode(['status' => 'error', 'message' => 'Please fill all required fields']);
+                exit;
+            }
+
+            // Normalize price
+            if (!is_numeric($price)) {
+                $price = floatval(str_replace(',', '', $price));
+            } else {
+                $price = floatval($price);
+            }
+
+            // Pass default stocks = 0 for new products
+            $result = $db->AddProduct($name, $description, $price, $category, $image, 0);
+            // Ensure we return JSON with status/message
+            echo json_encode($result);
+            break;
+
         default:
             echo json_encode(['status' => 'error', 'message' => 'Invalid request type']);
             break;
