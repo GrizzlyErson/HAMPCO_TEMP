@@ -1,5 +1,5 @@
 <?php 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/hampco_memberFix/admin/backend/class.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/hampco_temp/admin/backend/class.php';
 $db = new global_class();
 
 $fetch_all_materials = $db->fetch_all_materials();
