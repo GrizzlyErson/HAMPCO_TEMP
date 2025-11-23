@@ -1,6 +1,9 @@
 <?php
-require_once dirname(dirname(__DIR__)) . '/function/config.php';
-include('backend/class.php');
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
+
+require_once __DIR__ . '/../backend/class.php';
 $db = new global_class();
 
 $is_logged_in = isset($_SESSION['customer_id']);
@@ -33,8 +36,7 @@ $Fullname =$user_fullname;
 $name_parts = explode(" ", $Fullname);
 $firstname = $name_parts[0];
 
-require_once dirname(dirname(__DIR__)) . '/function/config.php';
-
+// Note: removed a stale require to `function/config.php` which is not present in this repo
 ?>
 
 <!DOCTYPE html>

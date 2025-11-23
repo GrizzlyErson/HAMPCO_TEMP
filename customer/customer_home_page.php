@@ -33,7 +33,7 @@ include "component/header.php";
                 </li>
                 <?php 
                 // Fetch categories
-                $categories = $db->fetch_all_category();
+                $categories = $db->fetch_all_categories();
                 if ($categories):
                     foreach ($categories as $category):
                         echo ' 

@@ -1,14 +1,30 @@
 <?php
-require_once dirname(dirname(__DIR__)) . '/function/config.php';
 include "component/header.php";
 
-$userID = $_SESSION['customer_id'];
-$product_id = $_GET['product_id'];
+$userID = isset($_SESSION['customer_id']) ? intval($_SESSION['customer_id']) : 0;
+$product_id = isset($_GET['product_id']) ? intval($_GET['product_id']) : 0;
 
-$product_info = $db->fetch_product_info($product_id); 
-foreach ($product_info as $product):
-    $prod_price = $product['prod_price']; 
-endforeach;
+if ($product_id <= 0) {
+    echo "<div class='container mx-auto p-6'>Invalid product.</div>";
+    include "component/footer.php";
+    exit;
+}
+
+$product_info = $db->fetch_product_info($product_id);
+$product = null;
+if ($product_info && method_exists($product_info, 'fetch_assoc')) {
+    $product = $product_info->fetch_assoc();
+} elseif (is_array($product_info)) {
+    $product = $product_info[0] ?? null;
+}
+
+if (!$product) {
+    echo "<div class='container mx-auto p-6'>Product not found.</div>";
+    include "component/footer.php";
+    exit;
+}
+
+$prod_price = $product['prod_price'];
 ?>
 
 <div class="container mx-auto px-4 py-6">

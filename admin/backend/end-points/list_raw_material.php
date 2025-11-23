@@ -21,7 +21,7 @@ if ($fetch_all_materials->num_rows > 0) {
                 class="updateRmBtn bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-full text-xs flex items-center shadow"
                 data-id="<?php echo htmlspecialchars($row['rmid']); ?>" 
                 data-rm_name="<?php echo htmlspecialchars($row['raw_materials_name']); ?>"
-                data-category="<?php echo htmlspecialchars($row['category']); ?>"
+                data-category="<?php if($row['category']=='') {echo htmlspecialchars("Not available");} else {echo htmlspecialchars($row['category']);}  ?>"
                 data-rm_quantity="<?php echo htmlspecialchars($row['rm_quantity']); ?>"
                 data-rm_unit="<?php echo htmlspecialchars($row['rm_unit']); ?>"
                 data-rm_status="<?php echo htmlspecialchars(ucfirst(strtolower($row['rm_status']))); ?>"

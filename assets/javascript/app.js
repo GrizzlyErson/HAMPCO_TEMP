@@ -7,6 +7,35 @@ $(document).ready(function() {
         // Focus on password field if ID is autofilled
         $('#password').focus();
     }
+
+    // Also support autofill via sessionStorage (set by signup flow)
+    try {
+        const tempId = sessionStorage.getItem('tempMemberId');
+        const tempPass = sessionStorage.getItem('tempPassword');
+        if (tempId) {
+            // Switch to Member tab if present
+            const memberTab = $('#memberTab');
+            const customerTab = $('#customerTab');
+            if (memberTab.length && customerTab.length) {
+                memberTab.trigger('click');
+            }
+
+            // Fill fields
+            $('#id_number').val(tempId);
+            if (tempPass) {
+                $('#member_password').val(tempPass);
+            }
+
+            // Focus password for convenience
+            $('#member_password').focus();
+
+            // Clear stored temps to avoid lingering sensitive data
+            sessionStorage.removeItem('tempMemberId');
+            sessionStorage.removeItem('tempPassword');
+        }
+    } catch (e) {
+        console.error('Autofill check failed', e);
+    }
 });
 
 $("#frmLogin_Admin").submit(function (e) { 
