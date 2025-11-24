@@ -1134,39 +1134,38 @@ require_once "components/header.php";
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
-    // Load active members by role from production_line
+    // Load active members by role from member list
     function loadActiveMembersByRole() {
-        fetch('backend/end-points/get_task_assignments.php')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.data) {
-                    // Count unique active members by role
-                    const activeMembersByRole = {
-                        knotter: new Set(),
-                        weaver: new Set(),
-                        warper: new Set()
-                    };
-
-                    // Process each production line's assignments
-                    data.data.forEach(item => {
-                        if (item.assignments && Array.isArray(item.assignments)) {
-                            item.assignments.forEach(assignment => {
-                                if (assignment.role && assignment.member_id && 
-                                    (assignment.task_status === 'pending' || assignment.task_status === 'in_progress' || assignment.task_status === 'submitted')) {
-                                    const role = assignment.role.toLowerCase().trim();
-                                    if (activeMembersByRole.hasOwnProperty(role)) {
-                                        activeMembersByRole[role].add(assignment.member_id);
-                                    }
-                                }
-                            });
+        fetch('backend/end-points/list_member.php')
+            .then(function(response) { return response.text(); })
+            .then(function(html) {
+                var tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                var rows = tempDiv.querySelectorAll('tr');
+                var summary = {
+                    knotter: 0,
+                    warper: 0,
+                    weaver: 0
+                };
+                
+                rows.forEach(function(row) {
+                    var cells = row.querySelectorAll('td');
+                    if (cells.length > 0) {
+                        var role = cells[4] ? cells[4].textContent.trim().toLowerCase() : '';
+                        var status = cells[6] ? cells[6].textContent.trim() : '';
+                        // Count members who are Verified or Active
+                        if (['knotter', 'warper', 'weaver'].indexOf(role) !== -1) {
+                            if (status === 'Verified' || status === 'Active') {
+                                summary[role]++;
+                            }
                         }
-                    });
-
-                    // Update the cards
-                    document.getElementById('activeKnottersCount').textContent = activeMembersByRole.knotter.size;
-                    document.getElementById('activeWeaversCount').textContent = activeMembersByRole.weaver.size;
-                    document.getElementById('activeWarpersCount').textContent = activeMembersByRole.warper.size;
-                }
+                    }
+                });
+                
+                // Update the cards with available/active members
+                document.getElementById('activeKnottersCount').textContent = summary.knotter;
+                document.getElementById('activeWeaversCount').textContent = summary.weaver;
+                document.getElementById('activeWarpersCount').textContent = summary.warper;
             })
             .catch(error => {
                 console.error('Error loading active members by role:', error);
