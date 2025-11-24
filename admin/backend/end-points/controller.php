@@ -215,6 +215,33 @@ try {
             echo json_encode($result);
             break;
 
+        case 'ProdStockin':
+            // Handle product stock in
+            $prod_id = isset($_POST['prod_id']) ? intval($_POST['prod_id']) : 0;
+            $rm_quantity = isset($_POST['rm_quantity']) ? intval($_POST['rm_quantity']) : 0;
+
+            if ($prod_id <= 0 || $rm_quantity <= 0) {
+                echo json_encode(['status' => 'error', 'message' => 'Invalid product ID or quantity']);
+                exit;
+            }
+
+            // Update product stocks
+            $update_query = "UPDATE product SET prod_stocks = prod_stocks + ? WHERE prod_id = ?";
+            $stmt = $db->conn->prepare($update_query);
+            if (!$stmt) {
+                echo json_encode(['status' => 'error', 'message' => 'Database prepare error: ' . $db->conn->error]);
+                exit;
+            }
+
+            $stmt->bind_param("ii", $rm_quantity, $prod_id);
+            if ($stmt->execute()) {
+                echo json_encode(['status' => 'success', 'message' => 'Stock updated successfully']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Failed to update stock: ' . $stmt->error]);
+            }
+            $stmt->close();
+            break;
+
         default:
             echo json_encode(['status' => 'error', 'message' => 'Invalid request type']);
             break;

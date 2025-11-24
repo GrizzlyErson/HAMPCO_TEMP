@@ -101,6 +101,7 @@
                 if (data.success && data.orders) {
                     allOrders = data.orders;
                     displayOrders(allOrders);
+                    attachStatusChangeListeners();
                 } else {
                     displayNoOrders();
                 }
@@ -109,6 +110,60 @@
                 console.error('Error loading orders:', error);
                 displayNoOrders();
             });
+    }
+
+    function attachStatusChangeListeners() {
+        const dropdowns = document.querySelectorAll('.status-dropdown');
+        dropdowns.forEach(dropdown => {
+            dropdown.addEventListener('change', function() {
+                const orderId = this.getAttribute('data-order-id');
+                const newStatus = this.value;
+                const currentStatus = this.getAttribute('data-current-status');
+
+                if (newStatus === '' || newStatus === currentStatus) {
+                    return;
+                }
+
+                updateOrderStatus(orderId, newStatus, this);
+            });
+        });
+    }
+
+    function updateOrderStatus(orderId, newStatus, dropdown) {
+        if (confirm(`Are you sure you want to change this order status to "${newStatus}"?`)) {
+            fetch('backend/end-points/update_order_status.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    status: newStatus
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alertify.success('Order status updated successfully');
+                    // Update the dropdown to reflect current status
+                    dropdown.setAttribute('data-current-status', newStatus);
+                    loadOrders();
+                } else {
+                    alertify.error('Error updating status: ' + (data.error || 'Unknown error'));
+                    // Reset dropdown to previous value
+                    dropdown.value = dropdown.getAttribute('data-current-status');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alertify.error('Error updating order status');
+                // Reset dropdown to previous value
+                dropdown.value = dropdown.getAttribute('data-current-status');
+            });
+        } else {
+            // Reset dropdown if user cancels
+            dropdown.value = dropdown.getAttribute('data-current-status');
+        }
     }
 
     function displayOrders(orders) {
@@ -133,11 +188,18 @@
                 <td class="py-3 px-6">${order.payment_method || 'N/A'}</td>
                 <td class="py-3 px-6">${formatDate(order.created_at)}</td>
                 <td class="py-3 px-6 text-center">
-                    <button onclick="viewOrderDetails('${order.order_id}')" class="text-blue-500 hover:text-blue-700 font-semibold text-sm mr-2">
-                        View
-                    </button>
-                    <button onclick="deleteOrder('${order.order_id}')" class="text-red-500 hover:text-red-700 font-semibold text-sm">
-                        Delete
+                    <select class="status-dropdown px-2 py-1 border border-gray-300 rounded-md text-sm" data-order-id="${order.order_id}" data-current-status="${order.status || 'pending'}">
+                        <option value="">-- Change Status --</option>
+                        <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option value="Accepted" ${order.status === 'Accepted' ? 'selected' : ''}>Accepted</option>
+                        <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                        <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                        <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                        <option value="Declined" ${order.status === 'Declined' ? 'selected' : ''}>Declined</option>
+                        <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                    </select>
+                    <button onclick="viewOrderDetails('${order.order_id}')" class="text-blue-500 hover:text-blue-700 font-semibold text-sm mt-2 block">
+                        View Details
                     </button>
                 </td>
             </tr>

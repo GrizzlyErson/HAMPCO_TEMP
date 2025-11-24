@@ -6,7 +6,10 @@ header('Content-Type: application/json');
 try {
     $db = new global_class();
     
-    if (!isset($_POST['order_id']) || !isset($_POST['status'])) {
+    // Get JSON data
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (!isset($input['order_id']) || !isset($input['status'])) {
         http_response_code(400);
         echo json_encode([
             'success' => false,
@@ -15,29 +18,57 @@ try {
         exit;
     }
     
-    $order_id = intval($_POST['order_id']);
-    $status = mysqli_real_escape_string($db->conn, $_POST['status']);
+    $order_id = intval($input['order_id']);
+    $status = trim($input['status']);
     
-    // Update order status
-    $query = "UPDATE orders SET status = '" . $status . "' WHERE order_id = " . $order_id;
-    $result = mysqli_query($db->conn, $query);
-    
-    if (!$result) {
-        // If table doesn't exist, return success anyway (for demo purposes)
-        if (strpos(mysqli_error($db->conn), "doesn't exist") !== false) {
-            echo json_encode([
-                'success' => true,
-                'message' => 'Order status would be updated (table does not exist)'
-            ]);
-            exit;
-        }
-        throw new Exception(mysqli_error($db->conn));
+    // Validate status
+    $valid_statuses = ['Pending', 'Accepted', 'Processing', 'Shipped', 'Delivered', 'Declined', 'Cancelled'];
+    if (!in_array($status, $valid_statuses)) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Invalid status value'
+        ]);
+        exit;
     }
     
-    echo json_encode([
-        'success' => true,
-        'message' => 'Order status updated successfully'
-    ]);
+    if ($order_id <= 0) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Invalid order ID'
+        ]);
+        exit;
+    }
+    
+    // Update order status using correct column name
+    $query = "UPDATE orders SET order_status = ? WHERE order_id = ?";
+    $stmt = $db->conn->prepare($query);
+    
+    if (!$stmt) {
+        throw new Exception("Prepare failed: " . $db->conn->error);
+    }
+    
+    $stmt->bind_param("si", $status, $order_id);
+    
+    if ($stmt->execute()) {
+        if ($stmt->affected_rows > 0) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Order status updated successfully'
+            ]);
+        } else {
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Order not found'
+            ]);
+        }
+    } else {
+        throw new Exception("Execute failed: " . $stmt->error);
+    }
+    
+    $stmt->close();
     
 } catch (Exception $e) {
     http_response_code(500);

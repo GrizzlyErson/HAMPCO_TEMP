@@ -7,38 +7,44 @@ try {
     $db = new global_class();
     
     $status = isset($_GET['status']) ? $_GET['status'] : 'all';
-    $payment_method = isset($_GET['payment_method']) ? $_GET['payment_method'] : 'all';
     
-    // Since there's no orders table yet, return empty result
-    // In a real application, this would query the database
-    $query = "SELECT * FROM orders WHERE 1=1";
+    // Query to retrieve orders with customer info
+    $query = "
+        SELECT 
+            o.order_id,
+            o.full_name as customer_name,
+            uc.customer_email,
+            o.total_amount,
+            o.order_status as status,
+            o.payment_method,
+            o.date_created as created_at
+        FROM orders o
+        LEFT JOIN user_customer uc ON o.order_user_id = uc.customer_id
+        WHERE 1=1
+    ";
     
     if ($status !== 'all') {
-        $query .= " AND status = '" . mysqli_real_escape_string($db->conn, $status) . "'";
+        $query .= " AND o.order_status = '" . $db->conn->real_escape_string($status) . "'";
     }
     
-    if ($payment_method !== 'all') {
-        $query .= " AND payment_method = '" . mysqli_real_escape_string($db->conn, $payment_method) . "'";
-    }
+    $query .= " ORDER BY o.date_created DESC LIMIT 100";
     
-    $query .= " ORDER BY created_at DESC";
-    
-    $result = mysqli_query($db->conn, $query);
+    $result = $db->conn->query($query);
     
     if (!$result) {
-        // If table doesn't exist, return empty array
-        if (strpos(mysqli_error($db->conn), "doesn't exist") !== false) {
+        // Check if table doesn't exist
+        if (strpos($db->conn->error, "doesn't exist") !== false) {
             echo json_encode([
                 'success' => true,
                 'orders' => []
             ]);
             exit;
         }
-        throw new Exception(mysqli_error($db->conn));
+        throw new Exception($db->conn->error);
     }
     
     $orders = [];
-    while ($row = mysqli_fetch_assoc($result)) {
+    while ($row = $result->fetch_assoc()) {
         $orders[] = $row;
     }
     
