@@ -109,64 +109,37 @@ try {
 
                         <!-- Area Chart -->
                         <div class="col-xl-8 col-lg-7">
-                            <div class="card shadow mb-4" style="max-height: 347px;">
+                            <div class="card shadow mb-4" style="max-height: 420px;">
                                 <!-- Card Header - Dropdown -->
                                 <div
                                     class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-success">
-                                    <h6 class="m-0 font-weight-bold text-light">Recent Task</h6>
-   
-                                    
+                                    <h6 class="m-0 font-weight-bold text-light">Recent Tasks</h6>
+                                    <div class="btn-group" role="group" aria-label="Recent task filters">
+                                        <button type="button" class="btn btn-light btn-sm recent-task-tab active" data-task-tab="assigned">Assigned Tasks</button>
+                                        <button type="button" class="btn btn-outline-light btn-sm recent-task-tab" data-task-tab="created">Task Created</button>
+                                    </div>
                                 </div>
                                 <div>
-                                    <div class="table-responsive" style="overflow-y: auto; max-height: 290px;">
-                                    <table class="table">
+                                    <div class="table-responsive" style="overflow-y: auto; max-height: 320px;">
+                                    <table class="table mb-0" id="recentTasksTable">
                                         <thead>
                                         <tr>
+                                            <th scope="col">Task ID</th>
                                             <th scope="col">Product</th>
                                             <th scope="col">Status</th>
-                                            <th scope="col">Deadline</th>
+                                            <th scope="col">Date</th>
+                                            <th scope="col">Type</th>
                                         </tr>
                                         </thead>
-                                        <tbody>
-                                        <tr>
-                                            <td>No Record</td>
-                                            <td>HAMPCO!: Unknown</td>
-                                            <td>Undefined</td>
-                                        </tr>
-                                        <tr>
-                                            <td>No Record</td>
-                                            <td>HAMPCO!: Unknown</td>
-                                            <td>Undefined</td>
-                                        </tr>
-                                        <tr>
-                                            <td>No Record</td>
-                                            <td>HAMPCO!: Unknown</td>
-                                            <td>Undefined</td>
-                                        </tr>
-                                        <tr>
-                                            <td>No Record</td>
-                                            <td>HAMPCO!: Unknown</td>
-                                            <td>Undefined</td>
-                                        </tr>
-                                        <tr>
-                                            <td>No Record</td>
-                                            <td>HAMPCO!: Unknown</td>
-                                            <td>Undefined</td>
-                                        </tr>
-                                        <tr>
-                                            <td>No Record</td>
-                                            <td>HAMPCO!: Unknown</td>
-                                            <td>Undefined</td>
-                                        </tr>
-
-
+                                        <tbody id="recentTasksBody">
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted">Loading...</td>
+                                            </tr>
                                         </tbody>
                                     </table>
                         </div>
 
                                 </div>
-
-
                                 <!-- Card Body -->
                                 <div class="card-body">
                                     <div class="chart-area">
@@ -242,6 +215,13 @@ try {
 document.addEventListener('DOMContentLoaded', function() {
     const availableBtn = document.getElementById('availableBtn');
     const unavailableBtn = document.getElementById('unavailableBtn');
+    const recentTasksBody = document.getElementById('recentTasksBody');
+    const recentTaskTabs = document.querySelectorAll('.recent-task-tab');
+    let activeTaskTab = 'assigned';
+    const recentTasksState = {
+        assigned: [],
+        created: []
+    };
 
     function updateAvailabilityStatus(status) {
         if (availableBtn) availableBtn.disabled = true;
@@ -306,10 +286,149 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function formatDate(value) {
+        if (!value) return '—';
+        const date = new Date(value);
+        return isNaN(date) ? '—' : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function formatStatus(status) {
+        if (!status) return 'Unknown';
+        return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
+    }
+
+    function buildStatusBadge(status) {
+        const normalized = status.toLowerCase();
+        let badgeClass = 'badge-secondary';
+        if (normalized.includes('pending')) badgeClass = 'badge-warning';
+        else if (normalized.includes('progress')) badgeClass = 'badge-info';
+        else if (normalized.includes('completed') || normalized.includes('approved')) badgeClass = 'badge-success';
+        else if (normalized.includes('declined') || normalized.includes('rejected')) badgeClass = 'badge-danger';
+        return `<span class="badge ${badgeClass}">${formatStatus(status)}</span>`;
+    }
+
+    function renderRecentTasks(tab) {
+        if (!recentTasksBody) return;
+        const tasks = recentTasksState[tab] || [];
+        if (tasks.length === 0) {
+            recentTasksBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-3">
+                        No ${tab === 'assigned' ? 'assigned' : 'created'} tasks to display.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        recentTasksBody.innerHTML = tasks.map(task => `
+            <tr>
+                <td>${task.display_id || '-'}</td>
+                <td>${task.product_name || 'N/A'}</td>
+                <td>${buildStatusBadge(task.status)}</td>
+                <td>${formatDate(task.date)}</td>
+                <td><span class="badge badge-light">${task.type}</span></td>
+            </tr>
+        `).join('');
+    }
+
+    function setActiveTaskTab(tab) {
+        activeTaskTab = tab;
+        recentTaskTabs.forEach(btn => {
+            if (btn.dataset.taskTab === tab) {
+                btn.classList.add('active', 'btn-light');
+                btn.classList.remove('btn-outline-light');
+            } else {
+                btn.classList.remove('active', 'btn-light');
+                btn.classList.add('btn-outline-light');
+            }
+        });
+        renderRecentTasks(tab);
+    }
+
+    function fetchRecentTasks() {
+        if (!recentTasksBody) return;
+        recentTasksBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted py-3">Loading tasks...</td>
+            </tr>
+        `;
+
+        Promise.all([
+            fetch('backend/end-points/get_production_tasks.php').then(res => res.json()).catch(() => ({ success: false })),
+            fetch('backend/end-points/get_created_tasks.php').then(res => res.json()).catch(() => ({ success: false }))
+        ])
+        .then(([assignedData, createdData]) => {
+            const assigned = [];
+            if (assignedData && assignedData.new_tasks) {
+                assignedData.new_tasks.forEach(task => {
+                    assigned.push({
+                        display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
+                        product_name: task.product_name,
+                        status: task.status || task.task_status || 'pending',
+                        date: task.deadline,
+                        type: 'New Assignment'
+                    });
+                });
+            }
+            if (assignedData && assignedData.assigned_tasks) {
+                assignedData.assigned_tasks.forEach(task => {
+                    assigned.push({
+                        display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
+                        product_name: task.product_name,
+                        status: task.status || 'in_progress',
+                        date: task.date_started,
+                        type: 'In Progress'
+                    });
+                });
+            }
+            recentTasksState.assigned = assigned.slice(0, 8);
+
+            const created = [];
+            if (createdData && createdData.success && Array.isArray(createdData.tasks)) {
+                createdData.tasks.forEach(task => {
+                    created.push({
+                        display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
+                        product_name: task.product_name,
+                        status: task.status || task.status_label || 'Created',
+                        date: task.date_added || task.date_submitted,
+                        type: 'Created'
+                    });
+                });
+            }
+            recentTasksState.created = created.slice(0, 8);
+
+            renderRecentTasks(activeTaskTab);
+        })
+        .catch(error => {
+            console.error('Error loading recent tasks:', error);
+            recentTasksBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-danger py-3">
+                        Failed to load tasks. Please try again later.
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
     if (availableBtn && unavailableBtn) {
         availableBtn.addEventListener('click', () => updateAvailabilityStatus('available'));
         unavailableBtn.addEventListener('click', () => updateAvailabilityStatus('unavailable'));
     }
+
+    recentTaskTabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.taskTab;
+            if (tab !== activeTaskTab) {
+                setActiveTaskTab(tab);
+            }
+        });
+    });
+
+    setActiveTaskTab('assigned');
+    fetchRecentTasks();
+    setInterval(fetchRecentTasks, 60000);
 });
 </script>
 
