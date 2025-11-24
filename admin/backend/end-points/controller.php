@@ -173,6 +173,21 @@ try {
             }
             break;
 
+        case 'DeleteProduct':
+            $prod_id = isset($_POST['prod_id']) ? intval($_POST['prod_id']) : 0;
+            if ($prod_id <= 0) {
+                echo json_encode(['status' => 'error', 'message' => 'Invalid product id']);
+                exit;
+            }
+
+            $result = $db->DeleteProduct($prod_id);
+            if ($result === 'success' || $result === true) {
+                echo json_encode(['status' => 'success', 'message' => 'Product removed successfully']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => is_string($result) ? $result : 'Failed to remove product']);
+            }
+            break;
+
         case 'AddProduct':
             // Expected fields from form: rm_name, rm_description, rm_price, rm_product_Category, rm_product_image (file)
             $name = isset($_POST['rm_name']) ? trim($_POST['rm_name']) : '';

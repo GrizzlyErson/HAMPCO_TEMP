@@ -181,7 +181,7 @@ $(document).ready(function () {
                     data: { prod_id: prod_id, requestType: 'DeleteProduct' },
                     dataType: 'json', 
                     success: function(response) {
-                        if (response.status === 200) {
+                        if (response && response.status === 'success') {
                             Swal.fire(
                                 'Deleted!',
                                 response.message,
@@ -192,7 +192,7 @@ $(document).ready(function () {
                         } else {
                             Swal.fire(
                                 'Error!',
-                                response.message, 
+                                (response && response.message) ? response.message : 'Failed to delete product', 
                                 'error'
                             );
                         }
