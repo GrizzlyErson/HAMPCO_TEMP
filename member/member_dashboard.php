@@ -1,5 +1,25 @@
 <?php
+require_once "../function/database.php";
 require_once "components/header.php";
+
+$db = new Database();
+$current_status = 'available';
+
+try {
+    $stmt = $db->conn->prepare("SELECT availability_status FROM user_member WHERE id = ?");
+    if ($stmt) {
+        $member_id = $_SESSION['id'] ?? 0;
+        $stmt->bind_param("i", $member_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result && $row = $result->fetch_assoc()) {
+            $current_status = $row['availability_status'] ?? 'available';
+        }
+        $stmt->close();
+    }
+} catch (Exception $e) {
+    error_log("Failed to fetch availability status: " . $e->getMessage());
+}
 ?>
 
 <body class="hampco-admin-sidebar-layout">
@@ -9,18 +29,19 @@ require_once "components/header.php";
         <div class="container-fluid">
 
                     <!-- Page Heading -->
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
                         <h1 class="h3 mb-0 text-gray-800">DASHBOARD  </h1>
-                        <i class="fa-solid fa-cart-plus"></i>
-                        <!-- Notification Bell Icon -->
-                    <button class="relative focus:outline-none" title="Notifications">
-                        <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                        <!-- Example: Notification dot -->
-                        <span class="absolute top-0 right-0 block h-2 w-2 rounded-full ring-2 ring-white bg-red-500"></span>
-                    </button>
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-cart-plus"></i>
+                            <div class="bg-white rounded-lg shadow-sm p-2 flex space-x-2">
+                                <button id="availableBtn" class="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 <?php echo $current_status === 'available' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'; ?>">
+                                    Available
+                                </button>
+                                <button id="unavailableBtn" class="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 <?php echo $current_status === 'unavailable' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'; ?>">
+                                    Unavailable
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Content Row -->
@@ -217,5 +238,79 @@ require_once "components/header.php";
 
 
     
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const availableBtn = document.getElementById('availableBtn');
+    const unavailableBtn = document.getElementById('unavailableBtn');
+
+    function updateAvailabilityStatus(status) {
+        if (availableBtn) availableBtn.disabled = true;
+        if (unavailableBtn) unavailableBtn.disabled = true;
+
+        fetch('backend/end-points/update_availability.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `status=${status}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (status === 'available') {
+                    if (availableBtn) {
+                        availableBtn.classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                        availableBtn.classList.add('bg-green-500', 'text-white');
+                    }
+                    if (unavailableBtn) {
+                        unavailableBtn.classList.remove('bg-red-500', 'text-white');
+                        unavailableBtn.classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    }
+                } else {
+                    if (unavailableBtn) {
+                        unavailableBtn.classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                        unavailableBtn.classList.add('bg-red-500', 'text-white');
+                    }
+                    if (availableBtn) {
+                        availableBtn.classList.remove('bg-green-500', 'text-white');
+                        availableBtn.classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                    }
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Status Updated',
+                    text: `Your status has been set to ${status}`,
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Update Failed',
+                    text: data.message || 'Failed to update status'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error updating availability:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred while updating status'
+            });
+        })
+        .finally(() => {
+            if (availableBtn) availableBtn.disabled = false;
+            if (unavailableBtn) unavailableBtn.disabled = false;
+        });
+    }
+
+    if (availableBtn && unavailableBtn) {
+        availableBtn.addEventListener('click', () => updateAvailabilityStatus('available'));
+        unavailableBtn.addEventListener('click', () => updateAvailabilityStatus('unavailable'));
+    }
+});
+</script>
 
 <?php require_once "components/footer.php"; ?>

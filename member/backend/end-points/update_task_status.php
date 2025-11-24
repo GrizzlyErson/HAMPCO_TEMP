@@ -33,6 +33,7 @@ function logError($message, $context = []) {
 try {
     require_once "../dbconnect.php";
     require_once "../class.php";
+    require_once dirname(__DIR__, 3) . "/admin/backend/helpers/task_decline_helper.php";
 
     if (!isset($_SESSION['id']) || !isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'member') {
         sendJsonResponse(false, 'Unauthorized access', null, 401);
@@ -61,6 +62,7 @@ try {
 
     $task_id = intval($data['task_id']);
     $action = $data['action'];
+    $decline_reason = isset($data['reason']) ? trim($data['reason']) : null;
 
     // Start transaction
     if (!$db->conn->begin_transaction()) {
@@ -235,6 +237,9 @@ try {
         ]);
 
     } elseif ($action === 'decline') {
+        if ($decline_reason === null || $decline_reason === '') {
+            throw new Exception('Decline reason is required.');
+        }
         // Update task_assignments table for decline
         $update_task = $db->conn->prepare("
             UPDATE task_assignments 
@@ -258,6 +263,9 @@ try {
         }
 
         $update_task->close();
+
+        // Record decline notification for admin follow-up
+        logTaskDecline($db->conn, $task_id, intval($task_data['prod_line_id']), $member_id, $decline_reason);
 
         // Commit transaction
         if (!$db->conn->commit()) {

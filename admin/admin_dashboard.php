@@ -74,10 +74,18 @@ require_once "components/header.php";
                                 </div>
 
                                 <!-- Order Notifications Section -->
-                                <div>
+                                <div style="margin-bottom: 24px;">
                                     <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Order Notifications</h4>
                                     <ul id="orderNotificationsList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
                                         <li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Declined Tasks Section -->
+                                <div>
+                                    <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Declined Assignments</h4>
+                                    <ul id="declinedTasksList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                                        <li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No declined assignments</li>
                                     </ul>
                                 </div>
                             </div>
@@ -90,6 +98,27 @@ require_once "components/header.php";
                                 <button id="closeNotificationBtn" style="flex: 1; background-color: #e5e7eb; color: #374151; font-weight: 600; padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; transition: background-color 0.3s;">
                                     Close
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Decline Response Modal -->
+                    <div id="declineResponseModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 10000; justify-content: center; align-items: center;">
+                        <div style="width: 100%; max-width: 480px; background-color: white; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; max-height: 420px; margin: 20px;">
+                            <div style="padding: 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h3 style="font-size: 18px; font-weight: 600; color: #1f2937; margin: 0;">Decline Explanation</h3>
+                                    <p id="declineResponseTaskInfo" style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;"></p>
+                                </div>
+                                <button id="closeDeclineResponseModal" style="background: none; border: none; cursor: pointer; color: #6b7280; font-size: 20px; line-height: 1;">✕</button>
+                            </div>
+                            <div style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
+                                <label for="declineResponseInput" style="font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Details for member</label>
+                                <textarea id="declineResponseInput" rows="5" style="flex: 1; resize: vertical; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; font-size: 14px; color: #111827;" placeholder="Explain why the task was declined or provide next steps..."></textarea>
+                            </div>
+                            <div style="padding: 16px; border-top: 1px solid #e5e7eb; display: flex; gap: 8px;">
+                                <button id="sendDeclineResponseBtn" style="flex: 1; background-color: #16a34a; color: white; font-weight: 600; padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; transition: background-color 0.3s;">Send</button>
+                                <button id="cancelDeclineResponseBtn" style="flex: 1; background-color: #e5e7eb; color: #374151; font-weight: 600; padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; transition: background-color 0.3s;">Cancel</button>
                             </div>
                         </div>
                     </div>
@@ -419,14 +448,123 @@ require_once "components/header.php";
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Dashboard script loaded');
 
+            const escapeHtml = (value = '') => {
+                if (value === null || value === undefined) {
+                    return '';
+                }
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            };
+
+            const declineResponseModal = document.getElementById('declineResponseModal');
+            const declineResponseInput = document.getElementById('declineResponseInput');
+            const declineResponseTaskInfo = document.getElementById('declineResponseTaskInfo');
+            const closeDeclineResponseModalBtn = document.getElementById('closeDeclineResponseModal');
+            const cancelDeclineResponseBtn = document.getElementById('cancelDeclineResponseBtn');
+            const sendDeclineResponseBtn = document.getElementById('sendDeclineResponseBtn');
+            let activeDeclineId = null;
+
+            function showDeclineResponseModal(details) {
+                if (!declineResponseModal || !declineResponseInput) return;
+                activeDeclineId = details.id;
+                if (declineResponseTaskInfo) {
+                    declineResponseTaskInfo.textContent = `${details.production} • ${details.productName} (${details.memberName})`;
+                }
+                declineResponseInput.value = '';
+                declineResponseModal.style.display = 'flex';
+                setTimeout(() => {
+                    declineResponseInput.focus();
+                }, 50);
+            }
+
+            function hideDeclineResponseModal() {
+                if (declineResponseModal) {
+                    declineResponseModal.style.display = 'none';
+                }
+                activeDeclineId = null;
+                if (declineResponseInput) {
+                    declineResponseInput.value = '';
+                }
+            }
+
+            if (closeDeclineResponseModalBtn) {
+                closeDeclineResponseModalBtn.addEventListener('click', hideDeclineResponseModal);
+            }
+            if (cancelDeclineResponseBtn) {
+                cancelDeclineResponseBtn.addEventListener('click', hideDeclineResponseModal);
+            }
+            if (declineResponseModal) {
+                declineResponseModal.addEventListener('click', function(e) {
+                    if (e.target === declineResponseModal) {
+                        hideDeclineResponseModal();
+                    }
+                });
+            }
+            if (sendDeclineResponseBtn && declineResponseInput) {
+                sendDeclineResponseBtn.addEventListener('click', function() {
+                    if (!activeDeclineId) {
+                        alert('Select a declined assignment to respond to.');
+                        return;
+                    }
+                    const message = declineResponseInput.value.trim();
+                    if (!message) {
+                        alert('Please provide details before sending.');
+                        return;
+                    }
+                    const originalText = sendDeclineResponseBtn.textContent;
+                    sendDeclineResponseBtn.disabled = true;
+                    sendDeclineResponseBtn.textContent = 'Sending...';
+
+                    fetch('backend/end-points/task_declines.php?action=respond', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams({
+                            decline_id: activeDeclineId,
+                            message
+                        })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (!data.success) {
+                            throw new Error(data.error || data.message || 'Failed to send explanation');
+                        }
+                        if (typeof alertify !== 'undefined') {
+                            alertify.success('Decline explanation sent');
+                        }
+                        hideDeclineResponseModal();
+                        updateNotifications();
+                    })
+                    .catch(err => {
+                        console.error('Error sending decline explanation:', err);
+                        if (typeof alertify !== 'undefined') {
+                            alertify.error(err.message || 'Failed to send explanation');
+                        } else {
+                            alert(err.message || 'Failed to send explanation');
+                        }
+                    })
+                    .finally(() => {
+                        sendDeclineResponseBtn.disabled = false;
+                        sendDeclineResponseBtn.textContent = originalText;
+                    });
+                });
+            }
+
             function updateNotifications() {
                 console.log('Updating notifications...');
                 
                 // Show loading state
                 const unverifiedList = document.getElementById('unverifiedMembersList');
                 const ordersList = document.getElementById('orderNotificationsList');
+                const declinedList = document.getElementById('declinedTasksList');
                 if (unverifiedList) unverifiedList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>';
                 if (ordersList) ordersList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>';
+                if (declinedList) declinedList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>';
                 
                 Promise.all([
                     fetch('backend/end-points/get_unverified_members.php')
@@ -446,10 +584,19 @@ require_once "components/header.php";
                         .catch(e => {
                             console.error('Error fetching notifications:', e);
                             return { notifications: [] };
+                        }),
+                    fetch('backend/end-points/task_declines.php?action=list&status=pending')
+                        .then(r => {
+                            console.log('Get declined tasks response status:', r.status);
+                            return r.json();
+                        })
+                        .catch(e => {
+                            console.error('Error fetching declined tasks:', e);
+                            return { declines: [] };
                         })
                 ])
-                .then(([memberData, notifData]) => {
-                    console.log('Notification data:', memberData, notifData);
+                .then(([memberData, notifData, declineData]) => {
+                    console.log('Notification data:', memberData, notifData, declineData);
                     
                     const notificationBell = document.querySelector('button[title="Notifications"]');
                     if (!notificationBell) {
@@ -460,13 +607,16 @@ require_once "components/header.php";
                     const notificationDot = notificationBell.querySelector('span');
                     const unverifiedList = document.getElementById('unverifiedMembersList');
                     const ordersList = document.getElementById('orderNotificationsList');
+                    const declinedList = document.getElementById('declinedTasksList');
                     
                     // Check if we have notifications
                     const memberCount = Array.isArray(memberData) ? memberData.length : 0;
                     const notificationCount = (notifData && notifData.notifications) ? notifData.notifications.length : 0;
-                    const hasNotifications = memberCount > 0 || notificationCount > 0;
+                    const declineItems = (declineData && declineData.success && Array.isArray(declineData.declines)) ? declineData.declines : [];
+                    const declineCount = declineItems.length;
+                    const hasNotifications = memberCount > 0 || notificationCount > 0 || declineCount > 0;
                     
-                    console.log('Has notifications:', hasNotifications, '(members:', memberCount, 'orders:', notificationCount, ')');
+                    console.log('Has notifications:', hasNotifications, '(members:', memberCount, 'orders:', notificationCount, 'declines:', declineCount, ')');
                     
                     // Update notification dot visibility
                     if (notificationDot) {
@@ -504,28 +654,64 @@ require_once "components/header.php";
                     if (ordersList) {
                         if (notifData && notifData.notifications && notifData.notifications.length > 0) {
                             ordersList.innerHTML = notifData.notifications.map(notif => `
-                                <li style="padding: 12px; background-color: ${notif.is_read ? '#f3f4f6' : '#eff6ff'}; border-radius: 6px; border: 1px solid ${notif.is_read ? '#e5e7eb' : '#dbeafe'}; margin-bottom: 8px; cursor: pointer; transition: all 0.3s ease;" class="order-notification-item" data-notification-id="${notif.id}" onmouseover="this.style.backgroundColor='${notif.is_read ? '#e5e7eb' : '#dbeafe'}'" onmouseout="this.style.backgroundColor='${notif.is_read ? '#f3f4f6' : '#eff6ff'}'">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <li style="padding: 12px; background-color: #fef3c7; border-radius: 6px; border: 1px solid #fde68a; margin-bottom: 8px; cursor: pointer; transition: all 0.3s ease;" class="order-notification-item" data-order-id="${notif.id}" onmouseover="this.style.backgroundColor='#fde68a'" onmouseout="this.style.backgroundColor='#fef3c7'">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
                                         <div style="flex: 1;">
-                                            <h4 style="font-weight: 600; color: #1f2937; margin: 0; font-size: 14px;">${notif.message}</h4>
-                                            <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">${new Date(notif.created_at).toLocaleString()}</p>
+                                            <h4 style="font-weight: 600; color: #1f2937; margin: 0; font-size: 14px;">Order #${notif.id}</h4>
+                                            <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Customer: ${notif.customer_name}</p>
+                                            <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Total: ₱${parseFloat(notif.total_amount).toFixed(2)}</p>
+                                            <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Method: ${notif.payment_method}</p>
                                         </div>
-                                        ${!notif.is_read ? `
-                                            <span style="padding: 4px 8px; background-color: #3b82f6; color: white; border-radius: 4px; font-size: 11px; white-space: nowrap; margin-left: 8px;">New</span>
-                                        ` : ''}
+                                        <div style="display: flex; flex-direction: column; gap: 6px; white-space: nowrap;">
+                                            <button onclick="acceptOrderFromNotif(${notif.id})" style="padding: 4px 8px; background-color: #10b981; color: white; border-radius: 4px; font-size: 11px; border: none; cursor: pointer; transition: background-color 0.3s;">✓ Accept</button>
+                                            <button onclick="declineOrderFromNotif(${notif.id})" style="padding: 4px 8px; background-color: #ef4444; color: white; border-radius: 4px; font-size: 11px; border: none; cursor: pointer; transition: background-color 0.3s;">✕ Decline</button>
+                                        </div>
                                     </div>
                                 </li>
                             `).join('');
-                            
-                            // Add click handlers for order notifications
-                            ordersList.querySelectorAll('.order-notification-item').forEach(item => {
-                                item.addEventListener('click', function() {
-                                    markNotificationRead(this.dataset.notificationId);
-                                    window.location.href = 'orders.php';
+                        } else {
+                            ordersList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new order notifications</li>';
+                        }
+                    }
+
+                    // Update declined task notifications
+                    if (declinedList) {
+                        if (declineCount > 0) {
+                            declinedList.innerHTML = declineItems.map(decline => `
+                                <li style="padding: 12px; background-color: #fee2e2; border-radius: 6px; border: 1px solid #fecaca; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;">
+                                    <div>
+                                        <h4 style="font-weight: 600; color: #991b1b; margin: 0; font-size: 14px;">${escapeHtml(decline.production_code)} • ${escapeHtml(decline.product_name)}</h4>
+                                        <p style="font-size: 12px; color: #7f1d1d; margin: 4px 0 0 0;">Member: ${escapeHtml(decline.member_name)}</p>
+                                        ${decline.member_reason ? `<p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Reason: ${escapeHtml(decline.member_reason)}</p>` : ''}
+                                        <p style="font-size: 11px; color: #6b7280; margin: 4px 0 0 0;">Declined: ${new Date(decline.declined_at).toLocaleString()}</p>
+                                    </div>
+                                    <button class="respond-decline-btn" 
+                                        data-id="${decline.id}" 
+                                        data-prod="${encodeURIComponent(decline.production_code || '')}" 
+                                        data-product="${encodeURIComponent(decline.product_name || '')}" 
+                                        data-member="${encodeURIComponent(decline.member_name || '')}"
+                                        style="align-self: flex-start; padding: 6px 10px; background-color: #dc2626; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                        Add Explanation
+                                    </button>
+                                </li>
+                            `).join('');
+
+                            declinedList.querySelectorAll('.respond-decline-btn').forEach(btn => {
+                                btn.addEventListener('click', function() {
+                                    const declineId = parseInt(this.getAttribute('data-id'), 10);
+                                    const production = decodeURIComponent(this.getAttribute('data-prod') || '');
+                                    const productName = decodeURIComponent(this.getAttribute('data-product') || '');
+                                    const memberName = decodeURIComponent(this.getAttribute('data-member') || '');
+                                    showDeclineResponseModal({
+                                        id: declineId,
+                                        production,
+                                        productName,
+                                        memberName
+                                    });
                                 });
                             });
                         } else {
-                            ordersList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new order notifications</li>';
+                            declinedList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No declined assignments</li>';
                         }
                     }
                 })
@@ -533,6 +719,13 @@ require_once "components/header.php";
                     console.error('Error updating notifications:', error);
                     if (unverifiedList) {
                         unverifiedList.innerHTML = '<li style="padding: 12px; color: #dc2626; text-align: center; font-size: 14px;">Error loading notifications</li>';
+                    }
+                    if (ordersList) {
+                        ordersList.innerHTML = '<li style="padding: 12px; color: #dc2626; text-align: center; font-size: 14px;">Error loading order notifications</li>';
+                    }
+                    const declinedList = document.getElementById('declinedTasksList');
+                    if (declinedList) {
+                        declinedList.innerHTML = '<li style="padding: 12px; color: #dc2626; text-align: center; font-size: 14px;">Error loading declined assignments</li>';
                     }
                 });
             }
@@ -644,6 +837,20 @@ require_once "components/header.php";
                     .catch(error => console.error('Error marking all notifications as read:', error));
                 });
             }
+
+            // Accept order from notification
+            window.acceptOrderFromNotif = function(orderId) {
+                if (confirm(`Accept order #${orderId}?`)) {
+                    updateOrderStatus(orderId, 'Accepted', null);
+                }
+            };
+
+            // Decline order from notification
+            window.declineOrderFromNotif = function(orderId) {
+                if (confirm(`Decline order #${orderId}?`)) {
+                    updateOrderStatus(orderId, 'Declined', null);
+                }
+            };
         });
     </script>
 

@@ -41,7 +41,7 @@ class global_class extends db_connect
                 stock_history.stock_date,
                 stock_history.stock_user_type,
                 raw_materials.id AS raw_id,
-                raw_materials.raw_materials_name,
+                raw_materials.raw_materials_name AS rm_name,
                 COALESCE(user_admin.id, user_member.id) AS user_id,
                 COALESCE(user_admin.fullname, user_member.fullname) AS fullname,
                 COALESCE('Administrator') AS role

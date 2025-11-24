@@ -158,16 +158,34 @@ async function acceptTask(taskId) {
 async function declineTask(taskId) {
     try {
         const result = await Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
+            title: 'Decline Task',
+            html: `
+                <div class="text-left">
+                    <p class="mb-2 text-sm text-gray-600">Please provide a short explanation for declining this task.</p>
+                    <textarea id="swalDeclineReason" class="swal2-textarea" placeholder="Reason for declining" rows="4"></textarea>
+                </div>
+            `,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, decline it!'
+            confirmButtonText: 'Submit Decline',
+            focusConfirm: false,
+            preConfirm: () => {
+                const reasonField = document.getElementById('swalDeclineReason');
+                if (!reasonField) {
+                    return '';
+                }
+                const value = reasonField.value.trim();
+                if (!value) {
+                    Swal.showValidationMessage('Please provide a reason for declining.');
+                    return false;
+                }
+                return value;
+            }
         });
 
-        if (result.isConfirmed) {
+        if (result.isConfirmed && result.value) {
             const response = await fetch('backend/end-points/update_task_status.php', {
                 method: 'POST',
                 headers: {
@@ -175,7 +193,8 @@ async function declineTask(taskId) {
                 },
                 body: JSON.stringify({
                     task_id: taskId,
-                    action: 'decline'
+                    action: 'decline',
+                    reason: result.value
                 })
             });
 

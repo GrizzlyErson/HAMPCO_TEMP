@@ -928,27 +928,46 @@ function acceptTask(taskId) {
 function declineTask(taskId) {
     Swal.fire({
         title: 'Decline Task',
-        text: 'Are you sure you want to decline this task?',
+        html: `
+            <div class="text-left">
+                <p class="mb-2 text-sm text-gray-600">Please let the admin know why you are declining this assignment.</p>
+                <textarea id="declineReasonInput" class="swal2-textarea" placeholder="Enter your reason..." rows="4"></textarea>
+            </div>
+        `,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
         cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, decline it!'
+        confirmButtonText: 'Submit Decline',
+        focusConfirm: false,
+        preConfirm: () => {
+            const reasonField = document.getElementById('declineReasonInput');
+            if (!reasonField) {
+                return '';
+            }
+            const value = reasonField.value.trim();
+            if (!value) {
+                Swal.showValidationMessage('Please provide a reason for declining.');
+                return false;
+            }
+            return value;
+        }
     }).then((result) => {
-        if (result.isConfirmed) {
-    fetch('backend/end-points/update_task_status.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            task_id: taskId,
-                    action: 'decline'
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
+        if (result.isConfirmed && result.value) {
+            fetch('backend/end-points/update_task_status.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    task_id: taskId,
+                    action: 'decline',
+                    reason: result.value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Task Declined',
@@ -956,14 +975,14 @@ function declineTask(taskId) {
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-            window.location.reload();
+                        window.location.reload();
                     });
-        } else {
+                } else {
                     throw new Error(data.message || 'Failed to decline task');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
