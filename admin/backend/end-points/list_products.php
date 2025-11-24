@@ -294,7 +294,7 @@ $(document).ready(function () {
             e.preventDefault();
 
             $('.spinner').show();
-            $('#btnRawStockin').prop('disabled', true);
+            $('#btnProdStockin').prop('disabled', true);
         
             var formData = new FormData(this); 
             formData.append('requestType', 'ProdStockin');
@@ -313,6 +313,8 @@ $(document).ready(function () {
                     
                     if (response.status ==="success") {
                         alertify.success(response.message);
+                        $('#frmProdStockin')[0].reset();
+                        $('#rm_quantity').val('');
                         setTimeout(function () { location.reload(); }, 1000);
                     } else {
                         $('.spinner').hide();
@@ -322,6 +324,7 @@ $(document).ready(function () {
                 },
                 complete: function () {
                     $("#btnProdStockin").prop("disabled", false).text("Submit");
+                    $('.spinner').hide();
                 }
             });
         });
