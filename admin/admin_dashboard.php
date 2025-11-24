@@ -1136,30 +1136,21 @@ require_once "components/header.php";
 
     // Load active members by role from member list
     function loadActiveMembersByRole() {
-        fetch('backend/end-points/list_verified_members.php')
-            .then(function(response) { return response.text(); })
-            .then(function(html) {
-                var tempDiv = document.createElement('div');
-                tempDiv.innerHTML = html;
-                var rows = tempDiv.querySelectorAll('tr');
+        fetch('backend/end-points/get_workforce_members.php')
+            .then(response => response.json())
+            .then(data => {
                 var summary = {
                     knotter: 0,
                     warper: 0,
                     weaver: 0
                 };
                 
-                rows.forEach(function(row) {
-                    var cells = row.querySelectorAll('td');
-                    if (cells.length > 0) {
-                        var role = cells[4] ? cells[4].textContent.trim().toLowerCase() : '';
-                        // Check for availability status in the 7th column (index 6)
-                        var availabilityCell = cells[6] ? cells[6].textContent.trim() : '';
-                        
-                        // Count only members with "available" status
-                        if (['knotter', 'warper', 'weaver'].indexOf(role) !== -1) {
-                            if (availabilityCell.toLowerCase().indexOf('available') !== -1) {
-                                summary[role]++;
-                            }
+                // Count members with 'available' status for each role
+                data.forEach(member => {
+                    const role = member.role.toLowerCase();
+                    if (['knotter', 'warper', 'weaver'].indexOf(role) !== -1) {
+                        if (member.availability_status === 'available') {
+                            summary[role]++;
                         }
                     }
                 });
