@@ -74,11 +74,11 @@ $firstname = $name_parts[0];
     
     <!-- Search Bar -->
     <div class="flex-1 mx-4 hidden md:block max-w-md">
-      <input type="text" id="search" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search Products...">
+      <input type="text" id="search" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Search Products...">
     </div>
     
     <!-- Mobile Menu Button -->
-    <button id="mobileMenuButton" class="lg:hidden text-gray-700 hover:text-blue-600 focus:outline-none">
+    <button id="mobileMenuButton" class="lg:hidden text-gray-700 hover:text-green-600 focus:outline-none">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
       </svg>
@@ -88,7 +88,7 @@ $firstname = $name_parts[0];
     <nav id="navigation" class="hidden lg:flex lg:items-center lg:space-x-4">
       <?php if ($is_logged_in): ?>
         <!-- Show these if user is logged in -->
-        <a href="customer_home_page" class="text-gray-700 hover:text-blue-600 transition">Products</a>
+        <a href="customer_home_page" class="text-gray-700 hover:text-green-600 transition">Products</a>
 
         <div class="relative dropdown">
           <!-- Dropdown Trigger -->
@@ -109,23 +109,23 @@ $firstname = $name_parts[0];
 
           <!-- Dropdown Menu -->
           <div class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg dropdown-menu">
-              <a href="checkout_history.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition">
+              <a href="checkout_history.php" class="block px-4 py-2 text-gray-700 hover:bg-green-100 hover:text-green-600 transition">
                   <span class="material-icons align-middle mr-2">history</span>
                   Checkout History
               </a>
-              <a href="orders.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition">
+              <a href="orders.php" class="block px-4 py-2 text-gray-700 hover:bg-green-100 hover:text-green-600 transition">
                   <span class="material-icons align-middle mr-2">shopping_cart</span>
                   My Purchase
               </a>
-              <a href="profile.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition">
+              <a href="profile.php" class="block px-4 py-2 text-gray-700 hover:bg-green-100 hover:text-green-600 transition">
                   <span class="material-icons align-middle mr-2">account_circle</span>
                   Profile
               </a>
-              <a href="password_setting.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition">
+              <a href="password_setting.php" class="block px-4 py-2 text-gray-700 hover:bg-green-100 hover:text-green-600 transition">
                   <span class="material-icons align-middle mr-2">lock</span>
                   Password
               </a>
-              <a href="logout.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition">
+              <a href="logout.php" class="block px-4 py-2 text-gray-700 hover:bg-green-100 hover:text-green-600 transition">
                   <span class="material-icons align-middle mr-2">exit_to_app</span>
                   Logout
               </a>
@@ -134,12 +134,12 @@ $firstname = $name_parts[0];
 
       <?php else: ?>
         <!-- Show these if user is not logged in -->
-        <a href="login.php" class="text-gray-700 hover:text-blue-600 transition">Login</a>
+        <a href="login.php" class="text-gray-700 hover:text-green-600 transition">Login</a>
         <span class="text-gray-500">/</span>
-        <a href="signup.php" class="text-gray-700 hover:text-blue-600 transition">Register</a>
+        <a href="signup.php" class="text-gray-700 hover:text-green-600 transition">Register</a>
       <?php endif; ?>
 
-      <a href="view_cart" class="relative text-gray-700 hover:text-blue-600 transition text-xl">
+      <a href="view_cart" class="relative text-gray-700 hover:text-green-600 transition text-xl">
           🛒
           <span class="absolute top-0 right-0 inline-block w-5 h-5 text-xs font-semibold text-white bg-red-500 rounded-full text-center hidden cartCount"></span>
       </a>
@@ -150,49 +150,49 @@ $firstname = $name_parts[0];
   <div id="mobileMenu" class="hidden lg:hidden bg-white border-t border-gray-200">
   <nav class="flex flex-col space-y-2 p-4">
     <?php if ($is_logged_in): ?>
-      <a href="index.php" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+      <a href="index.php" class="flex items-center text-gray-700 hover:text-green-600 transition">
         <span class="material-icons mr-2">home</span>
         Products
       </a>
      <!-- Cart -->
-    <a href="view_cart" class="flex items-center text-gray-700 hover:text-blue-600 transition relative">
+    <a href="view_cart" class="flex items-center text-gray-700 hover:text-green-600 transition relative">
       <span class="material-icons mr-2">shopping_cart</span>
       Cart
       <span class="absolute top-0 right-0 inline-block w-5 h-5 text-xs font-semibold text-white bg-red-500 rounded-full text-center cartCount hidden">0</span>
     </a>
 
     <!-- Wishlist -->
-    <a href="view_wishlist.php" class="flex items-center text-gray-700 hover:text-blue-600 transition relative">
+    <a href="view_wishlist.php" class="flex items-center text-gray-700 hover:text-green-600 transition relative">
       <span class="material-icons mr-2">favorite</span>
       Wishlist
       <span class="absolute top-0 right-0 inline-block w-5 h-5 text-xs font-semibold text-white bg-red-500 rounded-full text-center wishlistCount hidden">0</span>
     </a>
-      <a href="checkout_history.php" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+      <a href="checkout_history.php" class="flex items-center text-gray-700 hover:text-green-600 transition">
         <span class="material-icons mr-2">history</span>
         Checkout History
       </a>
-      <a href="orders.php" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+      <a href="orders.php" class="flex items-center text-gray-700 hover:text-green-600 transition">
         <span class="material-icons mr-2">shopping_cart</span>
         My Purchase
       </a>
-      <a href="profile.php" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+      <a href="profile.php" class="flex items-center text-gray-700 hover:text-green-600 transition">
         <span class="material-icons mr-2">account_circle</span>
         Profile
       </a>
-      <a href="password_setting.php" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+      <a href="password_setting.php" class="flex items-center text-gray-700 hover:text-green-600 transition">
         <span class="material-icons mr-2">lock</span>
         Password
       </a>
-      <a href="logout.php" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+      <a href="logout.php" class="flex items-center text-gray-700 hover:text-green-600 transition">
         <span class="material-icons mr-2">exit_to_app</span>
         Logout
       </a>
     <?php else: ?>
-      <a href="login.php" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+      <a href="login.php" class="flex items-center text-gray-700 hover:text-green-600 transition">
         <span class="material-icons mr-2">login</span>
         Login
       </a>
-      <a href="signup.php" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+      <a href="signup.php" class="flex items-center text-gray-700 hover:text-green-600 transition">
         <span class="material-icons mr-2">person_add</span>
         Register
       </a>

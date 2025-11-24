@@ -23,7 +23,7 @@
                 <!-- Card Content -->
                 <div class="p-4">
                     <!-- Product Name -->
-                    <h2 class="font-bold text-sm md:text-base text-gray-800 mb-2 line-clamp-2 product-name group-hover:text-blue-600 transition-colors">
+                    <h2 class="font-bold text-sm md:text-base text-gray-800 mb-2 line-clamp-2 product-name group-hover:text-green-600 transition-colors">
                         <?=$product['prod_name']?>
                     </h2>
 
