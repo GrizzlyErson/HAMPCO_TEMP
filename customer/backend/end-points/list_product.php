@@ -26,41 +26,21 @@
                 </div>
 
                 <!-- Card Content -->
-                <div class="p-4 flex flex-col h-32">
+                <div class="p-4">
                     <!-- Product Name -->
                     <h2 class="font-bold text-sm md:text-base text-gray-800 mb-2 line-clamp-2 product-name group-hover:text-blue-600 transition-colors">
                         <?=$product['prod_name']?>
                     </h2>
 
                     <!-- Product Description -->
-                    <p class="text-xs md:text-sm text-gray-600 mb-3 line-clamp-2 flex-grow">
+                    <p class="text-xs md:text-sm text-gray-600 mb-3 line-clamp-2">
                         <?= substr($product['prod_description'], 0, 50) . (strlen($product['prod_description']) > 50 ? '...' : '') ?>
                     </p>
 
-                    <!-- Price and Rating Row -->
-                    <div class="flex items-center justify-between">
-                        <!-- Price -->
-                        <div>
-                            <p class="text-lg md:text-xl font-bold text-red-600">
-                                PHP <?=number_format($product['prod_price'], 2);?>
-                            </p>
-                        </div>
-                        
-                        <!-- Rating Stars -->
-                        <div class="flex items-center">
-                            <div class="flex text-yellow-400">
-                                <span class="text-sm">★★★★★</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Action Button -->
-                    <button class="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-xs md:text-sm font-semibold transition-colors duration-200 flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293a1 1 0 00-.263 1.157l1.905 5.831A2 2 0 0010.25 23h3.5a2 2 0 001.946-1.39l1.838-5.119a1 1 0 00-.28-1.144L16 13M17 13v6m-3-6v6" />
-                        </svg>
-                        Add to Cart
-                    </button>
+                    <!-- Price -->
+                    <p class="text-lg md:text-xl font-bold text-red-600">
+                        PHP <?=number_format($product['prod_price'], 2);?>
+                    </p>
                 </div>
             </a>
         </div>
