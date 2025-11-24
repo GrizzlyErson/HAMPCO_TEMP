@@ -47,7 +47,7 @@ function updatePaymentTable(records) {
     if (!records || records.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="10" class="text-center text-gray-500 py-4">
+                <td colspan="10" class="text-center text-gray-500 py-3 sm:py-4 text-xs sm:text-sm">
                     No payment records found
                 </td>
             </tr>
@@ -57,20 +57,20 @@ function updatePaymentTable(records) {
 
     tableBody.innerHTML = records.map(record => `
         <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm">${record.member_name}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">${record.product_name}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">${record.measurements}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">${record.weight_g}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">${record.quantity}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">₱${record.unit_rate}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">₱${record.total}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm truncate max-w-20 hidden sm:table-cell">${record.member_name}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm truncate max-w-24 hidden md:table-cell">${record.product_name}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm truncate max-w-20 hidden lg:table-cell">${record.measurements}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">${record.weight_g}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm hidden sm:table-cell">${record.quantity}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">₱${record.unit_rate}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">₱${record.total}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm hidden md:table-cell">
                 <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(record.payment_status)}">
                     ${record.payment_status}
                 </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">${record.date_paid}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm hidden lg:table-cell">${record.date_paid}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-center">
                 ${getActionButtons(record)}
             </td>
         </tr>
@@ -96,17 +96,17 @@ function getActionButtons(record) {
     }
 
     return `
-        <div class="flex space-x-2">
+        <div class="flex flex-col gap-1 sm:flex-row sm:justify-center">
             ${record.payment_status !== 'Paid' ? `
                 <button onclick="processPayment(${record.id})"
-                    class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors">
+                    class="bg-green-500 hover:bg-green-600 text-white px-2 sm:px-3 py-1 rounded-md text-xs whitespace-nowrap transition-colors">
                     Pay
                 </button>
             ` : ''}
             ${record.payment_status === 'Pending' ? `
                 <button onclick="adjustPayment(${record.id})"
-                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm transition-colors">
-                    Adjust
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-2 sm:px-3 py-1 rounded-md text-xs whitespace-nowrap transition-colors">
+                    Adj
                 </button>
             ` : ''}
         </div>
