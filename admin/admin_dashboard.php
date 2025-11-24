@@ -193,7 +193,7 @@ require_once "components/header.php";
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-uppercase mb-1">
                                                 Active Tasks</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeTasksCount">0</div>
                                         </div>
                                         <div class="col-auto">
                                             <i class="fas fa-comments fa-2x text-gray-300"></i>
@@ -990,12 +990,28 @@ require_once "components/header.php";
                     </tr>
                 `;
             }).join('');
+            
+            // Update active tasks count
+            updateActiveTasksCount(allTasks);
         })
         .catch(error => {
             console.error('Error loading recent tasks:', error);
             const tableBody = document.querySelector('#recentTasksTable tbody');
             tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-3">Error loading tasks</td></tr>';
         });
+    }
+
+    // Update the active tasks count in the card
+    function updateActiveTasksCount(allTasks) {
+        const countElement = document.getElementById('activeTasksCount');
+        if (!countElement) return;
+        
+        // Count tasks with status 'in_progress' or 'pending'
+        const activeCount = allTasks.filter(task => 
+            task.status === 'in_progress' || task.status === 'pending'
+        ).length;
+        
+        countElement.textContent = activeCount;
     }
 
     // Load member created tasks for the admin dashboard
