@@ -204,46 +204,7 @@ require_once "components/header.php";
                         </div>
                     </div>
 
-                    <!-- Workforce Summary Row -->
-                    <div class="row">
-                        <div class="col-lg-12 mb-4">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3 bg-success">
-                                    <h6 class="m-0 font-weight-bold text-light">👥 Active Members by Role</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div style="display: flex; gap: 40px; justify-content: space-around; flex-wrap: wrap;">
-                                        <!-- Knotters -->
-                                        <div style="text-align: center; flex: 1; min-width: 150px;">
-                                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background-color: #e7f3ff; border-radius: 50%; margin: 0 auto 15px;">
-                                                <span style="font-size: 32px; font-weight: bold; color: #1cc88a;" id="activeKnottersCount">0</span>
-                                            </div>
-                                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1f2937;">Knotters</p>
-                                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6b7280;">Active on tasks</p>
-                                        </div>
-
-                                        <!-- Weavers -->
-                                        <div style="text-align: center; flex: 1; min-width: 150px;">
-                                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background-color: #eff6ff; border-radius: 50%; margin: 0 auto 15px;">
-                                                <span style="font-size: 32px; font-weight: bold; color: #4e73df;" id="activeWeaversCount">0</span>
-                                            </div>
-                                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1f2937;">Weavers</p>
-                                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6b7280;">Active on tasks</p>
-                                        </div>
-
-                                        <!-- Warpers -->
-                                        <div style="text-align: center; flex: 1; min-width: 150px;">
-                                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background-color: #ecfdf5; border-radius: 50%; margin: 0 auto 15px;">
-                                                <span style="font-size: 32px; font-weight: bold; color: #36b9cc;" id="activeWarpersCount">0</span>
-                                            </div>
-                                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1f2937;">Warpers</p>
-                                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6b7280;">Active on tasks</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    
                     
 
                     <!-- Content Row -->
@@ -336,6 +297,46 @@ require_once "components/header.php";
                                                 <span style="font-size: 14px; font-weight: bold; margin-right: 12px;">Warpers</span>
                                                 <span id="warperPercentage" style="font-size: 16px; font-weight: bold; color: #36b9cc;">0%</span>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Workforce Summary Row -->
+                    <div class="row">
+                        <div class="col-lg-12 mb-4">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 bg-success">
+                                    <h6 class="m-0 font-weight-bold text-light">👥 Active Members by Role</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div style="display: flex; gap: 40px; justify-content: space-around; flex-wrap: wrap;">
+                                        <!-- Knotters -->
+                                        <div style="text-align: center; flex: 1; min-width: 150px;">
+                                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background-color: #e7f3ff; border-radius: 50%; margin: 0 auto 15px;">
+                                                <span style="font-size: 32px; font-weight: bold; color: #1cc88a;" id="activeKnottersCount">0</span>
+                                            </div>
+                                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1f2937;">Knotters</p>
+                                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6b7280;">Active on tasks</p>
+                                        </div>
+
+                                        <!-- Weavers -->
+                                        <div style="text-align: center; flex: 1; min-width: 150px;">
+                                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background-color: #eff6ff; border-radius: 50%; margin: 0 auto 15px;">
+                                                <span style="font-size: 32px; font-weight: bold; color: #4e73df;" id="activeWeaversCount">0</span>
+                                            </div>
+                                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1f2937;">Weavers</p>
+                                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6b7280;">Active on tasks</p>
+                                        </div>
+
+                                        <!-- Warpers -->
+                                        <div style="text-align: center; flex: 1; min-width: 150px;">
+                                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background-color: #ecfdf5; border-radius: 50%; margin: 0 auto 15px;">
+                                                <span style="font-size: 32px; font-weight: bold; color: #36b9cc;" id="activeWarpersCount">0</span>
+                                            </div>
+                                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1f2937;">Warpers</p>
+                                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6b7280;">Active on tasks</p>
                                         </div>
                                     </div>
                                 </div>
