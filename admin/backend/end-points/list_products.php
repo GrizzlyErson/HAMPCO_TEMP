@@ -24,38 +24,45 @@ if ($fetch_all_materials->num_rows > 0) {
     <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['prod_price']); ?></td>
     <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['category_name']); ?></td>
     <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['prod_description']); ?></td>
-    <td class="py-3 px-6 flex space-x-2">
-        <!-- Update Button -->
-       <button class="updateRmBtn bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-full text-xs flex items-center shadow"
-            data-id="<?php echo htmlspecialchars($row['prod_id']); ?>" 
-            data-name="<?php echo htmlspecialchars($row['prod_name']); ?>"
-            data-description="<?php echo htmlspecialchars($row['prod_description']); ?>"
-            data-price="<?php echo htmlspecialchars($row['prod_price']); ?>"
-            data-category-id="<?php echo htmlspecialchars($row['prod_category_id']); ?>">
-            <span class="material-icons text-sm mr-1">edit</span> Update
-        </button>
+    <td class="py-3 px-6">
+        <!-- Dropdown Menu -->
+        <div class="relative group">
+            <button class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-xs flex items-center shadow">
+                <span class="material-icons text-sm mr-1">more_vert</span> Actions
+            </button>
+            <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden group-hover:block z-10">
+                <!-- Update Option -->
+                <button class="updateRmBtn w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-gray-800 text-sm border-b"
+                    data-id="<?php echo htmlspecialchars($row['prod_id']); ?>" 
+                    data-name="<?php echo htmlspecialchars($row['prod_name']); ?>"
+                    data-description="<?php echo htmlspecialchars($row['prod_description']); ?>"
+                    data-price="<?php echo htmlspecialchars($row['prod_price']); ?>"
+                    data-category-id="<?php echo htmlspecialchars($row['prod_category_id']); ?>">
+                    <span class="material-icons text-sm mr-2">edit</span> Update
+                </button>
+                
+                <!-- Stock In Option -->
+                <button class="stockInRmBtn w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-gray-800 text-sm border-b"
+                    data-id="<?php echo htmlspecialchars($row['prod_id']); ?>" 
+                    data-prod_name="<?php echo htmlspecialchars($row['prod_name']); ?>">
+                    <span class="material-icons text-sm mr-2">arrow_upward</span> Stock In
+                </button>
 
+                <!-- Manage Materials Option -->
+                <button class="manageMaterialsBtn w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-gray-800 text-sm border-b"
+                    data-id="<?php echo htmlspecialchars($row['prod_id']); ?>" 
+                    data-prod_name="<?php echo htmlspecialchars($row['prod_name']); ?>">
+                    <span class="material-icons text-sm mr-2">inventory_2</span> Materials
+                </button>
 
-        <!-- Delete Button -->
-        <button class="deleteRmBtn bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-full text-xs flex items-center shadow"
-            data-prod_id="<?php echo htmlspecialchars($row['prod_id']); ?>" 
-            data-prod_name="<?php echo htmlspecialchars($row['prod_name']); ?>">
-            <span class="material-icons text-sm mr-1">delete</span> Remove
-        </button>
-
-        <!-- Stock In Button -->
-        <button class="stockInRmBtn bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-full text-xs flex items-center shadow"
-            data-id="<?php echo htmlspecialchars($row['prod_id']); ?>" 
-            data-prod_name="<?php echo htmlspecialchars($row['prod_name']); ?>">
-            <span class="material-icons text-sm mr-1">arrow_upward</span> Stock In
-        </button>
-
-        <!-- Manage Materials Button -->
-        <button class="manageMaterialsBtn bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-full text-xs flex items-center shadow"
-            data-id="<?php echo htmlspecialchars($row['prod_id']); ?>" 
-            data-prod_name="<?php echo htmlspecialchars($row['prod_name']); ?>">
-            <span class="material-icons text-sm mr-1">inventory_2</span> Materials
-        </button>
+                <!-- Delete Option -->
+                <button class="deleteRmBtn w-full text-left px-4 py-2 hover:bg-red-50 flex items-center text-red-600 text-sm"
+                    data-prod_id="<?php echo htmlspecialchars($row['prod_id']); ?>" 
+                    data-prod_name="<?php echo htmlspecialchars($row['prod_name']); ?>">
+                    <span class="material-icons text-sm mr-2">delete</span> Remove
+                </button>
+            </div>
+        </div>
     </td>
 </tr>
 

@@ -246,6 +246,7 @@
             var rmUnit = $(this).data('rm_unit');
             var rmStatus = $(this).data('rm_status');
             var supplierName = $(this).data('supplier_name');
+            var unitCost = $(this).data('unit_cost');
             
             // Debug log the data
             console.log('Update button clicked with data:', {
@@ -255,7 +256,8 @@
                 quantity: rmQuantity,
                 unit: rmUnit,
                 status: rmStatus,
-                supplier_name: supplierName
+                supplier_name: supplierName,
+                unit_cost: unitCost
             });
 
             // Reset form and clear any previous values
@@ -303,6 +305,7 @@
             $('#rm_unit').val(rmUnit || 'gram');
             $('#rm_status').val(rmStatus);
             $('#supplier_name').val(supplierName || '');
+            $('#unit_cost').val(unitCost || '0');
 
             // Debug log the form values after setting
             console.log('Form values after setting:', {
@@ -312,7 +315,8 @@
                 quantity: $('#rm_quantity').val(),
                 unit: $('#rm_unit').val(),
                 status: $('#rm_status').val(),
-                supplier_name: $('#supplier_name').val()
+                supplier_name: $('#supplier_name').val(),
+                unit_cost: $('#unit_cost').val()
             });
             
             // Show the modal
@@ -639,195 +643,7 @@ $(document).ready(function() {
 </div>
 
 <script>
-$(document).ready(function() {
-    // Function to handle category dropdown based on material selection
-    function handleCategoryDropdown(materialSelect, categorySelect, warningId) {
-        var selectedValue = $(materialSelect).val();
-        console.log('Selected material:', selectedValue);
-        
-        if (selectedValue === 'Silk') {
-            $(categorySelect).val('');
-            $(categorySelect).prop('disabled', true);
-            $(categorySelect).addClass('bg-gray-100 cursor-not-allowed opacity-60');
-            $(warningId).removeClass('hidden');
-        } else {
-            $(categorySelect).prop('disabled', false);
-            $(categorySelect).removeClass('bg-gray-100 cursor-not-allowed opacity-60');
-            $(warningId).addClass('hidden');
-        }
-    }
 
-    // Handle category dropdown in Add form
-    $('select[name="rm_name"]').on('change', function() {
-        handleCategoryDropdown(this, 'select[name="category"]', '#category-warning');
-    });
-
-    // Handle category dropdown in Update form
-    $('#rm_name').on('change', function() {
-        handleCategoryDropdown(this, '#category', '#update-category-warning');
-    });
-
-    // Update button click handler
-    $(document).on('click', '.updateRmBtn', function() {
-        var selectedId = $(this).data('id');
-        var rmName = $(this).data('rm_name');
-        var rmDescription = $(this).data('category');
-        var rmQuantity = $(this).data('rm_quantity');
-        var rmUnit = $(this).data('rm_unit');
-        var rmStatus = $(this).data('rm_status');
-        var supplierName = $(this).data('supplier_name');
-        
-        // Reset form
-        $('#updateForm')[0].reset();
-
-        // Set form values
-        $('#rmid').val(selectedId);
-        $('#rm_name').val(rmName);
-        $('#rm_quantity').val(rmQuantity);
-        $('#rm_unit').val(rmUnit || 'gram');
-        $('#rm_status').val(rmStatus);
-        $('#supplier_name').val(supplierName || '');
-        $('#unit_cost').val($(this).data('unit_cost') || '0');
-
-        // Handle category based on material type
-        var categorySelect = $('#category');
-        if (rmName === 'Silk') {
-            categorySelect.val('');
-            categorySelect.prop('disabled', true);
-            $('#update-category-warning').removeClass('hidden');
-        } else {
-            categorySelect.prop('disabled', false);
-            
-            // Clear existing options except the first (disabled) one
-            categorySelect.find('option:not(:first)').remove();
-        
-            // Add standard options
-            categorySelect.append(new Option('Liniwan/Washout', 'Liniwan/Washout'));
-            categorySelect.append(new Option('Bastos', 'Bastos'));
-
-            // Set the value
-            categorySelect.val(rmDescription);
-            $('#update-category-warning').addClass('hidden');
-        }
-
-        // Show modal
-        $('#UpdateRawMaterialsModal').fadeIn();
-    });
-
-    // Close update modal handler
-    $('#UpdateRawMaterialsModal .closeModal, #UpdateRawMaterialsModal .modalCancel').click(function() {
-        $('#UpdateRawMaterialsModal').fadeOut();
-    });
-
-    $('#UpdateRawMaterialsModal').click(function(e) {
-        if (e.target === this) {
-            $(this).fadeOut();
-        }
-    });
-
-    // Update form submission
-    $('#updateForm').on('submit', function(e) {
-        e.preventDefault();
-        
-        // Get form values directly from form elements
-        var formData = new FormData(this);
-        formData.append('requestType', 'UpdateRawMaterials');
-        
-        // Convert FormData to object for validation
-        var data = {};
-        formData.forEach(function(value, key) {
-            data[key] = value;
-        });
-
-        // Handle category based on material type
-        if (data.rm_name === 'Silk') {
-            formData.set('category', '');
-        }
-
-        // Ensure proper status value
-        if (data.rm_status) {
-            formData.set('rm_status', data.rm_status);
-
-        }
-
-        // Basic validation
-        if (!data.rm_name || !data.rm_quantity || !data.rm_status) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Please fill in all required fields',
-                icon: 'error'
-            });
-            return false;
-        }
-
-        // Category validation for non-Silk materials
-        if (data.rm_name !== 'Silk' && !data.category) {
-                Swal.fire({
-                title: 'Error!',
-                text: 'Category is required for non-Silk materials',
-                    icon: 'error'
-            });
-            return false;
-        }
-
-        // Convert FormData back to regular object for AJAX
-        var sendData = {};
-        formData.forEach(function(value, key) {
-            sendData[key] = value;
-        });
-
-        // Disable submit button
-        var submitBtn = $('#submitUpdateRawMaterials');
-        submitBtn.prop('disabled', true).html('Updating...');
-
-        // Submit form data
-        $.ajax({
-            type: "POST",
-            url: "backend/end-points/controller.php",
-            data: sendData,
-            success: function(response) {
-                try {
-                    var result = typeof response === 'string' ? JSON.parse(response) : response;
-                    if (result.status === 'success') {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: result.message || 'Raw material updated successfully',
-                            icon: 'success'
-                        }).then(() => {
-                            window.location.reload();
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: result.message || 'Failed to update raw material',
-                            icon: 'error'
-                        });
-                    }
-                } catch (e) {
-                    console.error('Error:', e);
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'Server error occurred',
-                        icon: 'error'
-                    });
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error:', error);
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'Server error: ' + error,
-                    icon: 'error'
-                });
-            },
-            complete: function() {
-                submitBtn.prop('disabled', false).html('Update');
-            }
-        });
-    });
-
-    // Add form submission and other handlers...
-});
 </script>
 
 <!-- Modal Structure -->
