@@ -32,23 +32,23 @@
 </div>
 
 <!-- Orders Table -->
-<div class="overflow-x-auto bg-white rounded-md shadow-md p-4">
+<div class="overflow-x-auto bg-white rounded-md shadow-md p-3 sm:p-4">
     <table class="min-w-full table-auto" id="ordersTable">
         <thead>
-            <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                <th class="py-3 px-4 text-left hidden md:table-cell">Order ID</th>
-                <th class="py-3 px-4 text-left">Customer</th>
-                <th class="py-3 px-4 text-left hidden lg:table-cell">Email</th>
-                <th class="py-3 px-4 text-left">Amount</th>
-                <th class="py-3 px-4 text-left">Status</th>
-                <th class="py-3 px-4 text-left hidden sm:table-cell">Payment</th>
-                <th class="py-3 px-4 text-left hidden lg:table-cell">Date</th>
-                <th class="py-3 px-4 text-center">Actions</th>
+            <tr class="bg-gray-100 text-gray-600 uppercase text-xs sm:text-sm leading-normal">
+                <th class="py-2 sm:py-3 px-2 sm:px-4 text-left hidden lg:table-cell">Order ID</th>
+                <th class="py-2 sm:py-3 px-2 sm:px-4 text-left">Customer</th>
+                <th class="py-2 sm:py-3 px-2 sm:px-4 text-left hidden xl:table-cell">Email</th>
+                <th class="py-2 sm:py-3 px-2 sm:px-4 text-left">Amt</th>
+                <th class="py-2 sm:py-3 px-2 sm:px-4 text-left">Status</th>
+                <th class="py-2 sm:py-3 px-2 sm:px-4 text-left hidden md:table-cell">Pay</th>
+                <th class="py-2 sm:py-3 px-2 sm:px-4 text-left hidden xl:table-cell">Date</th>
+                <th class="py-2 sm:py-3 px-2 sm:px-4 text-center">Actions</th>
             </tr>
         </thead>
-        <tbody class="text-gray-600 text-sm" id="ordersTableBody">
+        <tbody class="text-gray-600 text-xs sm:text-sm" id="ordersTableBody">
             <tr>
-                <td colspan="8" class="py-4 px-6 text-center text-gray-500">Loading orders...</td>
+                <td colspan="8" class="py-3 sm:py-4 px-2 sm:px-6 text-center text-gray-500">Loading orders...</td>
             </tr>
         </tbody>
     </table>
@@ -267,20 +267,20 @@
 
         tbody.innerHTML = orders.map(order => `
             <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-                <td class="py-3 px-4 hidden md:table-cell text-sm">#${order.order_id || 'N/A'}</td>
-                <td class="py-3 px-4 text-sm font-medium">${order.customer_name || 'N/A'}</td>
-                <td class="py-3 px-4 hidden lg:table-cell text-sm">${order.customer_email || 'N/A'}</td>
-                <td class="py-3 px-4 text-sm">₱${parseFloat(order.total_amount || 0).toFixed(2)}</td>
-                <td class="py-3 px-4 text-sm">
-                    <span class="status-badge ${getStatusColor(order.status)}">
+                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden lg:table-cell text-xs sm:text-sm truncate max-w-20">#${order.order_id || 'N/A'}</td>
+                <td class="py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate max-w-24">${order.customer_name || 'N/A'}</td>
+                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden xl:table-cell text-xs sm:text-sm truncate max-w-32">${order.customer_email || 'N/A'}</td>
+                <td class="py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm whitespace-nowrap">₱${parseFloat(order.total_amount || 0).toFixed(2)}</td>
+                <td class="py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm">
+                    <span class="status-badge ${getStatusColor(order.status)} text-xs">
                         ${order.status || 'pending'}
                     </span>
                 </td>
-                <td class="py-3 px-4 hidden sm:table-cell text-sm">${order.payment_method || 'N/A'}</td>
-                <td class="py-3 px-4 hidden lg:table-cell text-sm">${formatDate(order.created_at)}</td>
-                <td class="py-3 px-4 text-center">
-                    <div class="flex flex-col gap-2 sm:flex-row sm:justify-center">
-                        <select class="status-dropdown px-2 py-1 border border-gray-300 rounded-md text-xs sm:text-sm w-full sm:w-auto" data-order-id="${order.order_id}" data-current-status="${order.status || 'pending'}">
+                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden md:table-cell text-xs sm:text-sm truncate max-w-20">${order.payment_method ? order.payment_method.substring(0, 8) : 'N/A'}</td>
+                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden xl:table-cell text-xs sm:text-sm whitespace-nowrap">${formatDate(order.created_at)}</td>
+                <td class="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                    <div class="flex flex-col gap-1 sm:gap-2 sm:flex-row sm:justify-center">
+                        <select class="status-dropdown px-1 sm:px-2 py-1 border border-gray-300 rounded-md text-xs w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-blue-400" data-order-id="${order.order_id}" data-current-status="${order.status || 'pending'}">
                             <option value="">Status</option>
                             ${order.status === 'Accepted' ? `<option value="Accepted" selected style="display:none;">Accepted</option>` : ''}
                             <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
@@ -290,7 +290,7 @@
                             <option value="Declined" ${order.status === 'Declined' ? 'selected' : ''}>Declined</option>
                             <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
                         </select>
-                        <button onclick="viewOrderDetails('${order.order_id}')" class="text-blue-500 hover:text-blue-700 font-semibold text-xs sm:text-sm whitespace-nowrap">
+                        <button onclick="viewOrderDetails('${order.order_id}')" class="text-blue-500 hover:text-blue-700 font-semibold text-xs whitespace-nowrap bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition">
                             Details
                         </button>
                     </div>
@@ -303,7 +303,7 @@
         const tbody = document.getElementById('ordersTableBody');
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" class="py-4 px-6 text-center text-gray-500">No orders found</td>
+                <td colspan="8" class="py-3 sm:py-4 px-2 sm:px-6 text-center text-gray-500 text-xs sm:text-sm">No orders found</td>
             </tr>
         `;
     }
