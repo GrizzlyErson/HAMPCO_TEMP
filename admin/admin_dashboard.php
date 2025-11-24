@@ -954,34 +954,40 @@ require_once "components/header.php";
                 let badgeTextColor = '#ffffff';
 
                 if (task.status === 'declined') {
+                    // Red for Declined
                     rowBgColor = '#fee2e2'; // Light red background
                     rowTextColor = '#991b1b'; // Dark red text
                     badgeBgColor = '#dc3545'; // Red badge
                     badgeTextColor = '#ffffff';
+                } else if (task.status === 'pending') {
+                    // Yellow for Pending
+                    rowBgColor = '#fef3c7'; // Light yellow background
+                    rowTextColor = '#92400e'; // Dark yellow/brown text
+                    badgeBgColor = '#ffc107'; // Yellow badge
+                    badgeTextColor = '#000000';
+                } else if (task.status === 'submitted') {
+                    // Blue for Submitted
+                    rowBgColor = '#dbeafe'; // Light blue background
+                    rowTextColor = '#1e40af'; // Dark blue text
+                    badgeBgColor = '#0d6efd'; // Blue badge
+                    badgeTextColor = '#ffffff';
                 } else if (task.status === 'in_progress') {
+                    // In-progress - keep yellow
                     rowBgColor = '#fef3c7'; // Light yellow background
                     rowTextColor = '#92400e'; // Dark yellow/brown text
                     badgeBgColor = '#ffc107'; // Yellow badge
                     badgeTextColor = '#000000';
                 } else if (task.status === 'completed') {
+                    // Completed - keep green
                     rowBgColor = '#dcfce7'; // Light green background
                     rowTextColor = '#166534'; // Dark green text
                     badgeBgColor = '#28a745'; // Green badge
                     badgeTextColor = '#ffffff';
-                } else if (task.status === 'submitted') {
-                    rowBgColor = '#fef3c7'; // Light yellow background
-                    rowTextColor = '#92400e'; // Dark yellow/brown text
-                    badgeBgColor = '#ffc107'; // Yellow badge
-                    badgeTextColor = '#000000';
                 } else if (task.status === 'approved') {
+                    // Approved - keep green
                     rowBgColor = '#dcfce7'; // Light green background
                     rowTextColor = '#166534'; // Dark green text
                     badgeBgColor = '#28a745'; // Green badge
-                    badgeTextColor = '#ffffff';
-                } else if (task.status === 'pending') {
-                    rowBgColor = '#f3f4f6'; // Light gray background
-                    rowTextColor = '#374151'; // Dark gray text
-                    badgeBgColor = '#6c757d'; // Gray badge
                     badgeTextColor = '#ffffff';
                 }
                 
