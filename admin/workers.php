@@ -15,8 +15,8 @@ include 'components/header.php';
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                     <select id="statusFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
                         <option value="">All Workers</option>
-                        <option value="active">Active Workers</option>
-                        <option value="lazy">Lazy Workers</option>
+                        <option value="available">Available Workers</option>
+                        <option value="unavailable">Unavailable Workers</option>
                     </select>
                 </div>
 
@@ -157,10 +157,7 @@ function renderWorkers(workers) {
                 ${formatDate(worker.lastActive)}
             </td>
             <td class="px-6 py-3 text-center">
-                <span class="px-3 py-1 rounded-full text-xs font-semibold
-                    ${worker.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                    ${worker.status === 'active' ? '✓ Active' : '⚠ Lazy'}
-                </span>
+                ${renderStatusBadge(worker)}
             </td>
             <td class="px-6 py-3 text-center">
                 <button onclick="viewDetails(${worker.id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-semibold transition mr-2">
@@ -172,6 +169,32 @@ function renderWorkers(workers) {
             </td>
         </tr>
     `).join('');
+}
+
+function renderStatusBadge(worker) {
+    const statusValue = (worker.status || worker.availability || 'available').toLowerCase();
+    const isAvailable = statusValue !== 'unavailable';
+    const isBusy = !!worker.hasActiveTask;
+
+    const badgeClass = !isAvailable
+        ? 'bg-red-100 text-red-800'
+        : isBusy
+            ? 'bg-blue-100 text-blue-800'
+            : 'bg-green-100 text-green-800';
+
+    const label = !isAvailable
+        ? 'Unavailable'
+        : isBusy
+            ? 'Busy'
+            : 'Available';
+
+    const icon = !isAvailable ? '⚠' : (isBusy ? '●' : '✓');
+
+    return `
+        <span class="px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}">
+            ${icon} ${label}
+        </span>
+    `;
 }
 
 function formatDate(dateString) {
@@ -200,8 +223,10 @@ function applyFilters() {
     const toDate = document.getElementById('toDateFilter').value;
 
     let filtered = workersData.filter(worker => {
+        const statusValue = (worker.status || worker.availability || 'available').toLowerCase();
+
         // Status filter
-        if (status && worker.status !== status) return false;
+        if (status && statusValue !== status) return false;
 
         // Tasks filter
         if (worker.tasksCompleted < minTasks) return false;
@@ -251,7 +276,9 @@ Tasks Completed: ${worker.tasksCompleted}
 Days Worked: ${worker.daysWorked}
 Average Tasks/Day: ${averageTasks}
 Last Active: ${formatDate(worker.lastActive)}
-Availability: ${worker.availability || 'N/A'}`);
+Availability: ${worker.availability || 'N/A'}
+Current Status: ${worker.status ? worker.status.toUpperCase() : 'UNKNOWN'}
+On Task: ${worker.hasActiveTask ? 'Yes' : 'No'}`);
 }
 
 function editWorker(workerId) {

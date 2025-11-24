@@ -45,6 +45,8 @@ try {
     while ($row = $result->fetch_assoc()) {
         $lastActive = $row['last_active'] ?: $row['date_created'];
 
+        $hasActiveTask = ((int)$row['has_active_task']) === 1;
+
         $workers[] = [
             'id' => (int)$row['id'],
             'memberCode' => $row['id_number'],
@@ -53,8 +55,9 @@ try {
             'tasksCompleted' => (int)$row['tasks_completed'],
             'daysWorked' => (int)$row['days_worked'],
             'lastActive' => $lastActive ? date('Y-m-d', strtotime($lastActive)) : null,
-            'status' => ((int)$row['has_active_task']) === 1 ? 'active' : 'lazy',
-            'availability' => $row['availability_status'] ?? 'available'
+            'status' => ($row['availability_status'] === 'unavailable') ? 'unavailable' : 'available',
+            'availability' => $row['availability_status'] ?? 'available',
+            'hasActiveTask' => $hasActiveTask
         ];
     }
 
