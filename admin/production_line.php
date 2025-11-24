@@ -877,6 +877,43 @@ document.addEventListener('DOMContentLoaded', function() {
     refreshTaskAssignments();
     // Update every 30 seconds
     setInterval(refreshTaskAssignments, 30000);
+
+    // Dropdown menu toggle functionality
+    document.addEventListener('click', function(e) {
+        // Close all dropdowns if clicking outside
+        if (!e.target.closest('.relative')) {
+            document.querySelectorAll('.relative div[class*="hidden"]').forEach(function(el) {
+                if (!el.classList.contains('hidden')) {
+                    el.classList.add('hidden');
+                }
+            });
+        }
+    });
+
+    // Toggle dropdown on button click
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.relative button')) {
+            e.stopPropagation();
+            const dropdown = e.target.closest('.relative').querySelector('div');
+            
+            // Close other open dropdowns
+            document.querySelectorAll('.relative div').forEach(function(el) {
+                if (el !== dropdown && !el.classList.contains('hidden')) {
+                    el.classList.add('hidden');
+                }
+            });
+            
+            // Toggle current dropdown
+            dropdown.classList.toggle('hidden');
+        }
+    });
+
+    // Close dropdown when an option is clicked
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.absolute button')) {
+            e.target.closest('.relative').querySelector('div').classList.add('hidden');
+        }
+    });
 });
 
 function loadTaskCompletions() {
@@ -1112,16 +1149,30 @@ function getStatusClass(status) {
                             </td>
                             <td class="px-4 py-2 text-center"><?php echo $item['date_created']; ?></td>
                             <td class="px-4 py-2 text-center">
-                                <div class="flex justify-center gap-2">
-                                    <button onclick="assignTask('<?php echo $item['raw_id']; ?>', '<?php echo htmlspecialchars($item['product_name'], ENT_QUOTES); ?>', <?php echo $item['quantity']; ?>)"
-                                        class="<?php echo $item['has_assignments'] ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-500 hover:bg-indigo-600'; ?> text-white px-4 py-2 rounded"
-                                        <?php echo $item['has_assignments'] ? 'disabled' : ''; ?>>
-                                        Assign Tasks
+                                <div class="relative inline-block">
+                                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-xs flex items-center shadow">
+                                        <span class="material-icons text-sm mr-1">more_vert</span> Actions
                                     </button>
-                                    <button onclick="editProduct('<?php echo $item['raw_id']; ?>')"
-                                        class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded">Edit</button>
-                                    <button onclick="deleteProduct('<?php echo $item['raw_id']; ?>')"
-                                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Delete</button>
+                                    <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden z-10">
+                                        <!-- Assign Tasks Option -->
+                                        <button onclick="assignTask('<?php echo $item['raw_id']; ?>', '<?php echo htmlspecialchars($item['product_name'], ENT_QUOTES); ?>', <?php echo $item['quantity']; ?>)"
+                                            class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-gray-800 text-sm border-b <?php echo $item['has_assignments'] ? 'opacity-50 cursor-not-allowed' : ''; ?>"
+                                            <?php echo $item['has_assignments'] ? 'disabled' : ''; ?>>
+                                            <span class="material-icons text-sm mr-2">assign_ind</span> Assign Tasks
+                                        </button>
+                                        
+                                        <!-- Edit Option -->
+                                        <button onclick="editProduct('<?php echo $item['raw_id']; ?>')"
+                                            class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-gray-800 text-sm border-b">
+                                            <span class="material-icons text-sm mr-2">edit</span> Edit
+                                        </button>
+
+                                        <!-- Delete Option -->
+                                        <button onclick="deleteProduct('<?php echo $item['raw_id']; ?>')"
+                                            class="w-full text-left px-4 py-2 hover:bg-red-50 flex items-center text-red-600 text-sm">
+                                            <span class="material-icons text-sm mr-2">delete</span> Delete
+                                        </button>
+                                    </div>
                                 </div>
                             </td>
                         </tr>

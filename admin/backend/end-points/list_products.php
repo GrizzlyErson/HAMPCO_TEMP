@@ -26,11 +26,11 @@ if ($fetch_all_materials->num_rows > 0) {
     <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['prod_description']); ?></td>
     <td class="py-3 px-6">
         <!-- Dropdown Menu -->
-        <div class="relative group">
+        <div class="relative inline-block">
             <button class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-xs flex items-center shadow">
                 <span class="material-icons text-sm mr-1">more_vert</span> Actions
             </button>
-            <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden group-hover:block z-10">
+            <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden z-10">
                 <!-- Update Option -->
                 <button class="updateRmBtn w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-gray-800 text-sm border-b"
                     data-id="<?php echo htmlspecialchars($row['prod_id']); ?>" 
@@ -541,6 +541,31 @@ $(document).ready(function () {
                 }
             });
         }
+    });
+
+    // Dropdown menu toggle functionality
+    $(document).on('click', function(e) {
+        // Close all dropdowns if clicking outside
+        if (!$(e.target).closest('.relative').length) {
+            $('.group div[class*="hidden"]').not('.hidden').addClass('hidden');
+        }
+    });
+
+    // Toggle dropdown on button click
+    $(document).on('click', '.relative button', function(e) {
+        e.stopPropagation();
+        var dropdown = $(this).siblings('div');
+        
+        // Close other open dropdowns
+        $('.relative div').not(dropdown).addClass('hidden');
+        
+        // Toggle current dropdown
+        dropdown.toggleClass('hidden');
+    });
+
+    // Close dropdown when an option is clicked
+    $(document).on('click', '.absolute button', function(e) {
+        $(this).closest('.relative').find('div').addClass('hidden');
     });
 });
 </script>
