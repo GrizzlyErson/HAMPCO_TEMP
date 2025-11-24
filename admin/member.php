@@ -18,14 +18,14 @@
         <table class="min-w-full table-auto" id="newMemberTable">
             <thead>
                 <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                    <th class="py-3 px-6 text-left">Member ID</th>
-                    <th class="py-3 px-6 text-left">Full Name</th>
-                    <th class="py-3 px-6 text-left">Email</th>
-                    <th class="py-3 px-6 text-left">Phone</th>
-                    <th class="py-3 px-6 text-left">Role</th>
-                    <th class="py-3 px-6 text-left">Sex</th>
-                    <th class="py-3 px-6 text-left">Status</th>
-                    <th class="py-3 px-6 text-left">Actions</th>
+                    <th class="py-3 px-4 text-left min-w-24">Member ID</th>
+                    <th class="py-3 px-4 text-left min-w-32">Full Name</th>
+                    <th class="py-3 px-4 text-left min-w-40">Email</th>
+                    <th class="py-3 px-4 text-left min-w-24">Phone</th>
+                    <th class="py-3 px-4 text-left min-w-20">Role</th>
+                    <th class="py-3 px-4 text-left min-w-16">Sex</th>
+                    <th class="py-3 px-4 text-left min-w-28">Status</th>
+                    <th class="py-3 px-4 text-left min-w-32">Actions</th>
                 </tr>
             </thead>
             <tbody class="text-gray-600 text-sm">
@@ -42,14 +42,14 @@
         <table class="min-w-full table-auto" id="verifiedMemberTable">
             <thead>
                 <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                    <th class="py-3 px-6 text-left">Member ID</th>
-                    <th class="py-3 px-6 text-left">Full Name</th>
-                    <th class="py-3 px-6 text-left">Email</th>
-                    <th class="py-3 px-6 text-left">Phone</th>
-                    <th class="py-3 px-6 text-left">Role</th>
-                    <th class="py-3 px-6 text-left">Sex</th>
-                    <th class="py-3 px-6 text-left">Status</th>
-                    <th class="py-3 px-6 text-left">Actions</th>
+                    <th class="py-3 px-4 text-left min-w-24">Member ID</th>
+                    <th class="py-3 px-4 text-left min-w-32">Full Name</th>
+                    <th class="py-3 px-4 text-left min-w-40">Email</th>
+                    <th class="py-3 px-4 text-left min-w-24">Phone</th>
+                    <th class="py-3 px-4 text-left min-w-20">Role</th>
+                    <th class="py-3 px-4 text-left min-w-16">Sex</th>
+                    <th class="py-3 px-4 text-left min-w-28">Status</th>
+                    <th class="py-3 px-4 text-left min-w-32">Actions</th>
                 </tr>
             </thead>
             <tbody class="text-gray-600 text-sm">

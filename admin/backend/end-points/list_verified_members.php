@@ -13,18 +13,18 @@ if ($result) {
         $availabilityText = ucfirst($row['availability_status']);
         
         echo "<tr class='border-b border-gray-200 hover:bg-gray-100'>";
-        echo "<td class='py-3 px-6'>" . htmlspecialchars($row['id_number']) . "</td>";
-        echo "<td class='py-3 px-6'>" . htmlspecialchars($row['fullname']) . "</td>";
-        echo "<td class='py-3 px-6'>" . htmlspecialchars($row['email']) . "</td>";
-        echo "<td class='py-3 px-6'>" . htmlspecialchars($row['phone']) . "</td>";
-        echo "<td class='py-3 px-6'>" . htmlspecialchars($row['role']) . "</td>";
-        echo "<td class='py-3 px-6'>" . htmlspecialchars($row['sex']) . "</td>";
-        echo "<td class='py-3 px-6'>";
+        echo "<td class='py-3 px-4 truncate max-w-24'>" . htmlspecialchars($row['id_number']) . "</td>";
+        echo "<td class='py-3 px-4 truncate max-w-32'>" . htmlspecialchars($row['fullname']) . "</td>";
+        echo "<td class='py-3 px-4 truncate max-w-40'>" . htmlspecialchars($row['email']) . "</td>";
+        echo "<td class='py-3 px-4 truncate max-w-24'>" . htmlspecialchars($row['phone']) . "</td>";
+        echo "<td class='py-3 px-4 truncate max-w-20'>" . htmlspecialchars($row['role']) . "</td>";
+        echo "<td class='py-3 px-4 truncate max-w-16'>" . htmlspecialchars($row['sex']) . "</td>";
+        echo "<td class='py-3 px-4'>";
         echo "<span class='px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800'>Verified</span>";
         echo "<span class='ml-2 px-2 py-1 rounded-full text-xs font-semibold {$availabilityClass}'>{$availabilityText}</span>";
         echo "</td>";
-        echo "<td class='py-3 px-6'>";
-        echo "<button class='removeBtn bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm transition-colors duration-200' data-id='" . $row['id'] . "' data-name='" . htmlspecialchars($row['fullname']) . "'>Remove</button>";
+        echo "<td class='py-3 px-4'>";
+        echo "<button class='removeBtn bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm transition-colors duration-200 w-full' data-id='" . $row['id'] . "' data-name='" . htmlspecialchars($row['fullname']) . "'>Remove</button>";
         echo "</td>";
         echo "</tr>";
     }
