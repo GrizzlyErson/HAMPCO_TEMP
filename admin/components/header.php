@@ -49,8 +49,6 @@ $_SESSION['current_admin_page'] = $current_page;
   <!-- SweetAlert2 JS -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <link rel="stylesheet" href="responsive-tables.css?v=1">
-  <script src="assets/js/responsiveTables.js" defer></script>
   
 
 </head>
