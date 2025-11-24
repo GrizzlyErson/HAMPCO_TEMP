@@ -947,28 +947,35 @@ require_once "components/header.php";
             }
             
             tableBody.innerHTML = recentTasks.map(task => {
-                const statusBadgeClass = task.status === 'completed' ? 'badge-success' :
-                                        task.status === 'submitted' ? 'badge-warning' :
-                                        task.status === 'in_progress' ? 'badge-info' :
-                                        task.status === 'approved' ? 'badge-success' :
-                                        task.status === 'pending' ? 'badge-secondary' :
-                                        'badge-secondary';
-
-                // Row background color based on status
+                // Determine row background color and text color based on status
                 let rowBgColor = '#ffffff';
                 let rowTextColor = '#000000';
-                if (task.status === 'completed' || task.status === 'approved') {
-                    rowBgColor = '#d4edda'; // light green
-                    rowTextColor = '#155724'; // dark green
-                } else if (task.status === 'submitted') {
-                    rowBgColor = '#fff3cd'; // light yellow
-                    rowTextColor = '#856404'; // dark yellow
+                let statusBadgeClass = 'badge-secondary';
+
+                if (task.status === 'declined') {
+                    rowBgColor = '#fee2e2'; // Light red background
+                    rowTextColor = '#991b1b'; // Dark red text
+                    statusBadgeClass = 'badge-danger';
                 } else if (task.status === 'in_progress') {
-                    rowBgColor = '#d1ecf1'; // light blue
-                    rowTextColor = '#0c5460'; // dark blue
+                    rowBgColor = '#fef3c7'; // Light yellow background
+                    rowTextColor = '#92400e'; // Dark yellow/brown text
+                    statusBadgeClass = 'badge-warning';
+                } else if (task.status === 'completed') {
+                    rowBgColor = '#dcfce7'; // Light green background
+                    rowTextColor = '#166534'; // Dark green text
+                    statusBadgeClass = 'badge-success';
+                } else if (task.status === 'submitted') {
+                    rowBgColor = '#fef3c7'; // Light yellow background
+                    rowTextColor = '#92400e'; // Dark yellow/brown text
+                    statusBadgeClass = 'badge-warning';
+                } else if (task.status === 'approved') {
+                    rowBgColor = '#dcfce7'; // Light green background
+                    rowTextColor = '#166534'; // Dark green text
+                    statusBadgeClass = 'badge-success';
                 } else if (task.status === 'pending') {
-                    rowBgColor = '#e2e3e5'; // light gray
-                    rowTextColor = '#383d41'; // dark gray
+                    rowBgColor = '#f3f4f6'; // Light gray background
+                    rowTextColor = '#374151'; // Dark gray text
+                    statusBadgeClass = 'badge-secondary';
                 }
                 
                 const statusLabel = task.status.charAt(0).toUpperCase() + task.status.slice(1);
