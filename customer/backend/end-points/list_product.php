@@ -15,14 +15,9 @@
         <!-- Product Card -->
         <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group product-card" data-category-id="<?=$product['prod_category_id']?>" data-price="<?=$product['prod_price']?>">
             <a href="view_product?product_id=<?=$product['prod_id']?>" class="block h-full">
-                <!-- Image Container with Badge -->
+                <!-- Image Container -->
                 <div class="relative w-full h-48 bg-gray-200 overflow-hidden flex items-center justify-center group-hover:shadow-lg">
                     <img src="../upload/<?=$product['prod_image']?>" alt="<?=$product['prod_name']?>" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
-                    
-                    <!-- Badge -->
-                    <div class="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                        New
-                    </div>
                 </div>
 
                 <!-- Card Content -->

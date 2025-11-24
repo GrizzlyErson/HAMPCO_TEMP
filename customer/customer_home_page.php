@@ -79,12 +79,90 @@ include "component/header.php";
 
         <!-- Product Grid -->
         <main class="w-full lg:w-3/4 p-4">
+            <!-- Image Carousel -->
+            <div class="mb-8">
+                <div class="relative w-full bg-gray-900 rounded-lg overflow-hidden">
+                    <!-- Carousel Container -->
+                    <div class="carousel-wrapper relative w-full h-64 md:h-80 lg:h-96 overflow-hidden">
+                        <!-- Carousel Images -->
+                        <div class="carousel-slides flex transition-transform duration-500 ease-in-out" id="carouselSlides">
+                            <img src="../img/banner.jpg" alt="Banner 1" class="carousel-slide w-full h-full object-cover flex-shrink-0">
+                            <img src="../img/logo.png" alt="Banner 2" class="carousel-slide w-full h-full object-cover flex-shrink-0">
+                            <img src="../img/575098477_2712130095784912_2588969272524062982_n.jpg" alt="Banner 3" class="carousel-slide w-full h-full object-cover flex-shrink-0">
+                        </div>
+
+                        <!-- Previous Button -->
+                        <button id="prevBtn" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white hover:bg-gray-200 text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 z-10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+
+                        <!-- Next Button -->
+                        <button id="nextBtn" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white hover:bg-gray-200 text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 z-10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+
+                        <!-- Carousel Indicators -->
+                        <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+                            <button class="carousel-indicator active w-2 h-2 rounded-full bg-white transition-all duration-300" data-index="0"></button>
+                            <button class="carousel-indicator w-2 h-2 rounded-full bg-white transition-all duration-300" data-index="1"></button>
+                            <button class="carousel-indicator w-2 h-2 rounded-full bg-white transition-all duration-300" data-index="2"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <?php include "backend/end-points/list_product.php"; ?>
         </main>
     </div>
 </div>
 
 <script>
+    // Carousel functionality
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.carousel-slide');
+    const totalSlides = slides.length;
+    const carouselSlides = document.getElementById('carouselSlides');
+    const indicators = document.querySelectorAll('.carousel-indicator');
+
+    function showSlide(n) {
+        currentSlide = (n + totalSlides) % totalSlides;
+        carouselSlides.style.transform = `translateX(-${currentSlide * 100}%)`;
+        
+        // Update indicators
+        indicators.forEach((indicator, index) => {
+            indicator.classList.toggle('active', index === currentSlide);
+            indicator.classList.toggle('w-4', index === currentSlide);
+            indicator.classList.toggle('w-2', index !== currentSlide);
+        });
+    }
+
+    function nextSlide() {
+        showSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+        showSlide(currentSlide - 1);
+    }
+
+    // Event listeners for buttons
+    document.getElementById('nextBtn').addEventListener('click', nextSlide);
+    document.getElementById('prevBtn').addEventListener('click', prevSlide);
+
+    // Event listeners for indicators
+    indicators.forEach((indicator) => {
+        indicator.addEventListener('click', (e) => {
+            const index = parseInt(e.target.getAttribute('data-index'));
+            showSlide(index);
+        });
+    });
+
+    // Auto-play carousel every 5 seconds
+    setInterval(nextSlide, 5000);
+
     // JavaScript to toggle sidebar visibility
     document.getElementById('hamburger-btn').addEventListener('click', function () {
         document.getElementById('sidebar').classList.remove('-translate-x-full');
