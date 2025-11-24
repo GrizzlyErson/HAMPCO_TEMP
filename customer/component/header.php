@@ -62,15 +62,15 @@ $firstname = $name_parts[0];
 </head>
 
 <body class="bg-gray-50">
- <!-- Header -->
+  <!-- Header -->
 <header class="bg-white shadow">
   <div class="container mx-auto px-4 py-4 flex justify-between items-center">
     <!-- Logo/Brand Name -->
-    <div class="text-xl font-bold text-gray-800">
-      <a href="customer_home_page" class="text-gray-700 hover:text-blue-600 transition">HAMPCO</a>
-    </div>
-    
-    <!-- Mobile Menu Button -->
+    <div>
+      <a href="customer_home_page" class="flex items-center">
+        <img src="../img/logo.png" alt="HAMPCO" class="h-10 hover:opacity-80 transition">
+      </a>
+    </div>    <!-- Mobile Menu Button -->
     <button id="mobileMenuButton" class="lg:hidden text-gray-700 hover:text-blue-600 focus:outline-none">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
