@@ -227,7 +227,7 @@ require_once "components/header.php";
                                             <th scope="col" style="font-size: 11px; white-space: nowrap;">Member</th>
                                             <th scope="col" style="font-size: 11px; white-space: nowrap;">Status</th>
                                             <th scope="col" style="font-size: 11px; white-space: nowrap;">Created Date</th>
-                                            <th scope="col" style="font-size: 11px; white-space: nowrap;">Type</th>
+                                            <th scope="col" style="font-size: 11px; white-space: nowrap;">Progress</th>
                                         </tr>
                                         </thead>
                                         <tbody>
