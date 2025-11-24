@@ -1066,55 +1066,55 @@ function getStatusClass(status) {
 
     <!-- Production Line List Table -->
     <div class="bg-white rounded-lg shadow-sm overflow-x-auto mb-6">
-        <table class="min-w-full">
+        <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Production ID</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Length (m)</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Width (in)</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Weight (g)</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Quantity</th>
-                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Materials</th>
-                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Date Added</th>
-                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Prod ID</th>
+                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Len(m)</th>
+                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Wid(in)</th>
+                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Wt(g)</th>
+                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Qty</th>
+                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase">Mat</th>
+                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase hidden xl:table-cell">Date</th>
+                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase">Act</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-gray-200">
                 <?php if (!empty($production_items)): ?>
                     <?php foreach ($production_items as $item): ?>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="px-4 py-2 hidden md:table-cell"><?php echo $item['display_id']; ?></td>
-                            <td class="px-4 py-2 font-medium text-sm"><?php echo $item['product_name']; ?></td>
-                            <td class="px-4 py-2 hidden lg:table-cell text-sm"><?php 
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-2 sm:px-6 py-2 sm:py-3 hidden md:table-cell text-xs sm:text-sm"><?php echo $item['display_id']; ?></td>
+                            <td class="px-2 sm:px-6 py-2 sm:py-3 font-medium text-xs sm:text-sm truncate max-w-xs"><?php echo $item['product_name']; ?></td>
+                            <td class="px-2 sm:px-6 py-2 sm:py-3 hidden lg:table-cell text-xs sm:text-sm"><?php 
                                 if ($item['product_name'] === 'Knotted Liniwan' || $item['product_name'] === 'Knotted Bastos' || $item['product_name'] === 'Warped Silk') {
                                     echo '-';
                                 } else {
                                     echo $item['length_m'] ?: '-';
                                 }
                             ?></td>
-                            <td class="px-4 py-2 hidden lg:table-cell text-sm"><?php 
+                            <td class="px-2 sm:px-6 py-2 sm:py-3 hidden lg:table-cell text-xs sm:text-sm"><?php 
                                 if ($item['product_name'] === 'Knotted Liniwan' || $item['product_name'] === 'Knotted Bastos' || $item['product_name'] === 'Warped Silk') {
                                     echo '-';
                                 } else {
                                     echo $item['width_m'] ?: '-';
                                 }
                             ?></td>
-                            <td class="px-4 py-2 hidden sm:table-cell text-sm"><?php 
+                            <td class="px-2 sm:px-6 py-2 sm:py-3 hidden sm:table-cell text-xs sm:text-sm"><?php 
                                 if ($item['product_name'] === 'Piña Seda' || $item['product_name'] === 'Pure Piña Cloth') {
                                     echo '-';
                                 } else {
                                     echo $item['weight_g'] ?: '-';
                                 }
                             ?></td>
-                            <td class="px-4 py-2 hidden md:table-cell text-sm"><?php 
+                            <td class="px-2 sm:px-6 py-2 sm:py-3 hidden md:table-cell text-xs sm:text-sm"><?php 
                                 if ($item['product_name'] === 'Knotted Liniwan' || $item['product_name'] === 'Knotted Bastos' || $item['product_name'] === 'Warped Silk') {
                                     echo '-';
                                 } else {
                                     echo $item['quantity'];
                                 }
                             ?></td>
-                            <td class="px-4 py-2 text-center">
+                            <td class="px-2 sm:px-6 py-2 sm:py-3 text-center">
                                 <button onclick='showMaterialsModal(<?php 
                                     $calculatedMaterials = $materialCalculator->calculateMaterialsNeeded(
                                         $item['product_name'],
@@ -1143,22 +1143,22 @@ function getStatusClass(status) {
                                     
                                     echo htmlspecialchars(json_encode($productData, JSON_HEX_APOS | JSON_HEX_QUOT)); 
                                 ?>)' 
-                                    class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs hover:bg-blue-200 transition-colors whitespace-nowrap">
+                                    class="bg-blue-100 text-blue-700 px-2 sm:px-3 py-1 rounded text-xs hover:bg-blue-200 transition-colors whitespace-nowrap">
                                     View
                                 </button>
                             </td>
-                            <td class="px-4 py-2 text-center hidden lg:table-cell text-sm"><?php echo $item['date_created']; ?></td>
-                            <td class="px-4 py-2 text-center">
+                            <td class="px-2 sm:px-6 py-2 sm:py-3 text-center hidden xl:table-cell text-xs sm:text-sm"><?php echo $item['date_created']; ?></td>
+                            <td class="px-2 sm:px-6 py-2 sm:py-3 text-center">
                                 <div class="relative inline-block">
-                                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-xs flex items-center shadow">
-                                        <span class="material-icons text-sm mr-1">more_vert</span> Actions
+                                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 sm:px-3 rounded text-xs flex items-center shadow">
+                                        <span class="material-icons text-xs mr-1">more_vert</span>
                                     </button>
                                     <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden z-10">
                                         <!-- Assign Tasks Option -->
                                         <button onclick="assignTask('<?php echo $item['raw_id']; ?>', '<?php echo htmlspecialchars($item['product_name'], ENT_QUOTES); ?>', <?php echo $item['quantity']; ?>)"
                                             class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-gray-800 text-sm border-b <?php echo $item['has_assignments'] ? 'opacity-50 cursor-not-allowed' : ''; ?>"
                                             <?php echo $item['has_assignments'] ? 'disabled' : ''; ?>>
-                                            <span class="material-icons text-sm mr-2">assign_ind</span> Assign Tasks
+                                            <span class="material-icons text-sm mr-2">assign_ind</span> Assign
                                         </button>
                                         
                                         <!-- Edit Option -->
@@ -1179,7 +1179,7 @@ function getStatusClass(status) {
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="9" class="px-4 py-2 text-center text-gray-500">No production items found.</td>
+                        <td colspan="9" class="px-2 sm:px-6 py-2 sm:py-3 text-center text-gray-500 text-xs sm:text-sm">No production items found.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
@@ -1190,19 +1190,19 @@ function getStatusClass(status) {
     <div class="bg-green-50 rounded-lg shadow-sm overflow-hidden p-6">
         <h2 class="text-xl font-semibold text-green-800 mb-4">Production Line Overview (Completed Tasks)</h2>
         <div class="overflow-x-auto">
-            <table class="min-w-full">
-                <thead>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Member's Name</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Measurements</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Weight (g)</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Completed Date</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Member</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Role</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Measure</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Wt(g)</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden xl:table-cell">Qty</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Completed</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-gray-200">
                     <?php
                     $completed_query = "SELECT 
                         pl.prod_line_id, 
@@ -1260,21 +1260,21 @@ function getStatusClass(status) {
                             
                             $completed_date = $row['completed_date'] ? date('Y-m-d H:i', strtotime($row['completed_date'])) : '-';
                     ?>
-                            <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                <td class="px-4 py-2"><?php echo $row['product_name']; ?></td>
-                                <td class="px-4 py-2"><?php echo $row['member_name']; ?></td>
-                                <td class="px-4 py-2"><?php echo ucfirst($row['role']); ?></td>
-                                <td class="px-4 py-2"><?php echo $measurements; ?></td>
-                                <td class="px-4 py-2"><?php echo $weight; ?></td>
-                                <td class="px-4 py-2"><?php echo $quantity; ?></td>
-                                <td class="px-4 py-2"><?php echo $completed_date; ?></td>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-2 sm:px-6 py-2 sm:py-3 font-medium text-xs sm:text-sm truncate max-w-xs"><?php echo $row['product_name']; ?></td>
+                                <td class="px-2 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm hidden sm:table-cell truncate max-w-xs"><?php echo $row['member_name']; ?></td>
+                                <td class="px-2 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm hidden md:table-cell"><?php echo ucfirst($row['role']); ?></td>
+                                <td class="px-2 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm hidden lg:table-cell"><?php echo $measurements; ?></td>
+                                <td class="px-2 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm hidden md:table-cell"><?php echo $weight; ?></td>
+                                <td class="px-2 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm hidden xl:table-cell"><?php echo $quantity; ?></td>
+                                <td class="px-2 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm"><?php echo $completed_date; ?></td>
                             </tr>
                     <?php 
                         endwhile;
                     else:
                     ?>
                         <tr>
-                            <td colspan="7" class="px-4 py-2 text-center text-gray-500">No completed tasks found.</td>
+                            <td colspan="7" class="px-2 sm:px-6 py-2 sm:py-3 text-center text-gray-500 text-xs sm:text-sm">No completed tasks found.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -1308,15 +1308,15 @@ function getStatusClass(status) {
             <table class="min-w-full divide-y divide-gray-200" id="assignedTasksTable">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Production ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Created</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Members</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Prod ID</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Created</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Members</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Act</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="divide-y divide-gray-200">
                     <!-- Data will be populated by JavaScript -->
                 </tbody>
             </table>
@@ -1414,20 +1414,20 @@ function getStatusClass(status) {
             <table class="min-w-full divide-y divide-gray-200" id="taskApprovalTable">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Production ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight (g)</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Created</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Prod ID</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Role</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Wt(g)</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden xl:table-cell">Created</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Act</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="divide-y divide-gray-200">
                     <!-- Data will be populated later -->
                     <tr>
-                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">No requests found</td>
+                        <td colspan="8" class="px-2 sm:px-6 py-2 sm:py-3 text-center text-gray-500 text-xs sm:text-sm">No requests found</td>
                     </tr>
                 </tbody>
             </table>
@@ -1443,21 +1443,21 @@ function getStatusClass(status) {
             <table class="min-w-full divide-y divide-gray-200" id="taskCompletionTable">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Production ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight (g)</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Started</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Submitted</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Prod ID</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Role</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Wt(g)</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden xl:table-cell">Started</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Act</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="divide-y divide-gray-200">
                     <!-- Data will be populated later -->
                     <tr>
-                        <td colspan="9" class="px-6 py-4 text-center text-gray-500">No completion requests found</td>
+                        <td colspan="9" class="px-2 sm:px-6 py-2 sm:py-3 text-center text-gray-500 text-xs sm:text-sm">No completion requests found</td>
                     </tr>
                 </tbody>
             </table>
