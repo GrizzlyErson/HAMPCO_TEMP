@@ -14,8 +14,8 @@
 </div>
 
 <!-- Filter Bar -->
-<div class="mb-4 flex gap-4 bg-white p-4 rounded-md shadow">
-    <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+<div class="mb-4 flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-md shadow">
+    <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm">
         <option value="all">All Statuses</option>
         <option value="pending">Pending</option>
         <option value="processing">Processing</option>
@@ -24,9 +24,9 @@
         <option value="cancelled">Cancelled</option>
     </select>
     
-    <input type="text" id="searchInput" placeholder="Search by Order ID or Customer..." class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+    <input type="text" id="searchInput" placeholder="Search by Order ID or Customer..." class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm">
     
-    <button id="refreshBtn" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
+    <button id="refreshBtn" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition text-sm whitespace-nowrap">
         Refresh
     </button>
 </div>
@@ -36,14 +36,14 @@
     <table class="min-w-full table-auto" id="ordersTable">
         <thead>
             <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                <th class="py-3 px-6 text-left">Order ID</th>
-                <th class="py-3 px-6 text-left">Customer</th>
-                <th class="py-3 px-6 text-left">Email</th>
-                <th class="py-3 px-6 text-left">Total Amount</th>
-                <th class="py-3 px-6 text-left">Status</th>
-                <th class="py-3 px-6 text-left">Payment Method</th>
-                <th class="py-3 px-6 text-left">Date</th>
-                <th class="py-3 px-6 text-center">Actions</th>
+                <th class="py-3 px-4 text-left hidden md:table-cell">Order ID</th>
+                <th class="py-3 px-4 text-left">Customer</th>
+                <th class="py-3 px-4 text-left hidden lg:table-cell">Email</th>
+                <th class="py-3 px-4 text-left">Amount</th>
+                <th class="py-3 px-4 text-left">Status</th>
+                <th class="py-3 px-4 text-left hidden sm:table-cell">Payment</th>
+                <th class="py-3 px-4 text-left hidden lg:table-cell">Date</th>
+                <th class="py-3 px-4 text-center">Actions</th>
             </tr>
         </thead>
         <tbody class="text-gray-600 text-sm" id="ordersTableBody">
@@ -267,31 +267,33 @@
 
         tbody.innerHTML = orders.map(order => `
             <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-                <td class="py-3 px-6">#${order.order_id || 'N/A'}</td>
-                <td class="py-3 px-6">${order.customer_name || 'N/A'}</td>
-                <td class="py-3 px-6">${order.customer_email || 'N/A'}</td>
-                <td class="py-3 px-6">₱${parseFloat(order.total_amount || 0).toFixed(2)}</td>
-                <td class="py-3 px-6">
+                <td class="py-3 px-4 hidden md:table-cell text-sm">#${order.order_id || 'N/A'}</td>
+                <td class="py-3 px-4 text-sm font-medium">${order.customer_name || 'N/A'}</td>
+                <td class="py-3 px-4 hidden lg:table-cell text-sm">${order.customer_email || 'N/A'}</td>
+                <td class="py-3 px-4 text-sm">₱${parseFloat(order.total_amount || 0).toFixed(2)}</td>
+                <td class="py-3 px-4 text-sm">
                     <span class="status-badge ${getStatusColor(order.status)}">
                         ${order.status || 'pending'}
                     </span>
                 </td>
-                <td class="py-3 px-6">${order.payment_method || 'N/A'}</td>
-                <td class="py-3 px-6">${formatDate(order.created_at)}</td>
-                <td class="py-3 px-6 text-center">
-                    <select class="status-dropdown px-2 py-1 border border-gray-300 rounded-md text-sm" data-order-id="${order.order_id}" data-current-status="${order.status || 'pending'}">
-                        <option value="">-- Change Status --</option>
-                        ${order.status === 'Accepted' ? `<option value="Accepted" selected style="display:none;">Accepted</option>` : ''}
-                        <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                        <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
-                        <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-                        <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                        <option value="Declined" ${order.status === 'Declined' ? 'selected' : ''}>Declined</option>
-                        <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                    </select>
-                    <button onclick="viewOrderDetails('${order.order_id}')" class="text-blue-500 hover:text-blue-700 font-semibold text-sm mt-2 block">
-                        View Details
-                    </button>
+                <td class="py-3 px-4 hidden sm:table-cell text-sm">${order.payment_method || 'N/A'}</td>
+                <td class="py-3 px-4 hidden lg:table-cell text-sm">${formatDate(order.created_at)}</td>
+                <td class="py-3 px-4 text-center">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:justify-center">
+                        <select class="status-dropdown px-2 py-1 border border-gray-300 rounded-md text-xs sm:text-sm w-full sm:w-auto" data-order-id="${order.order_id}" data-current-status="${order.status || 'pending'}">
+                            <option value="">Status</option>
+                            ${order.status === 'Accepted' ? `<option value="Accepted" selected style="display:none;">Accepted</option>` : ''}
+                            <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                            <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                            <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                            <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                            <option value="Declined" ${order.status === 'Declined' ? 'selected' : ''}>Declined</option>
+                            <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                        <button onclick="viewOrderDetails('${order.order_id}')" class="text-blue-500 hover:text-blue-700 font-semibold text-xs sm:text-sm whitespace-nowrap">
+                            Details
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');

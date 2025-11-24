@@ -203,6 +203,63 @@ require_once "components/header.php";
                             </div>
                         </div>
                     </div>
+
+                    <!-- Workforce Summary Row -->
+                    <div class="row">
+                        <!-- Knotters Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                                Active Knotters</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeKnottersCount">0</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Weavers Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                                Active Weavers</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeWeaversCount">0</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Warpers Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                                Active Warpers</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeWarpersCount">0</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
 
                     <!-- Content Row -->
@@ -1092,17 +1149,58 @@ require_once "components/header.php";
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
+    // Load active members by role from production_line
+    function loadActiveMembersByRole() {
+        fetch('backend/end-points/get_task_assignments.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    // Count unique active members by role
+                    const activeMembersByRole = {
+                        knotter: new Set(),
+                        weaver: new Set(),
+                        warper: new Set()
+                    };
+
+                    // Process each production line's assignments
+                    data.data.forEach(item => {
+                        if (item.assignments && Array.isArray(item.assignments)) {
+                            item.assignments.forEach(assignment => {
+                                if (assignment.role && assignment.member_id && 
+                                    (assignment.task_status === 'pending' || assignment.task_status === 'in_progress' || assignment.task_status === 'submitted')) {
+                                    const role = assignment.role.toLowerCase().trim();
+                                    if (activeMembersByRole.hasOwnProperty(role)) {
+                                        activeMembersByRole[role].add(assignment.member_id);
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                    // Update the cards
+                    document.getElementById('activeKnottersCount').textContent = activeMembersByRole.knotter.size;
+                    document.getElementById('activeWeaversCount').textContent = activeMembersByRole.weaver.size;
+                    document.getElementById('activeWarpersCount').textContent = activeMembersByRole.warper.size;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading active members by role:', error);
+            });
+    }
+
     // Load tasks on page load
     document.addEventListener('DOMContentLoaded', function() {
         loadRecentTasks();
         loadMemberCreatedTasks();
         loadTaskCompletionChart();
         loadTaskStatusOverview();
+        loadActiveMembersByRole();
         // Refresh every 30 seconds
         setInterval(loadRecentTasks, 30000);
         setInterval(loadMemberCreatedTasks, 30000);
         setInterval(loadTaskCompletionChart, 60000);
         setInterval(loadTaskStatusOverview, 60000);
+        setInterval(loadActiveMembersByRole, 60000);
     });
 
     // Load Task Status Overview with Progress Bars
