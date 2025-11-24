@@ -1065,18 +1065,18 @@ function getStatusClass(status) {
     </div>
 
     <!-- Production Line List Table -->
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+    <div class="bg-white rounded-lg shadow-sm overflow-x-auto mb-6">
         <table class="min-w-full">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Production ID</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Production ID</th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Length (m)</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Width (in)</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Weight (g)</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Raw Materials</th>
-                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Date Added</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Length (m)</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Width (in)</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Weight (g)</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Quantity</th>
+                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Materials</th>
+                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Date Added</th>
                     <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
             </thead>
@@ -1084,30 +1084,30 @@ function getStatusClass(status) {
                 <?php if (!empty($production_items)): ?>
                     <?php foreach ($production_items as $item): ?>
                         <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="px-4 py-2"><?php echo $item['display_id']; ?></td>
-                            <td class="px-4 py-2"><?php echo $item['product_name']; ?></td>
-                            <td class="px-4 py-2"><?php 
+                            <td class="px-4 py-2 hidden md:table-cell"><?php echo $item['display_id']; ?></td>
+                            <td class="px-4 py-2 font-medium text-sm"><?php echo $item['product_name']; ?></td>
+                            <td class="px-4 py-2 hidden lg:table-cell text-sm"><?php 
                                 if ($item['product_name'] === 'Knotted Liniwan' || $item['product_name'] === 'Knotted Bastos' || $item['product_name'] === 'Warped Silk') {
                                     echo '-';
                                 } else {
                                     echo $item['length_m'] ?: '-';
                                 }
                             ?></td>
-                            <td class="px-4 py-2"><?php 
+                            <td class="px-4 py-2 hidden lg:table-cell text-sm"><?php 
                                 if ($item['product_name'] === 'Knotted Liniwan' || $item['product_name'] === 'Knotted Bastos' || $item['product_name'] === 'Warped Silk') {
                                     echo '-';
                                 } else {
                                     echo $item['width_m'] ?: '-';
                                 }
                             ?></td>
-                            <td class="px-4 py-2"><?php 
+                            <td class="px-4 py-2 hidden sm:table-cell text-sm"><?php 
                                 if ($item['product_name'] === 'Piña Seda' || $item['product_name'] === 'Pure Piña Cloth') {
                                     echo '-';
                                 } else {
                                     echo $item['weight_g'] ?: '-';
                                 }
                             ?></td>
-                            <td class="px-4 py-2"><?php 
+                            <td class="px-4 py-2 hidden md:table-cell text-sm"><?php 
                                 if ($item['product_name'] === 'Knotted Liniwan' || $item['product_name'] === 'Knotted Bastos' || $item['product_name'] === 'Warped Silk') {
                                     echo '-';
                                 } else {
@@ -1143,11 +1143,11 @@ function getStatusClass(status) {
                                     
                                     echo htmlspecialchars(json_encode($productData, JSON_HEX_APOS | JSON_HEX_QUOT)); 
                                 ?>)' 
-                                    class="bg-blue-100 text-blue-700 px-4 py-2 rounded-md hover:bg-blue-200 transition-colors">
-                                    View Materials
+                                    class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs hover:bg-blue-200 transition-colors whitespace-nowrap">
+                                    View
                                 </button>
                             </td>
-                            <td class="px-4 py-2 text-center"><?php echo $item['date_created']; ?></td>
+                            <td class="px-4 py-2 text-center hidden lg:table-cell text-sm"><?php echo $item['date_created']; ?></td>
                             <td class="px-4 py-2 text-center">
                                 <div class="relative inline-block">
                                     <button class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-xs flex items-center shadow">
