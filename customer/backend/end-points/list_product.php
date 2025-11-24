@@ -1,8 +1,5 @@
 <h1 class="text-2xl font-semibold mb-6">All Products</h1>
 
-<!-- Search Input -->
-<input type="text" id="search" class="w-full p-2 mb-4 border rounded" placeholder="Search Products...">
-
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="product-grid">
     <?php 
     $fetch_all_product = $db->fetch_all_product();  // Fetch all products
