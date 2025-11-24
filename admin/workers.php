@@ -15,8 +15,8 @@ include 'components/header.php';
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                     <select id="statusFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
                         <option value="">All Workers</option>
-                        <option value="available">Available Workers</option>
-                        <option value="unavailable">Unavailable Workers</option>
+                        <option value="active">Active Workers</option>
+                        <option value="lazy">Lazy Workers</option>
                     </select>
                 </div>
 
@@ -172,23 +172,15 @@ function renderWorkers(workers) {
 }
 
 function renderStatusBadge(worker) {
-    const statusValue = (worker.status || worker.availability || 'available').toLowerCase();
-    const isAvailable = statusValue !== 'unavailable';
-    const isBusy = !!worker.hasActiveTask;
+    const statusValue = (worker.status || 'lazy').toLowerCase();
+    const isActive = statusValue === 'active';
 
-    const badgeClass = !isAvailable
-        ? 'bg-red-100 text-red-800'
-        : isBusy
-            ? 'bg-blue-100 text-blue-800'
-            : 'bg-green-100 text-green-800';
+    const badgeClass = isActive
+        ? 'bg-green-100 text-green-800'
+        : 'bg-red-100 text-red-800';
 
-    const label = !isAvailable
-        ? 'Unavailable'
-        : isBusy
-            ? 'Busy'
-            : 'Available';
-
-    const icon = !isAvailable ? '⚠' : (isBusy ? '●' : '✓');
+    const icon = isActive ? '✓' : '⚠';
+    const label = isActive ? 'Active' : 'Lazy';
 
     return `
         <span class="px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}">
@@ -223,7 +215,7 @@ function applyFilters() {
     const toDate = document.getElementById('toDateFilter').value;
 
     let filtered = workersData.filter(worker => {
-        const statusValue = (worker.status || worker.availability || 'available').toLowerCase();
+        const statusValue = (worker.status || 'lazy').toLowerCase();
 
         // Status filter
         if (status && statusValue !== status) return false;

@@ -55,7 +55,7 @@ try {
             'tasksCompleted' => (int)$row['tasks_completed'],
             'daysWorked' => (int)$row['days_worked'],
             'lastActive' => $lastActive ? date('Y-m-d', strtotime($lastActive)) : null,
-            'status' => ($row['availability_status'] === 'unavailable') ? 'unavailable' : 'available',
+            'status' => $hasActiveTask ? 'active' : 'lazy',
             'availability' => $row['availability_status'] ?? 'available',
             'hasActiveTask' => $hasActiveTask
         ];
