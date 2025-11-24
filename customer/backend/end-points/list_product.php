@@ -17,7 +17,9 @@
             <a href="view_product?product_id=<?=$product['prod_id']?>">
 
                 <!-- Product Image -->
-                <img src="../upload/<?=$product['prod_image']?>" alt="Product Image" class="w-full rounded mb-4 transition-transform hover:scale-105">
+                <div class="w-full h-48 bg-gray-200 rounded mb-4 overflow-hidden flex items-center justify-center">
+                    <img src="../upload/<?=$product['prod_image']?>" alt="Product Image" class="w-full h-full object-cover transition-transform hover:scale-105">
+                </div>
 
                 <!-- Product Name -->
                 <h2 class="font-semibold text-lg transition-colors hover:text-blue-500 product-name"><?=$product['prod_name']?></h2>
