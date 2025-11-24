@@ -439,6 +439,7 @@ class global_class extends db_connect
             category,
             rm_quantity,
             rm_unit,
+            unit_cost,
             rm_status,
             supplier_name
         FROM raw_materials 
