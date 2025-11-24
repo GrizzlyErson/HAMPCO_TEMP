@@ -886,7 +886,7 @@ require_once "components/header.php";
                 });
             }
 
-            // Process member task requests
+            // Process member task requests and self-tasks
             if (Array.isArray(memberRequestsData)) {
                 memberRequestsData.forEach(request => {
                     allTasks.push({
@@ -896,10 +896,13 @@ require_once "components/header.php";
                         role: request.role,
                         status: request.status,
                         date_created: request.date_created,
-                        type: 'request'
+                        type: request.type === 'self_task' ? 'Member Created' : 'Request'
                     });
                 });
             }
+
+            // Sort by date_created (most recent first)
+            allTasks.sort((a, b) => new Date(b.date_created) - new Date(a.date_created));
 
             // Limit to 8 most recent tasks
             const recentTasks = allTasks.slice(0, 8);
@@ -931,7 +934,7 @@ require_once "components/header.php";
                             ${task.date_created ? new Date(task.date_created).toLocaleDateString() : '-'}
                         </td>
                         <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap; color: #999;">
-                            <span class="badge badge-light" style="font-size: 12px; padding: 4px 8px;">${task.type === 'request' ? 'Member Request' : 'Assigned'}</span>
+                            <span class="badge badge-light" style="font-size: 12px; padding: 4px 8px;">${typeof task.type === 'string' ? task.type : 'Assigned'}</span>
                         </td>
                     </tr>
                 `;
