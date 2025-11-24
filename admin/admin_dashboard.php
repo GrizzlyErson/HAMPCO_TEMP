@@ -206,54 +206,38 @@ require_once "components/header.php";
 
                     <!-- Workforce Summary Row -->
                     <div class="row">
-                        <!-- Knotters Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-primary shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-uppercase mb-1">
-                                                Active Knotters</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeKnottersCount">0</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
+                        <div class="col-lg-12 mb-4">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 bg-success">
+                                    <h6 class="m-0 font-weight-bold text-light">👥 Active Members by Role</h6>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Weavers Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-info shadow h-100 py-2">
                                 <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-uppercase mb-1">
-                                                Active Weavers</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeWeaversCount">0</div>
+                                    <div style="display: flex; gap: 40px; justify-content: space-around; flex-wrap: wrap;">
+                                        <!-- Knotters -->
+                                        <div style="text-align: center; flex: 1; min-width: 150px;">
+                                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background-color: #e7f3ff; border-radius: 50%; margin: 0 auto 15px;">
+                                                <span style="font-size: 32px; font-weight: bold; color: #1cc88a;" id="activeKnottersCount">0</span>
+                                            </div>
+                                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1f2937;">Knotters</p>
+                                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6b7280;">Active on tasks</p>
                                         </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Warpers Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-warning shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-uppercase mb-1">
-                                                Active Warpers</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeWarpersCount">0</div>
+                                        <!-- Weavers -->
+                                        <div style="text-align: center; flex: 1; min-width: 150px;">
+                                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background-color: #eff6ff; border-radius: 50%; margin: 0 auto 15px;">
+                                                <span style="font-size: 32px; font-weight: bold; color: #4e73df;" id="activeWeaversCount">0</span>
+                                            </div>
+                                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1f2937;">Weavers</p>
+                                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6b7280;">Active on tasks</p>
                                         </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-users fa-2x text-gray-300"></i>
+
+                                        <!-- Warpers -->
+                                        <div style="text-align: center; flex: 1; min-width: 150px;">
+                                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background-color: #ecfdf5; border-radius: 50%; margin: 0 auto 15px;">
+                                                <span style="font-size: 32px; font-weight: bold; color: #36b9cc;" id="activeWarpersCount">0</span>
+                                            </div>
+                                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1f2937;">Warpers</p>
+                                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #6b7280;">Active on tasks</p>
                                         </div>
                                     </div>
                                 </div>
