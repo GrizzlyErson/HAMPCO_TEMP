@@ -109,6 +109,10 @@ $firstname = $name_parts[0];
 
           <!-- Dropdown Menu -->
           <div class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg dropdown-menu">
+              <a href="checkout_history.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition">
+                  <span class="material-icons align-middle mr-2">history</span>
+                  Checkout History
+              </a>
               <a href="orders.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition">
                   <span class="material-icons align-middle mr-2">shopping_cart</span>
                   My Purchase
@@ -163,6 +167,10 @@ $firstname = $name_parts[0];
       Wishlist
       <span class="absolute top-0 right-0 inline-block w-5 h-5 text-xs font-semibold text-white bg-red-500 rounded-full text-center wishlistCount hidden">0</span>
     </a>
+      <a href="checkout_history.php" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+        <span class="material-icons mr-2">history</span>
+        Checkout History
+      </a>
       <a href="orders.php" class="flex items-center text-gray-700 hover:text-blue-600 transition">
         <span class="material-icons mr-2">shopping_cart</span>
         My Purchase
