@@ -351,7 +351,8 @@ $("#FrmRegister_Customer").submit(function (e) {
             if (response.status === 'success') {
                 alertify.success(response.message);  
                 setTimeout(function () {
-                    window.location.href = "login.php"; 
+                    // Redirect to login page with email and customer_id as URL parameters
+                    window.location.href = "login.php?email=" + encodeURIComponent(response.email) + "&customer_id=" + response.customer_id;
                 }, 1000);
             } else {
                 alertify.error(response.message); 

@@ -49,6 +49,11 @@
               </label>
             </div>
 
+            <!-- Customer ID (auto-populated on new signup) -->
+            <div id="customerIdDisplay" class="p-3 bg-indigo-50 border border-indigo-200 rounded-lg text-sm text-indigo-700 hidden">
+              <strong>Customer ID:</strong> <span id="displayCustomerId"></span>
+            </div>
+
             <!-- Password -->
             <div class="relative">
               <input type="password" id="customer_password" name="password" placeholder=" " required
@@ -134,6 +139,27 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Get URL parameters for pre-filling from signup
+  const urlParams = new URLSearchParams(window.location.search);
+  const prefilledEmail = urlParams.get('email');
+  const prefilledCustomerId = urlParams.get('customer_id');
+
+  // If email and customer_id are present in URL, pre-fill the form and show customer ID
+  if (prefilledEmail) {
+    document.getElementById('customer_email').value = prefilledEmail;
+    // Trigger label animation
+    document.getElementById('customer_email').classList.add('peer-focus');
+  }
+
+  if (prefilledCustomerId) {
+    document.getElementById('displayCustomerId').textContent = prefilledCustomerId;
+    document.getElementById('customerIdDisplay').classList.remove('hidden');
+    // Auto-focus the password field when customer ID is shown
+    setTimeout(() => {
+      document.getElementById('customer_password').focus();
+    }, 300);
+  }
+
   // Elements
   const modal = document.querySelector('.fixed');
   const closeModal = document.getElementById('closeModal');

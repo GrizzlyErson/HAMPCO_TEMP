@@ -37,15 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $password = $_POST['password'];
         
             $result = $db->RegisterCustomer($fullname, $email, $phone, $password);
-            if ($result === true) {
+            if ($result['success'] === true) {
                 echo json_encode([
                     'status' => 'success',
-                    'message' => 'Registration successful!'
+                    'message' => 'Registration successful!',
+                    'customer_id' => $result['customer_id'],
+                    'email' => $result['email']
                 ]);
             } else {
                 echo json_encode([
                     'status' => 'error',
-                    'message' => $result 
+                    'message' => $result['message']
                 ]);
             }
         } else if ($_POST['requestType'] == 'LoginMember') {

@@ -46,6 +46,7 @@ try {
             $rm_qty = $_POST['rm_qty'];
             $rm_unit = 'gram';
             $rm_status = $_POST['rm_status'];
+            $unit_cost = isset($_POST['unit_cost']) ? floatval($_POST['unit_cost']) : 0;
 
             // Debug log
             error_log("Adding raw material: " . json_encode($_POST));
@@ -78,7 +79,7 @@ try {
                 exit;
             }
 
-            $result = $db->AddRawMaterials($raw_materials_name, $category, $rm_qty, $rm_unit, $rm_status);
+            $result = $db->AddRawMaterials($raw_materials_name, $category, $rm_qty, $rm_unit, $rm_status, $unit_cost);
             error_log("Add raw material result: " . json_encode($result));
             echo json_encode($result);
             break;
@@ -91,13 +92,15 @@ try {
             $rm_unit = 'gram';
             $rm_status = trim($_POST['rm_status']);
             $supplier_name = isset($_POST['supplier_name']) ? trim($_POST['supplier_name']) : '';
+            $unit_cost = isset($_POST['unit_cost']) ? floatval($_POST['unit_cost']) : 0;
 
             // Debug log for category
             error_log("Updating raw material - Category details: " . json_encode([
                 'raw_post_category' => $_POST['category'],
                 'trimmed_category' => $category,
                 'material_name' => $raw_materials_name,
-                'is_silk' => $raw_materials_name === 'Silk'
+                'is_silk' => $raw_materials_name === 'Silk',
+                'unit_cost' => $unit_cost
             ]));
 
             // Validate required fields
@@ -136,10 +139,11 @@ try {
                 'quantity' => $rm_quantity,
                 'unit' => $rm_unit,
                 'status' => $rm_status,
-                'supplier' => $supplier_name
+                'supplier' => $supplier_name,
+                'unit_cost' => $unit_cost
             ]));
 
-            $result = $db->UpdateRawMaterials($rm_id, $raw_materials_name, $category, $rm_quantity, $rm_unit, $rm_status, $supplier_name);
+            $result = $db->UpdateRawMaterials($rm_id, $raw_materials_name, $category, $rm_quantity, $rm_unit, $rm_status, $supplier_name, $unit_cost);
             error_log("Update raw material result: " . json_encode($result));
             echo json_encode($result);
             break;
@@ -215,6 +219,32 @@ try {
             echo json_encode($result);
             break;
 
+        case 'UpdateProduct':
+            // Expected fields from form: rm_id, rm_name, rm_description, rm_price, rm_product_Category, rm_product_image (file - optional)
+            $prod_id = isset($_POST['rm_id']) ? intval($_POST['rm_id']) : 0;
+            $name = isset($_POST['rm_name']) ? trim($_POST['rm_name']) : '';
+            $description = isset($_POST['rm_description']) ? trim($_POST['rm_description']) : '';
+            $price = isset($_POST['rm_price']) ? $_POST['rm_price'] : 0;
+            $category = isset($_POST['rm_product_Category']) ? $_POST['rm_product_Category'] : null;
+            $image = isset($_FILES['rm_product_image']) && $_FILES['rm_product_image']['size'] > 0 ? $_FILES['rm_product_image'] : null;
+
+            // Basic validation
+            if ($prod_id <= 0 || empty($name) || empty($price) || empty($category)) {
+                echo json_encode(['status' => 'error', 'message' => 'Please fill all required fields']);
+                exit;
+            }
+
+            // Normalize price
+            if (!is_numeric($price)) {
+                $price = floatval(str_replace(',', '', $price));
+            } else {
+                $price = floatval($price);
+            }
+
+            $result = $db->UpdateProduct($prod_id, $name, $description, $price, $category, $image);
+            echo json_encode($result);
+            break;
+
         case 'ProdStockin':
             // Handle product stock in
             $prod_id = isset($_POST['prod_id']) ? intval($_POST['prod_id']) : 0;
@@ -238,6 +268,104 @@ try {
                 echo json_encode(['status' => 'success', 'message' => 'Stock updated successfully']);
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'Failed to update stock: ' . $stmt->error]);
+            }
+            $stmt->close();
+            break;
+
+        case 'GetProductMaterials':
+            // Get materials for a product
+            $product_name = isset($_POST['product_name']) ? $_POST['product_name'] : '';
+            
+            if (empty($product_name)) {
+                echo json_encode(['status' => 'error', 'message' => 'Product name required']);
+                exit;
+            }
+
+            $query = "SELECT id, product_name, material_type, material_name, material_qty FROM product_materials WHERE product_name = ?";
+            $stmt = $db->conn->prepare($query);
+            $stmt->bind_param("s", $product_name);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $materials = [];
+
+            while ($row = $result->fetch_assoc()) {
+                $materials[] = $row;
+            }
+            $stmt->close();
+
+            echo json_encode(['status' => 'success', 'materials' => $materials]);
+            break;
+
+        case 'AddProductMaterial':
+            // Add material for a product
+            $product_id = isset($_POST['product_id']) ? intval($_POST['product_id']) : 0;
+            $material_type = isset($_POST['material_type']) ? $_POST['material_type'] : '';
+            $material_name = isset($_POST['material_name']) ? $_POST['material_name'] : '';
+            $material_qty = isset($_POST['material_qty']) ? floatval($_POST['material_qty']) : 0;
+
+            if ($product_id <= 0 || empty($material_type) || empty($material_name) || $material_qty <= 0) {
+                echo json_encode(['status' => 'error', 'message' => 'Invalid input']);
+                exit;
+            }
+
+            // Get product name
+            $prodQuery = "SELECT prod_name FROM product WHERE prod_id = ?";
+            $prodStmt = $db->conn->prepare($prodQuery);
+            $prodStmt->bind_param("i", $product_id);
+            $prodStmt->execute();
+            $prodResult = $prodStmt->get_result();
+            $prodRow = $prodResult->fetch_assoc();
+            $prodStmt->close();
+
+            if (!$prodRow) {
+                echo json_encode(['status' => 'error', 'message' => 'Product not found']);
+                exit;
+            }
+
+            $product_name = $prodRow['prod_name'];
+
+            // Insert material
+            $insert_query = "INSERT INTO product_materials (product_name, material_type, material_name, material_qty) VALUES (?, ?, ?, ?)";
+            $stmt = $db->conn->prepare($insert_query);
+            if (!$stmt) {
+                echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $db->conn->error]);
+                exit;
+            }
+
+            $stmt->bind_param("sssd", $product_name, $material_type, $material_name, $material_qty);
+            if ($stmt->execute()) {
+                echo json_encode(['status' => 'success', 'message' => 'Material added successfully']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Failed to add material: ' . $stmt->error]);
+            }
+            $stmt->close();
+            break;
+
+        case 'RemoveProductMaterial':
+            // Remove material for a product
+            $material_id = isset($_POST['material_id']) ? intval($_POST['material_id']) : 0;
+
+            if ($material_id <= 0) {
+                echo json_encode(['status' => 'error', 'message' => 'Invalid material ID']);
+                exit;
+            }
+
+            $delete_query = "DELETE FROM product_materials WHERE id = ?";
+            $stmt = $db->conn->prepare($delete_query);
+            if (!$stmt) {
+                echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $db->conn->error]);
+                exit;
+            }
+
+            $stmt->bind_param("i", $material_id);
+            if ($stmt->execute()) {
+                if ($stmt->affected_rows > 0) {
+                    echo json_encode(['status' => 'success', 'message' => 'Material removed successfully']);
+                } else {
+                    echo json_encode(['status' => 'error', 'message' => 'Material not found']);
+                }
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Failed to remove material']);
             }
             $stmt->close();
             break;

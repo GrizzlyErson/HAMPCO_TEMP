@@ -6,7 +6,17 @@ if ($fetch_all_materials->num_rows > 0) {
 ?>
    <tr class="border-b border-gray-200 hover:bg-gray-50">
     <td class="py-3 px-6 text-left">
-        <img src="../upload/<?=$row['prod_image']?>" class="w-16 h-16 object-cover rounded">
+        <?php 
+        $image_src = 'https://via.placeholder.com/64?text=No+Image';
+        if (!empty($row['prod_image'])) {
+            // Path is relative to where the page is loaded from (admin/products.php)
+            $image_src = '../upload/' . htmlspecialchars($row['prod_image']);
+        }
+        ?>
+        <img src="<?php echo $image_src; ?>" 
+             alt="Product Image" 
+             class="w-16 h-16 object-cover rounded" 
+             onerror="this.src='https://via.placeholder.com/64?text=No+Image'">
     </td>
     <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['prod_id']); ?></td>
     <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['prod_name']); ?></td>
@@ -39,11 +49,18 @@ if ($fetch_all_materials->num_rows > 0) {
             data-prod_name="<?php echo htmlspecialchars($row['prod_name']); ?>">
             <span class="material-icons text-sm mr-1">arrow_upward</span> Stock In
         </button>
+
+        <!-- Manage Materials Button -->
+        <button class="manageMaterialsBtn bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-full text-xs flex items-center shadow"
+            data-id="<?php echo htmlspecialchars($row['prod_id']); ?>" 
+            data-prod_name="<?php echo htmlspecialchars($row['prod_name']); ?>">
+            <span class="material-icons text-sm mr-1">inventory_2</span> Materials
+        </button>
     </td>
 </tr>
 
 <?php
-    }
+}
 } else {
 ?>
     <tr>
@@ -52,8 +69,6 @@ if ($fetch_all_materials->num_rows > 0) {
 <?php
 }
 ?>
-
-
 
 
 
@@ -157,10 +172,57 @@ if ($fetch_all_materials->num_rows > 0) {
 
 
 
+
+<!-- Manage Product Materials Modal -->
+<div id="manageMaterialsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display:none;">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md max-h-96 overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">Manage Materials for <span id="manageMaterialsProdName"></span></h2>
+            <button type="button" id="closeManaageMaterialsModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        
+        <input type="hidden" id="manageMaterialsProdId">
+        
+        <!-- Existing Materials List -->
+        <div class="mb-4">
+            <h3 class="font-semibold text-gray-700 mb-2">Current Materials:</h3>
+            <div id="materialsList" class="space-y-2">
+                <p class="text-gray-500">Loading...</p>
+            </div>
+        </div>
+        
+        <!-- Add New Material Form -->
+        <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-700 mb-2">Add Material:</h3>
+            <form id="frmAddProductMaterial" class="space-y-3">
+                <div>
+                    <label for="materialType" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <select id="materialType" name="material_type" class="w-full border border-gray-300 rounded px-3 py-2" required>
+                        <option value="">-- Select Type --</option>
+                        <option value="raw">Raw Material</option>
+                        <option value="processed">Processed Material</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="materialName" class="block text-sm font-medium text-gray-700 mb-1">Material Name</label>
+                    <input type="text" id="materialName" name="material_name" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="e.g., Piña Cloth" required>
+                </div>
+                <div>
+                    <label for="materialQty" class="block text-sm font-medium text-gray-700 mb-1">Qty per Unit</label>
+                    <input type="number" id="materialQty" name="material_qty" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="e.g., 1.5" step="0.001" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Add Material</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
 <script>
 $(document).ready(function () {
 
-// $('.togglerDeleteProduct').click(function (e) { 
+// $('.togglerDeleteProduct').click(function (e) {
     $(document).on('click', '.deleteRmBtn', function(e) {
         e.preventDefault();
         var prod_id = $(this).data('prod_id');
@@ -211,7 +273,7 @@ $(document).ready(function () {
 
     
 
-    $('.stockInRmBtn').click(function () {
+    $(document).on('click', '.stockInRmBtn', function () {
         selectedId = $(this).data('id');
         console.log(selectedId);
         
@@ -220,7 +282,7 @@ $(document).ready(function () {
     });
 
 
-     $('.closeStockInRmModal').click(function () {
+    $(document).on('click', '.closeStockInRmModal', function () {
         selectedId = $(this).data('id');
         $('#stockInRmModal').fadeOut();
     });
@@ -268,7 +330,7 @@ $(document).ready(function () {
 
 
 
-   $('.updateRmBtn').click(function () {
+   $(document).on('click', '.updateRmBtn', function () {
         const id = $(this).data('id');
         const name = $(this).data('name');
         const description = $(this).data('description');
@@ -285,7 +347,7 @@ $(document).ready(function () {
         $('#UpdateRawMaterialsModal').fadeIn();
     });
 
-    $('#closeUpdateProductModal').click(function () {
+    $(document).on('click', '#closeUpdateProductModal', function () {
         $('#UpdateRawMaterialsModal').fadeOut();
     });
 
@@ -295,40 +357,41 @@ $(document).ready(function () {
 
 
 
-  $(document).ready(function() {
-      $('#frmUpdateProduct').on('submit', function(e) {
-          e.preventDefault();
-          var category = $('#productCategory').val();
-          if (category === null) {
-              alertify.error("Please select a category.");
-              return; 
-          }
-           
-          $('.spinner').show();
-          $('#frmUpdateProduct').prop('disabled', true);
-          var formData = new FormData(this);
-          formData.append('requestType', 'UpdateProduct'); 
-  
-          // Perform the AJAX request
-          $.ajax({
-              type: "POST",
-              url: "backend/end-points/controller.php",
-              data: formData,
-              contentType: false,
-              processData: false, 
-              success: function(response) {
-                console.log(response)
-                  if(response==200){
-                    $('#AddproductModal').hide();
-                    $('.spinner').hide();
-                    $('#frmUpdateProduct').prop('disabled', false);
+  $('#frmUpdateProduct').on('submit', function(e) {
+      e.preventDefault();
+      var category = $('#productCategory').val();
+      if (category === null) {
+          alertify.error("Please select a category.");
+          return; 
+      }
+       
+      var formData = new FormData(this);
+      formData.append('requestType', 'UpdateProduct'); 
+
+      // Perform the AJAX request
+      $.ajax({
+          type: "POST",
+          url: "backend/end-points/controller.php",
+          data: formData,
+          contentType: false,
+          processData: false,
+          dataType: "json",
+          success: function(response) {
+            console.log(response)
+              if(response && response.status === 'success'){
+                alertify.success(response.message || 'Product updated successfully');
+                $('#UpdateRawMaterialsModal').fadeOut();
+                $('#frmUpdateProduct')[0].reset();
+                setTimeout(function() {
                     location.reload();
-                  }
-              },
-              error: function(xhr, status, error) {
-                  alert('Error: ' + error);
+                }, 800);
+              } else {
+                alertify.error(response.message || 'Failed to update product');
               }
-          });
+          },
+          error: function(xhr, status, error) {
+              alertify.error('Error: ' + error);
+          }
       });
   });
 
@@ -341,7 +404,7 @@ $(document).ready(function () {
 
 
 
-    $('#submitDeleteRawMaterials').click(function () {
+    $(document).on('click', '#submitDeleteRawMaterials', function () {
         $.ajax({
             type: "POST",
             url: "backend/end-points/controller.php",
@@ -361,6 +424,113 @@ $(document).ready(function () {
         });
 
         $('#UpdateRawMaterialsModal').fadeOut();
+    });
+
+    // Manage Materials
+    $(document).on('click', '.manageMaterialsBtn', function() {
+        var prodId = $(this).data('id');
+        var prodName = $(this).data('prod_name');
+        
+        $('#manageMaterialsProdId').val(prodId);
+        $('#manageMaterialsProdName').text(prodName);
+        
+        // Load existing materials for this product
+        loadProductMaterials(prodId);
+        $('#manageMaterialsModal').fadeIn();
+    });
+
+    $(document).on('click', '#closeManaageMaterialsModal', function() {
+        $('#manageMaterialsModal').fadeOut();
+    });
+
+    function loadProductMaterials(prodName) {
+        $.ajax({
+            type: "POST",
+            url: "backend/end-points/controller.php",
+            data: {
+                requestType: "GetProductMaterials",
+                product_name: prodName
+            },
+            dataType: "json",
+            success: function(response) {
+                if (response.status === 'success' && response.materials) {
+                    let html = '';
+                    response.materials.forEach(function(mat) {
+                        html += `
+                            <div class="flex gap-2 items-center mb-2 p-2 bg-gray-100 rounded">
+                                <span class="flex-1">${mat.material_type} - ${mat.material_name} (${mat.material_qty} per unit)</span>
+                                <button type="button" class="removeMaterialBtn bg-red-500 text-white px-2 py-1 rounded text-sm" data-mat-id="${mat.id}">Remove</button>
+                            </div>
+                        `;
+                    });
+                    $('#materialsList').html(html);
+                } else {
+                    $('#materialsList').html('<p class="text-gray-500">No materials assigned yet</p>');
+                }
+            }
+        });
+    }
+
+    $('#frmAddProductMaterial').submit(function(e) {
+        e.preventDefault();
+        
+        var prodId = $('#manageMaterialsProdId').val();
+        var matType = $('#materialType').val();
+        var matName = $('#materialName').val();
+        var matQty = $('#materialQty').val();
+        
+        if (!matType || !matName || !matQty) {
+            alertify.error('Please fill in all fields');
+            return;
+        }
+        
+        $.ajax({
+            type: "POST",
+            url: "backend/end-points/controller.php",
+            data: {
+                requestType: "AddProductMaterial",
+                product_id: prodId,
+                material_type: matType,
+                material_name: matName,
+                material_qty: matQty
+            },
+            dataType: "json",
+            success: function(response) {
+                if (response.status === 'success') {
+                    alertify.success('Material added successfully');
+                    document.getElementById('frmAddProductMaterial').reset();
+                    loadProductMaterials($('#manageMaterialsProdName').text());
+                } else {
+                    alertify.error(response.message || 'Failed to add material');
+                }
+            },
+            error: function() {
+                alertify.error('Server error');
+            }
+        });
+    });
+
+    $(document).on('click', '.removeMaterialBtn', function() {
+        var matId = $(this).data('mat-id');
+        if (confirm('Remove this material?')) {
+            $.ajax({
+                type: "POST",
+                url: "backend/end-points/controller.php",
+                data: {
+                    requestType: "RemoveProductMaterial",
+                    material_id: matId
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alertify.success('Material removed');
+                        loadProductMaterials($('#manageMaterialsProdName').text());
+                    } else {
+                        alertify.error(response.message || 'Failed to remove material');
+                    }
+                }
+            });
+        }
     });
 });
 </script>

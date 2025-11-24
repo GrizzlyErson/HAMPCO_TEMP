@@ -262,11 +262,21 @@
     }
 
     // Load task requests when the tab is shown
-    document.getElementById('memberTaskRequestsTab').addEventListener('click', loadTaskRequests);
+    const memberTaskRequestsTabEl = document.getElementById('memberTaskRequestsTab');
+    if (memberTaskRequestsTabEl) {
+        memberTaskRequestsTabEl.addEventListener('click', loadTaskRequests);
+    }
 
     // Initial load if the tab is active
-    if (document.getElementById('memberTaskRequestsContent').classList.contains('show')) {
+    const memberTaskRequestsContentEl = document.getElementById('memberTaskRequestsContent');
+    if (memberTaskRequestsContentEl && memberTaskRequestsContentEl.classList.contains('show')) {
         loadTaskRequests();
     }
+    
+    // Load both tables on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTaskRequests();
+        loadTaskCompletions();
+    });
     </script>
 </div> 

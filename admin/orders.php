@@ -3,13 +3,13 @@
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Manage Orders</h1>
     <!-- Notification Bell Icon -->
-    <button class="relative focus:outline-none" title="Notifications">
+    <button id="notificationBell" class="relative focus:outline-none" title="Notifications">
         <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
         <!-- Notification dot -->
-        <span class="absolute top-0 right-0 block h-2 w-2 rounded-full ring-2 ring-white bg-red-500 hidden"></span>
+        <span id="notificationDot" class="absolute top-0 right-0 block h-2 w-2 rounded-full ring-2 ring-white bg-red-500 hidden"></span>
     </button>
 </div>
 
@@ -75,6 +75,20 @@
     </div>
 </div>
 
+<!-- Order Notifications Modal -->
+<div id="orderNotificationsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-96 overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">Pending Orders</h2>
+            <button id="closeNotificationsModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        
+        <div id="notificationsContent" class="space-y-3">
+            <p class="text-center text-gray-500">Loading notifications...</p>
+        </div>
+    </div>
+</div>
+
 <script>
     let currentOrderId = null;
     let allOrders = [];
@@ -82,6 +96,7 @@
     // Load orders on page load
     document.addEventListener('DOMContentLoaded', function() {
         loadOrders();
+        loadNotifications();
         
         // Event listeners
         document.getElementById('statusFilter').addEventListener('change', loadOrders);
@@ -89,7 +104,74 @@
         document.getElementById('refreshBtn').addEventListener('click', loadOrders);
         document.getElementById('closeOrderModal').addEventListener('click', closeOrderModal);
         document.getElementById('closeOrderBtn').addEventListener('click', closeOrderModal);
+        document.getElementById('notificationBell').addEventListener('click', function() {
+            document.getElementById('orderNotificationsModal').classList.remove('hidden');
+            loadNotifications();
+        });
+        document.getElementById('closeNotificationsModal').addEventListener('click', function() {
+            document.getElementById('orderNotificationsModal').classList.add('hidden');
+        });
+        
+        // Refresh notifications every 30 seconds
+        setInterval(loadNotifications, 30000);
     });
+
+    // Load pending order notifications
+    function loadNotifications() {
+        fetch('backend/end-points/get_orders.php?status=Pending')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.orders && data.orders.length > 0) {
+                    displayNotifications(data.orders);
+                    document.getElementById('notificationDot').classList.remove('hidden');
+                } else {
+                    document.getElementById('notificationsContent').innerHTML = '<p class="text-center text-gray-500 py-4">No pending orders</p>';
+                    document.getElementById('notificationDot').classList.add('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading notifications:', error);
+                document.getElementById('notificationsContent').innerHTML = '<p class="text-center text-red-500 py-4">Error loading notifications</p>';
+            });
+    }
+
+    // Display notifications with accept/decline buttons
+    function displayNotifications(orders) {
+        const content = document.getElementById('notificationsContent');
+        content.innerHTML = orders.map(order => `
+            <div class="border rounded-lg p-4 bg-blue-50 border-blue-200">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h4 class="font-semibold text-gray-800">Order #${order.order_id}</h4>
+                        <p class="text-sm text-gray-600">Customer: ${order.customer_name || 'N/A'}</p>
+                        <p class="text-sm text-gray-600">Total: ₱${parseFloat(order.total_amount || 0).toFixed(2)}</p>
+                        <p class="text-sm text-gray-600">Method: ${order.payment_method || 'N/A'}</p>
+                    </div>
+                    <span class="text-xs text-gray-500">${formatDate(order.created_at)}</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="acceptOrderNotification(${order.order_id})" class="flex-1 px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-medium transition">
+                        ✓ Accept
+                    </button>
+                    <button onclick="declineOrderNotification(${order.order_id})" class="flex-1 px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm font-medium transition">
+                        ✕ Decline
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Accept order notification
+    function acceptOrderNotification(orderId) {
+        updateOrderStatus(orderId, 'Accepted', null);
+    }
+
+    // Decline order notification
+    function declineOrderNotification(orderId) {
+        if (confirm('Are you sure you want to decline this order?')) {
+            updateOrderStatus(orderId, 'Declined', null);
+        }
+    }
 
     function loadOrders() {
         const status = document.getElementById('statusFilter').value;
@@ -146,23 +228,32 @@
                 if (data.success) {
                     alertify.success('Order status updated successfully');
                     // Update the dropdown to reflect current status
-                    dropdown.setAttribute('data-current-status', newStatus);
+                    if (dropdown) {
+                        dropdown.setAttribute('data-current-status', newStatus);
+                    }
                     loadOrders();
+                    loadNotifications();
                 } else {
                     alertify.error('Error updating status: ' + (data.error || 'Unknown error'));
                     // Reset dropdown to previous value
-                    dropdown.value = dropdown.getAttribute('data-current-status');
+                    if (dropdown) {
+                        dropdown.value = dropdown.getAttribute('data-current-status');
+                    }
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 alertify.error('Error updating order status');
                 // Reset dropdown to previous value
-                dropdown.value = dropdown.getAttribute('data-current-status');
+                if (dropdown) {
+                    dropdown.value = dropdown.getAttribute('data-current-status');
+                }
             });
         } else {
             // Reset dropdown if user cancels
-            dropdown.value = dropdown.getAttribute('data-current-status');
+            if (dropdown) {
+                dropdown.value = dropdown.getAttribute('data-current-status');
+            }
         }
     }
 

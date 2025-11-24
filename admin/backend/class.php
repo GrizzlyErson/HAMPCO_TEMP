@@ -197,7 +197,7 @@ class global_class extends db_connect
         return $exists;
     }
 
-    public function AddRawMaterials($raw_materials_name, $category, $rm_qty, $rm_unit, $rm_status)
+    public function AddRawMaterials($raw_materials_name, $category, $rm_qty, $rm_unit, $rm_status, $unit_cost = 0)
     {
         // For Silk material, category should be empty
         if ($raw_materials_name === 'Silk') {
@@ -222,8 +222,9 @@ class global_class extends db_connect
                     rm_quantity,
                     rm_unit,
                     rm_status,
-                    supplier_name
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                    supplier_name,
+                    unit_cost
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
             
             if (!$query) {
@@ -231,7 +232,8 @@ class global_class extends db_connect
             }
             
             $supplier_name = isset($_POST['supplier_name']) ? $_POST['supplier_name'] : null;
-            $query->bind_param("ssssss", $raw_materials_name, $category, $rm_qty, $rm_unit, $rm_status, $supplier_name);
+            $unit_cost = floatval($unit_cost);
+            $query->bind_param("ssssssd", $raw_materials_name, $category, $rm_qty, $rm_unit, $rm_status, $supplier_name, $unit_cost);
             $result = $query->execute();
             
             if ($result) {
@@ -246,7 +248,7 @@ class global_class extends db_connect
         }
     }
 
-    public function UpdateRawMaterials($rm_id, $raw_materials_name, $category, $rm_quantity, $rm_unit, $rm_status, $supplier_name = '')
+    public function UpdateRawMaterials($rm_id, $raw_materials_name, $category, $rm_quantity, $rm_unit, $rm_status, $supplier_name = '', $unit_cost = 0)
     {
         // Debug log input parameters
         error_log("UpdateRawMaterials called with params: " . json_encode([
@@ -256,7 +258,8 @@ class global_class extends db_connect
             'rm_quantity' => $rm_quantity,
             'rm_unit' => $rm_unit,
             'rm_status' => $rm_status,
-            'supplier_name' => $supplier_name
+            'supplier_name' => $supplier_name,
+            'unit_cost' => $unit_cost
         ]));
 
         // For Silk material, category should be empty
@@ -294,6 +297,7 @@ class global_class extends db_connect
                 }
             }
 
+            $unit_cost = floatval($unit_cost);
             $query = $this->conn->prepare("
                 UPDATE raw_materials 
                 SET raw_materials_name = ?,
@@ -301,7 +305,8 @@ class global_class extends db_connect
                     rm_quantity = ?,
                     rm_unit = ?,
                     rm_status = ?,
-                    supplier_name = ?
+                    supplier_name = ?,
+                    unit_cost = ?
                 WHERE id = ?
             ");
             
@@ -309,8 +314,8 @@ class global_class extends db_connect
                 throw new Exception("Prepare failed: " . $this->conn->error);
             }
             
-            error_log("About to execute update with category: " . $category);
-            $query->bind_param("ssssssi", $raw_materials_name, $category, $rm_quantity, $rm_unit, $rm_status, $supplier_name, $rm_id);
+            error_log("About to execute update with category: " . $category . " and unit_cost: " . $unit_cost);
+            $query->bind_param("ssssssdi", $raw_materials_name, $category, $rm_quantity, $rm_unit, $rm_status, $supplier_name, $unit_cost, $rm_id);
             $result = $query->execute();
             
             if ($result) {
@@ -525,6 +530,49 @@ class global_class extends db_connect
         } catch (Exception $e) {
             error_log("Error in AddProduct: " . $e->getMessage());
             return ['status' => 'error', 'message' => 'Failed to add product: ' . $e->getMessage()];
+        }
+    }
+
+    public function UpdateProduct($prod_id, $name, $description, $price, $category, $image = null)
+    {
+        try {
+            // First get current product image
+            $query = $this->conn->prepare("SELECT prod_image FROM product WHERE prod_id = ?");
+            $query->bind_param("i", $prod_id);
+            $query->execute();
+            $result = $query->get_result();
+            $row = $result->fetch_assoc();
+            $query->close();
+
+            if (!$row) {
+                return ['status' => 'error', 'message' => 'Product not found'];
+            }
+
+            $filename = $row['prod_image'];
+
+            // Handle new image upload if provided
+            if ($image && $image['error'] === UPLOAD_ERR_OK) {
+                $filename = $this->handleFileUpload($image);
+            }
+
+            // Update product
+            $update_query = $this->conn->prepare("
+                UPDATE `product` 
+                SET `prod_name` = ?, `prod_description` = ?, `prod_price` = ?, 
+                    `prod_category_id` = ?, `prod_image` = ?
+                WHERE `prod_id` = ?
+            ");
+
+            $update_query->bind_param("ssdiis", $name, $description, $price, $category, $filename, $prod_id);
+            
+            if ($update_query->execute()) {
+                return ['status' => 'success', 'message' => 'Product updated successfully'];
+            } else {
+                throw new Exception($update_query->error);
+            }
+        } catch (Exception $e) {
+            error_log("Error in UpdateProduct: " . $e->getMessage());
+            return ['status' => 'error', 'message' => 'Failed to update product: ' . $e->getMessage()];
         }
     }
 

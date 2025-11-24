@@ -259,7 +259,7 @@ class global_class extends db_connect
         // Step 1: Check if the email already exists in the database
         $query = $this->conn->prepare("SELECT COUNT(*) FROM `user_customer` WHERE `customer_email` = ?");
         if (!$query) {
-            return false; // Query preparation failed
+            return array('success' => false, 'message' => 'Query preparation failed');
         }
         $query->bind_param("s", $email);
         $query->execute();
@@ -268,7 +268,7 @@ class global_class extends db_connect
         $query->close();
         // If email already exists, return false or an error message
         if ($emailCount > 0) {
-            return "Email is already registered."; // Or you can return a specific error code/message
+            return array('success' => false, 'message' => 'Email is already registered.');
         }
         
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -286,8 +286,16 @@ class global_class extends db_connect
             $hashedPassword
         );
         $result = $query->execute();
-        $query->close();
-        return $result;
+        
+        if ($result) {
+            // Get the inserted customer ID
+            $customer_id = $this->conn->insert_id;
+            $query->close();
+            return array('success' => true, 'customer_id' => $customer_id, 'email' => $email);
+        } else {
+            $query->close();
+            return array('success' => false, 'message' => 'Registration failed. Please try again.');
+        }
     }
 
 

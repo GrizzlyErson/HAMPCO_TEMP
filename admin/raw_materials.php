@@ -23,6 +23,8 @@
                 <th class="py-3 px-6 text-left">Raw Materials Name</th>
                 <th class="py-3 px-6 text-left">Category</th>
                 <th class="py-3 px-6 text-left">Weight (grams)</th>
+                <th class="py-3 px-6 text-left">Unit Cost (₱)</th>
+                <th class="py-3 px-6 text-left">Total Value (₱)</th>
                 <th class="py-3 px-6 text-left">Supplier Name</th>
                 <th class="py-3 px-6 text-left">Status</th>
                 <th class="py-3 px-6 text-left">Action</th>
@@ -174,6 +176,10 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Name <span class="text-gray-500 text-xs">(optional)</span></label>
                     <input type="text" name="supplier_name" class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter supplier name">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Unit Cost (₱)</label>
+                    <input type="number" name="unit_cost" id="unit_cost" class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter unit cost per gram" min="0" step="0.01">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
@@ -606,6 +612,10 @@ $(document).ready(function() {
                     <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Name <span class="text-gray-500 text-xs">(optional)</span></label>
                     <input type="text" name="supplier_name" id="supplier_name" class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter supplier name">
                 </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Unit Cost (₱)</label>
+                    <input type="number" name="unit_cost" id="unit_cost" class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter unit cost per gram" min="0" step="0.01">
+                </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                     <select name="rm_status" id="rm_status" class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
@@ -677,6 +687,7 @@ $(document).ready(function() {
         $('#rm_unit').val(rmUnit || 'gram');
         $('#rm_status').val(rmStatus);
         $('#supplier_name').val(supplierName || '');
+        $('#unit_cost').val($(this).data('unit_cost') || '0');
 
         // Handle category based on material type
         var categorySelect = $('#category');
