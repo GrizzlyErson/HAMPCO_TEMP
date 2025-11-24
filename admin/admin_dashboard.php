@@ -950,32 +950,39 @@ require_once "components/header.php";
                 // Determine row background color and text color based on status
                 let rowBgColor = '#ffffff';
                 let rowTextColor = '#000000';
-                let statusBadgeClass = 'badge-secondary';
+                let badgeBgColor = '#6c757d';
+                let badgeTextColor = '#ffffff';
 
                 if (task.status === 'declined') {
                     rowBgColor = '#fee2e2'; // Light red background
                     rowTextColor = '#991b1b'; // Dark red text
-                    statusBadgeClass = 'badge-danger';
+                    badgeBgColor = '#dc3545'; // Red badge
+                    badgeTextColor = '#ffffff';
                 } else if (task.status === 'in_progress') {
                     rowBgColor = '#fef3c7'; // Light yellow background
                     rowTextColor = '#92400e'; // Dark yellow/brown text
-                    statusBadgeClass = 'badge-warning';
+                    badgeBgColor = '#ffc107'; // Yellow badge
+                    badgeTextColor = '#000000';
                 } else if (task.status === 'completed') {
                     rowBgColor = '#dcfce7'; // Light green background
                     rowTextColor = '#166534'; // Dark green text
-                    statusBadgeClass = 'badge-success';
+                    badgeBgColor = '#28a745'; // Green badge
+                    badgeTextColor = '#ffffff';
                 } else if (task.status === 'submitted') {
                     rowBgColor = '#fef3c7'; // Light yellow background
                     rowTextColor = '#92400e'; // Dark yellow/brown text
-                    statusBadgeClass = 'badge-warning';
+                    badgeBgColor = '#ffc107'; // Yellow badge
+                    badgeTextColor = '#000000';
                 } else if (task.status === 'approved') {
                     rowBgColor = '#dcfce7'; // Light green background
                     rowTextColor = '#166534'; // Dark green text
-                    statusBadgeClass = 'badge-success';
+                    badgeBgColor = '#28a745'; // Green badge
+                    badgeTextColor = '#ffffff';
                 } else if (task.status === 'pending') {
                     rowBgColor = '#f3f4f6'; // Light gray background
                     rowTextColor = '#374151'; // Dark gray text
-                    statusBadgeClass = 'badge-secondary';
+                    badgeBgColor = '#6c757d'; // Gray badge
+                    badgeTextColor = '#ffffff';
                 }
                 
                 const statusLabel = task.status.charAt(0).toUpperCase() + task.status.slice(1);
@@ -986,13 +993,13 @@ require_once "components/header.php";
                         <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; color: ${rowTextColor};">${task.product_name}</td>
                         <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; color: ${rowTextColor};" title="${task.member_name}">${task.member_name}</td>
                         <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap;">
-                            <span class="badge badge-sm ${statusBadgeClass}" style="display: inline-block; font-size: 12px; padding: 4px 8px;">${statusLabel}</span>
+                            <span style="display: inline-block; background-color: ${badgeBgColor}; color: ${badgeTextColor}; font-size: 12px; padding: 4px 8px; border-radius: 4px;">${statusLabel}</span>
                         </td>
                         <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap; color: ${rowTextColor};">
                             ${task.date_created ? new Date(task.date_created).toLocaleDateString() : '-'}
                         </td>
                         <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap; color: ${rowTextColor};">
-                            <span class="badge badge-light" style="font-size: 12px; padding: 4px 8px;">${typeof task.type === 'string' ? task.type : 'Assigned'}</span>
+                            <span style="display: inline-block; background-color: #e9ecef; color: #495057; font-size: 12px; padding: 4px 8px; border-radius: 4px;">${typeof task.type === 'string' ? task.type : 'Assigned'}</span>
                         </td>
                     </tr>
                 `;
