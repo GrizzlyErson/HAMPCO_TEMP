@@ -175,16 +175,15 @@ function renderStatusBadge(worker) {
     const statusValue = (worker.status || 'lazy').toLowerCase();
     const isActive = statusValue === 'active';
 
-    const badgeClass = isActive
-        ? 'bg-green-100 text-green-800'
-        : 'bg-red-100 text-red-800';
+    const textClass = isActive
+        ? 'text-green-600'
+        : 'text-red-600';
 
-    const icon = isActive ? '✓' : '⚠';
     const label = isActive ? 'Active' : 'Lazy';
 
     return `
-        <span class="px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}">
-            ${icon} ${label}
+        <span class="font-semibold ${textClass}">
+            ${label}
         </span>
     `;
 }
