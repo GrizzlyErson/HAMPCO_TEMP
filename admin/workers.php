@@ -80,64 +80,45 @@ include 'components/header.php';
 </div>
 
 <script>
-// Sample workers data (replace with actual data from backend)
-const workersData = [
-    {
-        id: 1,
-        name: 'Maria Santos',
-        role: 'Knotter',
-        tasksCompleted: 45,
-        daysWorked: 60,
-        lastActive: '2025-11-25',
-        joinDate: '2025-09-01',
-        averageTasksPerDay: 0.75,
-        status: 'active'
-    },
-    {
-        id: 2,
-        name: 'Juan Dela Cruz',
-        role: 'Weaver',
-        tasksCompleted: 12,
-        daysWorked: 55,
-        lastActive: '2025-11-20',
-        joinDate: '2025-09-05',
-        averageTasksPerDay: 0.22,
-        status: 'lazy'
-    },
-    {
-        id: 3,
-        name: 'Rosa Garcia',
-        role: 'Warper',
-        tasksCompleted: 38,
-        daysWorked: 45,
-        lastActive: '2025-11-24',
-        joinDate: '2025-09-10',
-        averageTasksPerDay: 0.84,
-        status: 'active'
-    },
-    {
-        id: 4,
-        name: 'Pedro Reyes',
-        role: 'Knotter',
-        tasksCompleted: 8,
-        daysWorked: 50,
-        lastActive: '2025-11-18',
-        joinDate: '2025-09-15',
-        averageTasksPerDay: 0.16,
-        status: 'lazy'
-    },
-    {
-        id: 5,
-        name: 'Ana Lopez',
-        role: 'Weaver',
-        tasksCompleted: 52,
-        daysWorked: 65,
-        lastActive: '2025-11-25',
-        joinDate: '2025-08-20',
-        averageTasksPerDay: 0.80,
-        status: 'active'
+let workersData = [];
+
+async function loadWorkers() {
+    const tbody = document.getElementById('workersTableBody');
+    const emptyState = document.getElementById('emptyState');
+
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                    Loading workers...
+                </td>
+            </tr>`;
     }
-];
+
+    try {
+        const response = await fetch('backend/end-points/get_worker_table.php', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Failed to load workers.');
+
+        const payload = await response.json();
+        if (!payload.success) throw new Error(payload.message || 'Unable to load worker data.');
+
+        workersData = Array.isArray(payload.data) ? payload.data : [];
+        renderWorkers(workersData);
+    } catch (error) {
+        console.error('Error loading workers:', error);
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="px-6 py-4 text-center text-red-600">
+                        ${error.message || 'An unexpected error occurred while loading workers.'}
+                    </td>
+                </tr>`;
+        }
+        if (emptyState) {
+            emptyState.classList.add('hidden');
+        }
+    }
+}
 
 function renderWorkers(workers) {
     const tbody = document.getElementById('workersTableBody');
@@ -152,7 +133,9 @@ function renderWorkers(workers) {
     emptyState.classList.add('hidden');
     tbody.innerHTML = workers.map(worker => `
         <tr class="hover:bg-gray-50 transition">
-            <td class="px-6 py-3 text-gray-800 font-semibold">#${worker.id.toString().padStart(3, '0')}</td>
+            <td class="px-6 py-3 text-gray-800 font-semibold">
+                ${worker.memberCode ? worker.memberCode : `#${worker.id.toString().padStart(3, '0')}`}
+            </td>
             <td class="px-6 py-3 text-gray-800">${worker.name}</td>
             <td class="px-6 py-3 text-gray-800">
                 <span class="px-3 py-1 rounded-full text-xs font-semibold
@@ -192,7 +175,13 @@ function renderWorkers(workers) {
 }
 
 function formatDate(dateString) {
+    if (!dateString) return 'No activity yet';
+
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) {
+        return 'No activity yet';
+    }
+
     const today = new Date();
     const diffTime = Math.abs(today - date);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -218,8 +207,15 @@ function applyFilters() {
         if (worker.tasksCompleted < minTasks) return false;
 
         // Date range filter
-        if (fromDate && new Date(worker.lastActive) < new Date(fromDate)) return false;
-        if (toDate && new Date(worker.lastActive) > new Date(toDate)) return false;
+        const lastActiveDate = worker.lastActive ? new Date(worker.lastActive) : null;
+        if (fromDate) {
+            const from = new Date(fromDate);
+            if (!lastActiveDate || lastActiveDate < from) return false;
+        }
+        if (toDate) {
+            const to = new Date(toDate);
+            if (!lastActiveDate || lastActiveDate > to) return false;
+        }
 
         return true;
     });
@@ -237,13 +233,32 @@ function resetFilters() {
 
 function viewDetails(workerId) {
     const worker = workersData.find(w => w.id === workerId);
-    alert(`Worker Details:\n\nName: ${worker.name}\nRole: ${worker.role}\nTasks: ${worker.tasksCompleted}\nDays Worked: ${worker.daysWorked}\nAvg Tasks/Day: ${worker.averageTasksPerDay.toFixed(2)}`);
+    if (!worker) {
+        alert('Worker not found.');
+        return;
+    }
+
+    const averageTasks = worker.daysWorked > 0 
+        ? (worker.tasksCompleted / worker.daysWorked).toFixed(2)
+        : worker.tasksCompleted.toFixed(2);
+
+    alert(`Worker Details:
+
+Member Code: ${worker.memberCode || 'N/A'}
+Name: ${worker.name}
+Role: ${worker.role}
+Tasks Completed: ${worker.tasksCompleted}
+Days Worked: ${worker.daysWorked}
+Average Tasks/Day: ${averageTasks}
+Last Active: ${formatDate(worker.lastActive)}
+Availability: ${worker.availability || 'N/A'}`);
 }
 
 function editWorker(workerId) {
-    alert(`Edit functionality for worker #${workerId}`);
+    const worker = workersData.find(w => w.id === workerId);
+    alert(worker ? `Edit functionality for ${worker.name} (${worker.role})` : `Edit functionality for worker #${workerId}`);
 }
 
 // Initial render
-renderWorkers(workersData);
+document.addEventListener('DOMContentLoaded', loadWorkers);
 </script>
