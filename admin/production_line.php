@@ -727,7 +727,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function updateWorkforceManagement() {
-    fetch('backend/end-points/get_members_availability.php')
+    fetch('backend/end-points/get_workforce_members.php')
         .then(response => response.json())
         .then(data => {
             const summary = {
