@@ -186,18 +186,35 @@ try {
                         <!-- Content Column -->
                         <div class="col-lg-12 mb-4">
 
-                            <!-- Project Card Example -->
+                            <!-- Task Created Card -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 bg-success">
-                                    <h6 class="m-0 font-weight-bold text-light">Current Task Details</h6>
+                                    <h6 class="m-0 font-weight-bold text-light">📝 My Tasks Created</h6>
                                 </div>
-                                <div class="card-body">
-                                    <h1>NO TASK DETAILS</h1>
+                                <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm mb-0" id="taskCreatedTable">
+                                            <thead class="bg-light">
+                                                <tr>
+                                                    <th scope="col" style="font-size: 12px;">Production ID</th>
+                                                    <th scope="col" style="font-size: 12px;">Product Name</th>
+                                                    <th scope="col" style="font-size: 12px;">Weight (g)</th>
+                                                    <th scope="col" style="font-size: 12px;">Status</th>
+                                                    <th scope="col" style="font-size: 12px;">Raw Materials</th>
+                                                    <th scope="col" style="font-size: 12px;">Date Created</th>
+                                                    <th scope="col" style="font-size: 12px;">Date Submitted</th>
+                                                    <th scope="col" style="font-size: 12px;">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="taskCreatedTableBody">
+                                                <tr>
+                                                    <td colspan="8" class="text-center text-muted py-3">Loading tasks...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
-
-                            <!-- Color System -->
-
 
                         </div>
 
@@ -452,8 +469,86 @@ document.addEventListener('DOMContentLoaded', function() {
 
     setActiveTaskTab('assigned');
     fetchRecentTasks();
+    loadTasksCreated();
     setInterval(fetchRecentTasks, 60000);
+    setInterval(loadTasksCreated, 60000);
 });
+
+// Load tasks created by the member
+function loadTasksCreated() {
+    const tableBody = document.getElementById('taskCreatedTableBody');
+    if (!tableBody) return;
+
+    fetch('backend/end-points/get_self_tasks.php')
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.tasks && Array.isArray(data.tasks)) {
+                if (data.tasks.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No tasks created yet</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = data.tasks.map(task => {
+                    const statusBadgeClass = task.status === 'completed' ? 'badge-success' :
+                                            task.status === 'submitted' ? 'badge-warning' :
+                                            task.status === 'in_progress' ? 'badge-info' :
+                                            'badge-secondary';
+
+                    const statusLabel = task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ');
+
+                    return `
+                        <tr>
+                            <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap;">${task.production_id || '-'}</td>
+                            <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${task.product_name}</td>
+                            <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap; text-align: center;">${task.weight_g}</td>
+                            <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap;">
+                                <span class="badge ${statusBadgeClass}" style="font-size: 11px; padding: 3px 6px;">${statusLabel}</span>
+                            </td>
+                            <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap;">
+                                <button onclick="viewTaskMaterials('${task.product_name}', ${task.weight_g})" 
+                                    class="btn btn-sm btn-info" style="font-size: 11px; padding: 2px 6px;">
+                                    View
+                                </button>
+                            </td>
+                            <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap; color: #666;">
+                                ${task.date_created ? new Date(task.date_created).toLocaleDateString() : '-'}
+                            </td>
+                            <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap; color: #666;">
+                                ${task.date_submitted ? new Date(task.date_submitted).toLocaleDateString() : '-'}
+                            </td>
+                            <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap;">
+                                <a href="production.php?tab=created" class="btn btn-sm btn-primary" style="font-size: 11px; padding: 2px 6px;">
+                                    Manage
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No tasks created yet</td></tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading created tasks:', error);
+            tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-3">Error loading tasks</td></tr>';
+        });
+}
+
+// View materials function
+function viewTaskMaterials(productName, weight) {
+    fetch(`production.php?action=view_materials&product=${encodeURIComponent(productName)}&weight=${weight}`)
+        .then(response => response.text())
+        .then(html => {
+            alert(`Materials for ${productName} (${weight}g)`);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error viewing materials');
+        });
+}
 </script>
 
 <?php require_once "components/footer.php"; ?>

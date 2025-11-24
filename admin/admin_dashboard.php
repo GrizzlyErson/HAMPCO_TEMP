@@ -366,6 +366,40 @@ require_once "components/header.php";
                         </div>
                     </div>
 
+                    <!-- Task Created by Members Row -->
+                    <div class="row">
+                        <div class="col-lg-12 mb-4">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 bg-success">
+                                    <h6 class="m-0 font-weight-bold text-light">📝 Tasks Created by Members</h6>
+                                </div>
+                                <div style="height: 400px; display: flex; flex-direction: column; overflow: hidden;">
+                                    <div class="table-responsive" style="flex: 1; overflow-y: auto; overflow-x: auto;">
+                                        <table class="table table-sm mb-0" id="memberTasksTable">
+                                            <thead class="sticky-top bg-light">
+                                                <tr>
+                                                    <th scope="col" style="font-size: 11px; white-space: nowrap;">Production ID</th>
+                                                    <th scope="col" style="font-size: 11px; white-space: nowrap;">Product Name</th>
+                                                    <th scope="col" style="font-size: 11px; white-space: nowrap;">Member Name</th>
+                                                    <th scope="col" style="font-size: 11px; white-space: nowrap;">Role</th>
+                                                    <th scope="col" style="font-size: 11px; white-space: nowrap;">Weight (g)</th>
+                                                    <th scope="col" style="font-size: 11px; white-space: nowrap;">Status</th>
+                                                    <th scope="col" style="font-size: 11px; white-space: nowrap;">Approval</th>
+                                                    <th scope="col" style="font-size: 11px; white-space: nowrap;">Date Created</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="memberTasksTableBody">
+                                                <tr>
+                                                    <td colspan="8" class="text-center text-muted py-3">Loading member created tasks...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Deadline Status Row -->
                     <div class="row">
                         <div class="col-lg-12 mb-4">
@@ -947,6 +981,67 @@ require_once "components/header.php";
         });
     }
 
+    // Load member created tasks for the admin dashboard
+    function loadMemberCreatedTasks() {
+        const tableBody = document.getElementById('memberTasksTableBody');
+        if (!tableBody) return;
+
+        fetch('backend/end-points/get_all_self_tasks.php')
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.tasks && Array.isArray(data.tasks)) {
+                    if (data.tasks.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No member created tasks</td></tr>';
+                        return;
+                    }
+
+                    tableBody.innerHTML = data.tasks.map(task => {
+                        const statusBadgeClass = task.status === 'completed' ? 'badge-success' :
+                                                task.status === 'submitted' ? 'badge-warning' :
+                                                task.status === 'in_progress' ? 'badge-info' :
+                                                'badge-secondary';
+
+                        const approvalBadgeClass = task.approval_status === 'approved' ? 'badge-success' :
+                                                 task.approval_status === 'rejected' ? 'badge-danger' :
+                                                 'badge-warning';
+
+                        const statusLabel = task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ');
+                        const approvalLabel = task.approval_status.charAt(0).toUpperCase() + task.approval_status.slice(1);
+
+                        return `
+                            <tr style="height: 40px; vertical-align: middle;">
+                                <td style="font-size: 13px; font-weight: 500; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;">${task.production_id || 'N/A'}</td>
+                                <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${task.product_name}</td>
+                                <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;" title="${task.member_name}">${task.member_name}</td>
+                                <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70px;">
+                                    <span class="badge badge-light" style="font-size: 11px; padding: 3px 6px;">${task.role}</span>
+                                </td>
+                                <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap; text-align: center;">${task.weight_g}</td>
+                                <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap;">
+                                    <span class="badge badge-sm ${statusBadgeClass}" style="display: inline-block; font-size: 11px; padding: 3px 6px;">${statusLabel}</span>
+                                </td>
+                                <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap;">
+                                    <span class="badge badge-sm ${approvalBadgeClass}" style="display: inline-block; font-size: 11px; padding: 3px 6px;">${approvalLabel}</span>
+                                </td>
+                                <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap; color: #666;">
+                                    ${task.date_created ? new Date(task.date_created).toLocaleDateString() : '-'}
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No member created tasks</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading member created tasks:', error);
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-3">Error loading tasks</td></tr>';
+            });
+    }
+
     // Helper function to format time ago
     function formatTimeAgo(dateString) {
         const date = new Date(dateString);
@@ -967,10 +1062,12 @@ require_once "components/header.php";
     // Load tasks on page load
     document.addEventListener('DOMContentLoaded', function() {
         loadRecentTasks();
+        loadMemberCreatedTasks();
         loadTaskCompletionChart();
         loadTaskStatusOverview();
         // Refresh every 30 seconds
         setInterval(loadRecentTasks, 30000);
+        setInterval(loadMemberCreatedTasks, 30000);
         setInterval(loadTaskCompletionChart, 60000);
         setInterval(loadTaskStatusOverview, 60000);
     });
