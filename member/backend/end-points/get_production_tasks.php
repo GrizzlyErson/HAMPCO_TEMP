@@ -2,7 +2,7 @@
 session_start();
 header('Content-Type: application/json');
 
-require_once '../../../function/connection.php';
+require_once '../../../function/database.php';
 $db = new Database();
 
 try {
@@ -44,8 +44,15 @@ try {
         ORDER BY pl.date_created DESC";
 
     $stmt = $db->conn->prepare($new_tasks_query);
+    if (!$stmt) {
+        throw new Exception("Prepare failed for new tasks: " . $db->conn->error);
+    }
+    
     $stmt->bind_param("i", $member_id);
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        throw new Exception("Execute failed for new tasks: " . $stmt->error);
+    }
+    
     $result = $stmt->get_result();
 
     if ($result) {
@@ -55,6 +62,7 @@ try {
             $response['new_tasks'][] = $row;
         }
     }
+    $stmt->close();
 
     // Get assigned tasks (tasks that have been accepted/started)
     $assigned_tasks_query = "SELECT 
@@ -75,8 +83,15 @@ try {
         ORDER BY ta.created_at DESC";
 
     $stmt = $db->conn->prepare($assigned_tasks_query);
+    if (!$stmt) {
+        throw new Exception("Prepare failed for assigned tasks: " . $db->conn->error);
+    }
+    
     $stmt->bind_param("i", $member_id);
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        throw new Exception("Execute failed for assigned tasks: " . $stmt->error);
+    }
+    
     $result = $stmt->get_result();
 
     if ($result) {
@@ -85,6 +100,7 @@ try {
             $response['assigned_tasks'][] = $row;
         }
     }
+    $stmt->close();
 
     echo json_encode($response);
 

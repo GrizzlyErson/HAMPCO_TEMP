@@ -355,32 +355,53 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         Promise.all([
-            fetch('backend/end-points/get_production_tasks.php').then(res => res.json()).catch(() => ({ success: false })),
-            fetch('backend/end-points/get_created_tasks.php').then(res => res.json()).catch(() => ({ success: false }))
+            fetch('backend/end-points/get_production_tasks.php')
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
+                .catch(err => {
+                    console.error('Error fetching production tasks:', err);
+                    return { success: false };
+                }),
+            fetch('backend/end-points/get_created_tasks.php')
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
+                .catch(err => {
+                    console.error('Error fetching created tasks:', err);
+                    return { success: false };
+                })
         ])
         .then(([assignedData, createdData]) => {
+            console.log('Assigned tasks data:', assignedData);
+            console.log('Created tasks data:', createdData);
+
             const assigned = [];
-            if (assignedData && assignedData.new_tasks) {
-                assignedData.new_tasks.forEach(task => {
-                    assigned.push({
-                        display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
-                        product_name: task.product_name,
-                        status: task.status || task.task_status || 'pending',
-                        date: task.deadline,
-                        type: 'New Assignment'
+            if (assignedData && assignedData.success) {
+                if (assignedData.new_tasks && Array.isArray(assignedData.new_tasks)) {
+                    assignedData.new_tasks.forEach(task => {
+                        assigned.push({
+                            display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
+                            product_name: task.product_name,
+                            status: task.status || task.task_status || 'pending',
+                            date: task.deadline,
+                            type: 'New Assignment'
+                        });
                     });
-                });
-            }
-            if (assignedData && assignedData.assigned_tasks) {
-                assignedData.assigned_tasks.forEach(task => {
-                    assigned.push({
-                        display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
-                        product_name: task.product_name,
-                        status: task.status || 'in_progress',
-                        date: task.date_started,
-                        type: 'In Progress'
+                }
+                if (assignedData.assigned_tasks && Array.isArray(assignedData.assigned_tasks)) {
+                    assignedData.assigned_tasks.forEach(task => {
+                        assigned.push({
+                            display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
+                            product_name: task.product_name,
+                            status: task.status || 'in_progress',
+                            date: task.date_started,
+                            type: 'In Progress'
+                        });
                     });
-                });
+                }
             }
             recentTasksState.assigned = assigned.slice(0, 8);
 
@@ -390,13 +411,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     created.push({
                         display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
                         product_name: task.product_name,
-                        status: task.status || task.status_label || 'Created',
+                        status: task.status || 'Created',
                         date: task.date_added || task.date_submitted,
                         type: 'Created'
                     });
                 });
             }
             recentTasksState.created = created.slice(0, 8);
+
+            console.log('State assigned:', recentTasksState.assigned);
+            console.log('State created:', recentTasksState.created);
 
             renderRecentTasks(activeTaskTab);
         })
