@@ -33,7 +33,12 @@ function logError($message, $context = []) {
 try {
     require_once "../dbconnect.php";
     require_once "../class.php";
-    require_once dirname(__DIR__, 3) . "/admin/backend/helpers/task_decline_helper.php";
+    
+    // Include task decline helper if it exists
+    $helper_path = dirname(__DIR__, 3) . "/admin/backend/helpers/task_decline_helper.php";
+    if (file_exists($helper_path)) {
+        require_once $helper_path;
+    }
 
     if (!isset($_SESSION['id']) || !isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'member') {
         sendJsonResponse(false, 'Unauthorized access', null, 401);
@@ -98,8 +103,13 @@ try {
 
     if ($action === 'accept') {
         // Get raw materials calculator
-        require_once $_SERVER['DOCUMENT_ROOT'] . "/hampco_memberFix/admin/backend/raw_material_calculator.php";
-        $calculator = new RawMaterialCalculator($db);
+        $calculator_path = dirname(__DIR__, 3) . "/admin/backend/raw_material_calculator.php";
+        if (file_exists($calculator_path)) {
+            require_once $calculator_path;
+            $calculator = new RawMaterialCalculator($db);
+        } else {
+            throw new Exception("Raw material calculator file not found");
+        }
         
         // Calculate materials needed
         $materials = $calculator->calculateMaterialsNeeded(
@@ -264,8 +274,10 @@ try {
 
         $update_task->close();
 
-        // Record decline notification for admin follow-up
-        logTaskDecline($db->conn, $task_id, intval($task_data['prod_line_id']), $member_id, $decline_reason);
+        // Record decline notification for admin follow-up if the function exists
+        if (function_exists('logTaskDecline')) {
+            logTaskDecline($db->conn, $task_id, intval($task_data['prod_line_id']), $member_id, $decline_reason);
+        }
 
         // Commit transaction
         if (!$db->conn->commit()) {

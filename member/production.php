@@ -887,34 +887,39 @@ function acceptTask(taskId) {
         confirmButtonText: 'Yes, accept it!'
     }).then((result) => {
         if (result.isConfirmed) {
-    fetch('backend/end-points/update_task_status.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            task_id: taskId,
+            fetch('backend/end-points/update_task_status.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    task_id: taskId,
                     action: 'accept'
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Task Accepted',
-                        text: data.message,
+                        text: data.message || 'Task has been accepted successfully',
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-            window.location.reload();
+                        window.location.reload();
                     });
-        } else {
+                } else {
                     throw new Error(data.message || 'Failed to accept task');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
@@ -931,7 +936,7 @@ function declineTask(taskId) {
         html: `
             <div class="text-left">
                 <p class="mb-2 text-sm text-gray-600">Please let the admin know why you are declining this assignment.</p>
-                <textarea id="declineReasonInput" class="swal2-textarea" placeholder="Enter your reason..." rows="4"></textarea>
+                <textarea id="declineReasonInput" class="swal2-textarea" placeholder="Enter your reason..." rows="4" style="width: 100%;"></textarea>
             </div>
         `,
         icon: 'warning',
@@ -940,10 +945,16 @@ function declineTask(taskId) {
         cancelButtonColor: '#3085d6',
         confirmButtonText: 'Submit Decline',
         focusConfirm: false,
+        didOpen: () => {
+            // Focus on the textarea
+            const textarea = document.getElementById('declineReasonInput');
+            if (textarea) textarea.focus();
+        },
         preConfirm: () => {
             const reasonField = document.getElementById('declineReasonInput');
             if (!reasonField) {
-                return '';
+                Swal.showValidationMessage('Error: Could not find reason field');
+                return false;
             }
             const value = reasonField.value.trim();
             if (!value) {
@@ -965,13 +976,18 @@ function declineTask(taskId) {
                     reason: result.value
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Task Declined',
-                        text: data.message,
+                        text: data.message || 'Task has been declined',
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
