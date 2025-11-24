@@ -282,7 +282,6 @@
                     <select class="status-dropdown px-2 py-1 border border-gray-300 rounded-md text-sm" data-order-id="${order.order_id}" data-current-status="${order.status || 'pending'}">
                         <option value="">-- Change Status --</option>
                         <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                        <option value="Accepted" ${order.status === 'Accepted' ? 'selected' : ''}>Accepted</option>
                         <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
                         <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
                         <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
