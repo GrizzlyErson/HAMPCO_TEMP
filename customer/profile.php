@@ -212,7 +212,7 @@ endforeach;
         <div class="mt-8 bg-white rounded-lg shadow-md p-6">
             <h3 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <a href="checkout_history.php" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-green-50 transition">
+                <a href="orders.php" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-green-50 transition">
                     <span class="material-icons text-green-600 mr-3">history</span>
                     <div>
                         <p class="font-semibold text-gray-800">View Checkout History</p>
