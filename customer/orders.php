@@ -24,7 +24,7 @@ include "component/header.php";
             <?php while ($order = $result->fetch_assoc()): ?>
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
                     <!-- Order Header -->
-                    <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-6 border-l-4 border-blue-600">
+                    <div class="bg-gradient-to-r from-green-50 to-green-100 p-6 border-l-4 border-green-600">
                         <div class="flex justify-between items-start flex-wrap gap-4">
                             <div>
                                 <p class="text-sm text-gray-600">Order ID</p>
@@ -41,7 +41,7 @@ include "component/header.php";
                                     if ($order['order_status'] === 'Completed') echo 'bg-green-100 text-green-800';
                                     elseif ($order['order_status'] === 'Pending') echo 'bg-yellow-100 text-yellow-800';
                                     elseif ($order['order_status'] === 'Cancelled') echo 'bg-red-100 text-red-800';
-                                    else echo 'bg-blue-100 text-blue-800';
+                                    else echo 'bg-green-100 text-green-800';
                                     ?>
                                 ">
                                     <?php echo $order['order_status']; ?>
@@ -131,7 +131,7 @@ include "component/header.php";
             </svg>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">No Checkout History</h2>
             <p class="text-gray-600 mb-6">You haven't made any purchases yet.</p>
-            <a href="customer_home_page.php" class="inline-block bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg font-semibold transition">
+            <a href="customer_home_page.php" class="inline-block bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg font-semibold transition">
                 Continue Shopping
             </a>
         </div>
