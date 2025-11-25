@@ -149,9 +149,11 @@ try {
     // Summary statistics
     $summary = [
         'total_active_tasks' => count($tasks),
-        'pending_tasks' => count(array_filter($tasks, fn($t) => $t['status']['current'] === 'pending')),
-        'in_progress_tasks' => count(array_filter($tasks, fn($t) => $t['status']['current'] === 'in_progress')),
-        'submitted_tasks' => count(array_filter($tasks, fn($t) => $t['status']['current'] === 'submitted')),
+        'pending_tasks' => (int)($task_counts['pending'] ?? 0),
+        'in_progress_tasks' => (int)($task_counts['in_progress'] ?? 0),
+        'submitted_tasks' => (int)($task_counts['submitted'] ?? 0),
+        'completed_tasks' => (int)($task_counts['completed'] ?? 0),
+        'total_tasks' => (int)($task_counts['total_tasks'] ?? 0),
         'overdue_tasks' => count(array_filter($tasks, fn($t) => $t['status']['is_urgent'] && $t['dates']['deadline_status'] === 'overdue')),
         'urgent_tasks' => count(array_filter($tasks, fn($t) => $t['status']['is_urgent']))
     ];

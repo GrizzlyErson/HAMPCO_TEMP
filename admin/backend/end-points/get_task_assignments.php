@@ -21,7 +21,6 @@ try {
     FROM production_line pl
     LEFT JOIN task_assignments ta ON pl.prod_line_id = ta.prod_line_id
     LEFT JOIN user_member um ON ta.member_id = um.id
-    WHERE pl.status != 'completed' AND (ta.status != 'completed' OR ta.status IS NULL)
     GROUP BY pl.prod_line_id
     ORDER BY pl.date_created DESC";
     

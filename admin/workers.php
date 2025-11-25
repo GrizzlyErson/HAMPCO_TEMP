@@ -15,8 +15,8 @@ include 'components/header.php';
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                     <select id="statusFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
                         <option value="">All Workers</option>
-                        <option value="active">Active Workers</option>
-                        <option value="lazy">Lazy Workers</option>
+                        <option value="active">Active Members</option>
+                        <option value="inactive">Inactive Members</option>
                     </select>
                 </div>
 
@@ -60,7 +60,7 @@ include 'components/header.php';
                         <th class="px-6 py-3 text-center font-semibold text-gray-700">Days Worked</th>
                         <th class="px-6 py-3 text-center font-semibold text-gray-700">Last Active</th>
                         <th class="px-6 py-3 text-center font-semibold text-gray-700">Status</th>
-                        <th class="px-6 py-3 text-center font-semibold text-gray-700">Actions</th>
+
                     </tr>
                 </thead>
                 <tbody id="workersTableBody" class="divide-y divide-gray-200">
@@ -89,7 +89,7 @@ async function loadWorkers() {
     if (tbody) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                <td colspan="7" class="px-6 py-4 text-center text-gray-500">
                     Loading workers...
                 </td>
             </tr>`;
@@ -109,7 +109,7 @@ async function loadWorkers() {
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="px-6 py-4 text-center text-red-600">
+                    <td colspan="7" class="px-6 py-4 text-center text-red-600">
                         ${error.message || 'An unexpected error occurred while loading workers.'}
                     </td>
                 </tr>`;
@@ -159,27 +159,20 @@ function renderWorkers(workers) {
             <td class="px-6 py-3 text-center">
                 ${renderStatusBadge(worker)}
             </td>
-            <td class="px-6 py-3 text-center">
-                <button onclick="viewDetails(${worker.id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-semibold transition mr-2">
-                    View
-                </button>
-                <button onclick="editWorker(${worker.id})" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-semibold transition">
-                    Edit
-                </button>
-            </td>
+
         </tr>
     `).join('');
 }
 
 function renderStatusBadge(worker) {
-    const statusValue = (worker.status || 'lazy').toLowerCase();
+    const statusValue = (worker.status || 'inactive').toLowerCase();
     const isActive = statusValue === 'active';
 
     const textClass = isActive
         ? 'text-green-600'
         : 'text-red-600';
 
-    const label = isActive ? 'Active' : 'Lazy';
+    const label = isActive ? 'Active' : 'inactive';
 
     return `
         <span class="font-semibold ${textClass}">
@@ -214,7 +207,7 @@ function applyFilters() {
     const toDate = document.getElementById('toDateFilter').value;
 
     let filtered = workersData.filter(worker => {
-        const statusValue = (worker.status || 'lazy').toLowerCase();
+        const statusValue = (worker.status || 'inactive').toLowerCase();
 
         // Status filter
         if (status && statusValue !== status) return false;

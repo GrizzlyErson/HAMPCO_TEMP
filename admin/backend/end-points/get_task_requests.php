@@ -26,7 +26,6 @@ try {
         um.role
     FROM task_approval_requests tar
     JOIN user_member um ON tar.member_id = um.id
-    WHERE tar.status != 'approved'
     ORDER BY tar.date_created DESC";
 
     $result = mysqli_query($db->conn, $query);
@@ -65,7 +64,6 @@ try {
         um.role
     FROM member_self_tasks mst
     JOIN user_member um ON mst.member_id = um.id
-    WHERE mst.status IN ('pending', 'in_progress', 'submitted')
     ORDER BY mst.date_created DESC";
 
     $self_result = mysqli_query($db->conn, $self_tasks_query);

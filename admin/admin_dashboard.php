@@ -29,6 +29,14 @@ require_once "components/header.php";
     .count-animate {
       animation: countPulse 0.6s ease-in-out;
     }
+    .status-link > div {
+        transition: background-color 0.2s ease-in-out;
+        border-radius: .35rem;
+    }
+    .status-link:hover > div {
+        background-color: #f8f9fa;
+        cursor: pointer;
+    }
   </style>
 </head>
 <body class="hampco-admin-sidebar-layout">
@@ -366,16 +374,19 @@ require_once "components/header.php";
                                 </div>
                                 <div class="card-body">
                                     <div id="taskStatusContainer" class="space-y-3">
-                                        <div>
+                                    <a href="production_line.php?tab=tasks&status=pending" class="text-decoration-none status-link">
+                                        <div class="p-3">
                                             <div class="d-flex justify-content-between mb-2">
-                                                <span class="small font-weight-bold">Pending Tasks <span id="pendingCount" class="text-primary">0</span></span>
-                                                <span id="pendingPercent" class="small font-weight-bold text-primary">0%</span>
+                                                <span class="small font-weight-bold">Pending Tasks <span id="pendingCount" class="text-warning">0</span></span>
+                                                <span id="pendingPercent" class="small font-weight-bold text-warning">0%</span>
                                             </div>
                                             <div class="progress">
                                                 <div id="pendingBar" class="progress-bar bg-warning" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                         </div>
-                                        <div>
+                                    </a>
+                                    <a href="production_line.php?tab=tasks&status=in_progress" class="text-decoration-none status-link">
+                                        <div class="p-3">
                                             <div class="d-flex justify-content-between mb-2">
                                                 <span class="small font-weight-bold">In Progress <span id="inProgressCount" class="text-info">0</span></span>
                                                 <span id="inProgressPercent" class="small font-weight-bold text-info">0%</span>
@@ -384,7 +395,9 @@ require_once "components/header.php";
                                                 <div id="inProgressBar" class="progress-bar bg-info" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                         </div>
-                                        <div>
+                                    </a>
+                                    <a href="production_line.php?tab=tasks&status=submitted" class="text-decoration-none status-link">
+                                        <div class="p-3">
                                             <div class="d-flex justify-content-between mb-2">
                                                 <span class="small font-weight-bold">Submitted <span id="submittedCount" class="text-secondary">0</span></span>
                                                 <span id="submittedPercent" class="small font-weight-bold text-secondary">0%</span>
@@ -393,7 +406,9 @@ require_once "components/header.php";
                                                 <div id="submittedBar" class="progress-bar bg-secondary" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                         </div>
-                                        <div>
+                                    </a>
+                                    <a href="production_line.php?tab=tasks&status=completed" class="text-decoration-none status-link">
+                                        <div class="p-3">
                                             <div class="d-flex justify-content-between mb-2">
                                                 <span class="small font-weight-bold">Completed <span id="completedCount" class="text-success">0</span></span>
                                                 <span id="completedPercent" class="small font-weight-bold text-success">0%</span>
@@ -402,7 +417,8 @@ require_once "components/header.php";
                                                 <div id="completedBar" class="progress-bar bg-success" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </a>
+                                </div>
                                 </div>
                             </div>
                         </div>
@@ -1096,15 +1112,16 @@ require_once "components/header.php";
         fetch('backend/end-points/get_current_task_status.php')
             .then(response => response.json())
             .then(data => {
+                console.log('Task Status Overview Data:', data);
                 if (data.success && data.summary) {
                     const summary = data.summary;
-                    const total = summary.total_active_tasks;
+                    const total = summary.total_tasks;
                     
                     // Calculate percentages
                     const pendingPercent = total > 0 ? Math.round((summary.pending_tasks / total) * 100) : 0;
                     const inProgressPercent = total > 0 ? Math.round((summary.in_progress_tasks / total) * 100) : 0;
                     const submittedPercent = total > 0 ? Math.round((summary.submitted_tasks / total) * 100) : 0;
-                    const completedPercent = total > 0 ? Math.round((summary.completed_tasks || 0 / total) * 100) : 0;
+                    const completedPercent = total > 0 ? Math.round(((summary.completed_tasks || 0) / total) * 100) : 0;
                     
                     // Update counts
                     document.getElementById('pendingCount').textContent = summary.pending_tasks;
@@ -1138,7 +1155,7 @@ require_once "components/header.php";
                     
                     animateCountUpdate('overdueCount', summary.overdue_tasks);
                     animateCountUpdate('dueCount', summary.urgent_tasks);
-                    animateCountUpdate('onTrackCount', total - summary.overdue_tasks - summary.urgent_tasks);
+                    animateCountUpdate('onTrackCount', summary.total_active_tasks - summary.overdue_tasks - summary.urgent_tasks);
                     animateCountUpdate('completedTaskCount', summary.completed_tasks || 0);
                 }
             })
