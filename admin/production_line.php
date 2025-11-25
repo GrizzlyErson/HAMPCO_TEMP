@@ -364,6 +364,7 @@ function refreshTaskApprovalRequests() {
                                             class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md">
                                         Approve
                                     </button>
+                                    <br>
                                     <button onclick="handleTaskRequest(${request.request_id}, 'reject')"
                                             class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md">
                                         Reject

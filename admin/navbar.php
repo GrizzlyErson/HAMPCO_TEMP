@@ -58,7 +58,7 @@
       <li>
         <a href="workers.php">
           <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="M840-680v400q0 33-23.5 56.5T760-200H200q-33 0-56.5-23.5T120-280v-400q0-33 23.5-56.5T200-760h560q33 0 56.5 23.5T840-680Zm-60 0H180v80h600v-80Zm-600 400h600v-320H180v320Zm300-160q17 0 28.5-11.5T520-440q0-17-11.5-28.5T480-480q-17 0-28.5 11.5T440-440q0 17 11.5 28.5T480-400Z"/></svg>
-          <span>Members Activity</span>
+          <span>Activity Monitoring</span>
         </a>
       </li>
       <li>

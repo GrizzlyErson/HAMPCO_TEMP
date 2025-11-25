@@ -1357,11 +1357,11 @@ function getStatusClass(status) {
     <!-- Task Approval Requests Table -->
     <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-semibold text-gray-800">Task Approval Requests</h3>
+            <h3 class="text-xl font-semibold text-black-800">Task Approval Requests</h3>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200" id="taskApprovalTable">
-                <thead class="bg-gray-50">
+                <thead class="bg-black-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Production ID</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member Name</th>

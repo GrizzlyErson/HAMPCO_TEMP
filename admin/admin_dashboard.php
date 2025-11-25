@@ -914,7 +914,7 @@ require_once "components/header.php";
                     badgeBgColor = '#0d6efd'; // Blue badge
                     badgeTextColor = '#ffffff';
                 } else if (task.status === 'in_progress') {
-                    badgeBgColor = '#ffc107'; // Yellow badge
+                    badgeBgColor = '#ff6a07ff'; // Yellow badge
                     badgeTextColor = '#000000';
                 } else if (task.status === 'completed') {
                     badgeBgColor = '#28a745'; // Green badge

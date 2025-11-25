@@ -19,7 +19,9 @@ if ($fetch_all_materials->num_rows > 0) {
             <?php echo htmlspecialchars(ucfirst($row['rm_status'])); ?>
         </td>
         <td class="py-3 px-6 flex space-x-2">
+        <div class="flex flex-col items-center">
             <button 
+                style="margin-bottom: 5px;"
                 type="button"
                 class="updateRmBtn bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-full text-xs flex items-center shadow"
                 data-id="<?php echo htmlspecialchars($row['rmid']); ?>" 
@@ -33,6 +35,7 @@ if ($fetch_all_materials->num_rows > 0) {
             >
                 <span class="material-icons text-sm mr-1">edit</span> Update
             </button>
+            
             <button 
                 type="button"
                 class="deleteRmBtn bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-full text-xs flex items-center shadow"
@@ -41,7 +44,8 @@ if ($fetch_all_materials->num_rows > 0) {
             >
                 <span class="material-icons text-sm mr-1">delete</span> Remove
             </button>
-        </td>
+        </div>
+</td>
     </tr>
 <?php
     }
