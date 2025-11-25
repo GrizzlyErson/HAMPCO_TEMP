@@ -2,7 +2,7 @@
 
 <!-- Top bar with user profile -->
 <div class="flex justify-between items-center bg-white p-4 mb-6 rounded-md shadow-md">
-    <h2 class="text-lg font-semibold text-gray-700">Members</h2>
+    <h2 class="text-lg font-semibold text-gray-700">Members Management</h2>
 </div>
 
 <!-- Search bar -->
@@ -37,7 +37,7 @@
 
 <!-- Verified Members Section -->
 <div>
-    <h3 class="text-lg font-semibold text-gray-700 mb-4">Verified Members</h3>
+    <h3 class="text-lg font-semibold text-gray-700 mb-4">Members</h3>
     <div class="overflow-x-auto bg-white rounded-md shadow-md p-4">
         <table class="min-w-full table-auto" id="verifiedMemberTable">
             <thead>
