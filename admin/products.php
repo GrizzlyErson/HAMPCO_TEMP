@@ -1,7 +1,7 @@
 <?php include "components/header.php";?>
 
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Manage Members</h1>
+                        <h1 class="h3 mb-0 text-gray-800">Manage Products</h1>
                         <i class="fa-solid fa-cart-plus"></i>
                         <!-- Notification Bell Icon -->
                     <button class="relative focus:outline-none" title="Notifications">
@@ -98,7 +98,8 @@
             <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
 
-        <h2 id="modalTitle" class="text-2xl font-bold text-gray-800 mb-6 text-center">Stock In</h2>
+        <h2 id="modalTitle" class="text-2xl font-bold text-gray-800 text-center">Stock In</h2>
+        <p id="stockInProductLabel" class="text-sm text-gray-500 text-center mb-6"></p>
 
         <form id="frmProdStockin" method="POST" class="space-y-4">
             <div>
@@ -241,6 +242,7 @@
 
 <script>
     $(document).ready(function(){
+        let selectedProductId = null;
         // Add Product button click
         $('#AddProduct').on('click', function(){
             $('#AddProductModal').fadeIn();
@@ -337,20 +339,29 @@
 
         // Stock In Button
         $(document).on('click', '.stockInRmBtn', function () {
-            var selectedId = $(this).data('id');
-            $("#prod_id").val(selectedId);
+            selectedProductId = $(this).data('id');
+            const prodName = $(this).data('prod_name') || '';
+            $("#prod_id").val(selectedProductId);
+            $("#stockInProductLabel").text(prodName ? `Updating stock for ${prodName}` : '');
             $('#stockInRmModal').fadeIn();
         });
 
+        function closeStockInModal() {
+            $('#stockInRmModal').fadeOut();
+            $('#frmProdStockin')[0].reset();
+            $('#stockInProductLabel').text('');
+        }
+
         // Close Stock In Modal
         $(document).on('click', '.closeStockInRmModal', function () {
-            $('#stockInRmModal').fadeOut();
+            closeStockInModal();
         });
 
         // Stock In Form Submit
         $("#frmProdStockin").submit(function (e) {
             e.preventDefault();
-            $('.spinner').show();
+            const spinner = $('#spinner');
+            spinner.show();
         
             var formData = new FormData(this); 
             formData.append('requestType', 'ProdStockin');
@@ -367,15 +378,18 @@
                 success: function (response) {
                     if (response.status === "success") {
                         alertify.success(response.message);
-                        setTimeout(function () { location.reload(); }, 1000);
+                        closeStockInModal();
+                        setTimeout(function () { location.reload(); }, 800);
                     } else {
-                        $('.spinner').hide();
-                        $('#btnProdStockin').prop('disabled', false);
-                        alertify.error(response.message);
+                        alertify.error(response.message || 'Unable to process stock in.');
                     }
+                },
+                error: function () {
+                    alertify.error('Server error while processing stock in.');
                 },
                 complete: function () {
                     $("#btnProdStockin").prop("disabled", false).text("Submit");
+                    spinner.hide();
                 }
             });
         });
@@ -547,6 +561,24 @@
                         }
                     }
                 });
+            }
+        });
+
+        // Actions dropdown behavior
+        $(document).on('click', '.actionToggle', function(e) {
+            e.stopPropagation();
+            const menu = $(this).siblings('.actionMenu');
+            $('.actionMenu').not(menu).addClass('hidden');
+            menu.toggleClass('hidden');
+        });
+
+        $(document).on('click', '.actionMenu button', function() {
+            $(this).closest('.actionMenu').addClass('hidden');
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.actionToggle').length && !$(e.target).closest('.actionMenu').length) {
+                $('.actionMenu').addClass('hidden');
             }
         });
     });
