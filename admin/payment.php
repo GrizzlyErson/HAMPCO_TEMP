@@ -93,21 +93,31 @@ require_once "components/header.php";
         </div>
     </div>
 
-    <!-- Payment Records -->
-    <div class="rounded-xl shadow overflow-hidden bg-white">
-        <div class="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-gray-100">
-            <div>
-                <p class="text-xs uppercase tracking-wide text-gray-400">Records</p>
-                <h2 class="text-lg sm:text-xl font-semibold text-gray-800">Payment Activity</h2>
-            </div>
-            <span id="paymentResultCount" class="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                0 results
-            </span>
+    <!-- Payment Records Table -->
+    <div class="rounded-lg shadow overflow-hidden" style="background-color: #32e66eff;">
+        <div class="px-3 sm:px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg sm:text-xl font-semibold text-gray-800">Payment Records</h2>
         </div>
-        <div id="paymentRecordsList" class="divide-y divide-gray-100">
-            <div class="py-8 text-center text-sm text-gray-500">
-                Loading payment records...
-            </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Member</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Product</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Measure</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wt(g)</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Qty</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Status</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Paid</th>
+                        <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Act</th>
+                    </tr>
+                </thead>
+                <tbody id="paymentRecordsTableBody" class="bg-white divide-y divide-gray-200">
+                    <!-- Payment records will be loaded here -->
+                </tbody>
+            </table>
         </div>
     </div>
 

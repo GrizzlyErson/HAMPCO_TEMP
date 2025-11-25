@@ -31,82 +31,53 @@ async function loadPaymentRecords() {
 
     } catch (error) {
         console.error('Error:', error);
-        const listEl = document.getElementById('paymentRecordsList');
-        if (listEl) {
-            listEl.innerHTML = `
-                <div class="py-8 text-center text-sm text-red-500">
+        document.getElementById('paymentRecordsTableBody').innerHTML = `
+            <tr>
+                <td colspan="10" class="text-center text-red-500 py-4">
                     Error loading payment records. Please try again.
-                </div>
-            `;
-        }
+                </td>
+            </tr>
+        `;
     }
 }
 
 function updatePaymentTable(records) {
-    const listEl = document.getElementById('paymentRecordsList');
-    if (!listEl) return;
-
+    const tableBody = document.getElementById('paymentRecordsTableBody');
+    
     if (!records || records.length === 0) {
-        listEl.innerHTML = `
-            <div class="py-10 text-center text-sm text-gray-500">
-                No payment records found.
-            </div>
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="10" class="text-center text-gray-500 py-3 sm:py-4 text-xs sm:text-sm">
+                    No payment records found
+                </td>
+            </tr>
         `;
-        updateResultCount(0);
         return;
     }
 
-    listEl.innerHTML = records.map(record => renderPaymentCard(record)).join('');
-    updateResultCount(records.length);
-}
-
-function renderPaymentCard(record) {
-    return `
-        <div class="p-4 sm:p-5 hover:bg-gray-50 transition-colors">
-            <div class="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                    <p class="text-[11px] uppercase tracking-wide text-gray-400">Member</p>
-                    <p class="text-base font-semibold text-gray-900">${truncateText(record.member_name, 26)}</p>
-                    <p class="text-xs text-gray-500">${truncateText(record.product_name, 32)}</p>
-                </div>
-                <span class="px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(record.payment_status)}">
-                    ${shortStatus(record.payment_status)}
+    tableBody.innerHTML = records.map(record => `
+        <tr class="hover:bg-gray-50">
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm truncate max-w-20 hidden sm:table-cell">${record.member_name}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm truncate max-w-24 hidden md:table-cell">${record.product_name}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm truncate max-w-20 hidden lg:table-cell">${record.measurements}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">${record.weight_g}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm hidden sm:table-cell">${record.quantity}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">₱${record.unit_rate}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">₱${record.total}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm hidden md:table-cell">
+                <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(record.payment_status)}">
+                    ${record.payment_status}
                 </span>
-            </div>
-
-            <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs sm:text-sm text-gray-600">
-                <div>
-                    <p class="text-[11px] uppercase tracking-wide text-gray-400">Weight</p>
-                    <p class="font-semibold text-gray-900">${record.weight_g || '-'}</p>
-                </div>
-                <div>
-                    <p class="text-[11px] uppercase tracking-wide text-gray-400">Qty</p>
-                    <p class="font-semibold text-gray-900">${record.quantity || '-'}</p>
-                </div>
-                <div>
-                    <p class="text-[11px] uppercase tracking-wide text-gray-400">Rate</p>
-                    <p class="font-semibold text-gray-900">${formatCurrency(record.unit_rate)}</p>
-                </div>
-                <div>
-                    <p class="text-[11px] uppercase tracking-wide text-gray-400">Total</p>
-                    <p class="font-semibold text-gray-900">${formatCurrency(record.total)}</p>
-                </div>
-            </div>
-
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500">
-                <div class="flex flex-wrap gap-x-4 gap-y-1">
-                    <span>Measure: ${record.measurements || '-'}</span>
-                    <span>Paid: ${record.date_paid || '—'}</span>
-                </div>
-                <div class="flex gap-2">
-                    ${getActionButtons(record)}
-                </div>
-            </div>
-        </div>
-    `;
+            </td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm hidden lg:table-cell">${record.date_paid}</td>
+            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-center">
+                ${getActionButtons(record)}
+            </td>
+        </tr>
+    `).join('');
 }
 
-function getStatusBadgeClass(status) {
+function getStatusClass(status) {
     switch (status) {
         case 'Pending':
             return 'bg-yellow-100 text-yellow-800';
@@ -119,54 +90,32 @@ function getStatusBadgeClass(status) {
     }
 }
 
-function shortStatus(status) {
-    switch (status) {
-        case 'Pending':
-            return 'Pending';
-        case 'Adjusted':
-            return 'Adjusted';
-        case 'Paid':
-            return 'Paid';
-        default:
-            return status || 'Unknown';
-    }
-}
-
-function truncateText(text, max) {
-    if (!text) return '-';
-    return text.length > max ? text.substring(0, max - 1).trim() + '…' : text;
-}
-
-function formatCurrency(value) {
-    const num = parseFloat(value || 0);
-    return `₱${num.toFixed(2)}`;
-}
-
 function getActionButtons(record) {
     if (record.payment_status === 'Paid') {
-        return '';
+        return '-';
     }
 
     return `
-        ${record.payment_status !== 'Paid' ? `
-            <button onclick="processPayment(${record.id})"
-                class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-xs font-semibold transition-colors">
-                Pay
-            </button>
-        ` : ''}
-        ${record.payment_status === 'Pending' ? `
-            <button onclick="adjustPayment(${record.id})"
-                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-xs font-semibold transition-colors">
-                Adj
-            </button>
-        ` : ''}
+        <div class="flex flex-col gap-1 sm:flex-row sm:justify-center">
+            ${record.payment_status !== 'Paid' ? `
+                <button onclick="processPayment(${record.id})"
+                    class="bg-green-500 hover:bg-green-600 text-white px-2 sm:px-3 py-1 rounded-md text-xs whitespace-nowrap transition-colors">
+                    Pay
+                </button>
+            ` : ''}
+            ${record.payment_status === 'Pending' ? `
+                <button onclick="adjustPayment(${record.id})"
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-2 sm:px-3 py-1 rounded-md text-xs whitespace-nowrap transition-colors">
+                    Adj
+                </button>
+            ` : ''}
+        </div>
     `;
 }
 
 function updatePaymentSummary(records) {
-    const list = Array.isArray(records) ? records : [];
     // Calculate summary statistics
-    const summary = list.reduce((acc, record) => {
+    const summary = records.reduce((acc, record) => {
         acc.totalPayments += parseFloat(record.total_amount);
         if (record.payment_status === 'Pending') {
             acc.pendingPayments += parseFloat(record.total_amount);
@@ -190,13 +139,6 @@ function updatePaymentSummary(records) {
     document.getElementById('pendingPayments').textContent = `₱${summary.pendingPayments.toFixed(2)}`;
     document.getElementById('completedPayments').textContent = `₱${summary.completedPayments.toFixed(2)}`;
     document.getElementById('totalMembers').textContent = summary.members.size;
-}
-
-function updateResultCount(count) {
-    const badge = document.getElementById('paymentResultCount');
-    if (badge) {
-        badge.textContent = `${count} ${count === 1 ? 'record' : 'records'}`;
-    }
 }
 
 async function processPayment(paymentId) {
