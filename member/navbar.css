@@ -172,11 +172,7 @@ html{
 .hampco-sidebar-isolation #sidebar.close .logo img{
   display: none !important;
 }
-/* Rotate toggle button SVG when collapsed */
-.hampco-sidebar-isolation #sidebar.close #toggle-btn.rotate svg,
-.hampco-sidebar-isolation #toggle-btn.rotate svg{
-  rotate: 180deg !important;
-}
+
 .hampco-sidebar-isolation #sidebar ul{
   list-style: none !important;
   margin: 0 !important;

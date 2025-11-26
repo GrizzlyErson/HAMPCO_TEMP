@@ -1047,13 +1047,13 @@ function getStatusClass(status) {
             <button id="monitoringTab" class="tab-button border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                 Production Line Monitoring
             </button>
-            <button id="tasksTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+            <button id="tasksTab" class="tab-button border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                 Assigned Tasks
             </button>
-            <button id="memberTaskRequestsTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+            <button id="memberTaskRequestsTab" class="tab-button border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                 Member Task Requests
             </button>
-            <button id="workforceTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+            <button id="workforceTab" class="tab-button border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                 Workforce Management
             </button>
         </nav>
@@ -1070,7 +1070,7 @@ function getStatusClass(status) {
     <!-- Production Line List Table -->
     <div class="overflow-x-auto bg-white rounded-md shadow-md p-4 mb-6">
         <table class="min-w-full table-auto">
-            <thead class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+            <thead class="bg-gray-100 text-gray-700 uppercase text-sm leading-normal">
                 <tr>
                     <th class="py-3 px-4 text-left min-w-[100px]">Prod ID</th>
                     <th class="py-3 px-4 text-left min-w-[150px]">Product</th>
@@ -1083,7 +1083,7 @@ function getStatusClass(status) {
                     <th class="py-3 px-4 text-center min-w-[120px]">Actions</th>
                 </tr>
             </thead>
-            <tbody class="text-gray-600 text-sm">
+            <tbody class="text-gray-800 text-sm">
                 <?php if (!empty($production_items)): ?>
                     <?php foreach ($production_items as $item): ?>
                         <tr class="border-b border-gray-200 hover:bg-gray-50">
@@ -1194,7 +1194,7 @@ function getStatusClass(status) {
     <div class="overflow-x-auto bg-white rounded-md shadow-md p-4">
         <h3 class="text-lg font-semibold text-gray-700 mb-4">Completed Tasks</h3>
         <table class="min-w-full table-auto">
-            <thead class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+            <thead class="bg-gray-100 text-gray-700 uppercase text-sm leading-normal">
                 <tr>
                     <th class="py-3 px-4 text-left min-w-[150px]">Product</th>
                     <th class="py-3 px-4 text-left min-w-[150px]">Member</th>
@@ -1205,7 +1205,7 @@ function getStatusClass(status) {
                     <th class="py-3 px-4 text-left min-w-[150px]">Completed Date</th>
                 </tr>
             </thead>
-            <tbody class="text-gray-600 text-sm">
+            <tbody class="text-gray-800 text-sm">
                 <?php
                     $completed_query = "SELECT 
                         pl.prod_line_id, 
@@ -1308,7 +1308,7 @@ function getStatusClass(status) {
             </div>
         </div>
         <table class="min-w-full table-auto" id="assignedTasksTable">
-            <thead class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+            <thead class="bg-gray-100 text-gray-700 uppercase text-sm leading-normal">
                 <tr>
                     <th class="py-3 px-4 text-left min-w-[100px]">Prod ID</th>
                     <th class="py-3 px-4 text-left min-w-[150px]">Product</th>
@@ -1318,7 +1318,7 @@ function getStatusClass(status) {
                     <th class="py-3 px-4 text-left min-w-[200px]">Actions</th>
                 </tr>
             </thead>
-            <tbody class="text-gray-600 text-sm">
+            <tbody class="text-gray-800 text-sm">
                 <!-- Data will be populated by JavaScript -->
             </tbody>
         </table>
@@ -1410,7 +1410,7 @@ function getStatusClass(status) {
     <div class="overflow-x-auto bg-white rounded-md shadow-md p-4 mb-8">
         <h3 class="text-lg font-semibold text-gray-700 mb-4">Task Approval Requests</h3>
         <table class="min-w-full table-auto" id="taskApprovalTable">
-            <thead class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+            <thead class="bg-gray-100 text-gray-700 uppercase text-sm leading-normal">
                 <tr>
                     <th class="py-3 px-4 text-left min-w-[100px]">Prod ID</th>
                     <th class="py-3 px-4 text-left min-w-[150px]">Member</th>
@@ -1422,7 +1422,7 @@ function getStatusClass(status) {
                     <th class="py-3 px-4 text-left min-w-[180px]">Actions</th>
                 </tr>
             </thead>
-            <tbody class="text-gray-600 text-sm">
+            <tbody class="text-gray-800 text-sm">
                 <!-- Data will be populated later -->
                 <tr>
                     <td colspan="8" class="py-3 px-4 text-center text-gray-500">No requests found</td>
@@ -1435,7 +1435,7 @@ function getStatusClass(status) {
     <div class="overflow-x-auto bg-white rounded-md shadow-md p-4">
         <h3 class="text-lg font-semibold text-gray-700 mb-4">Task Completion Confirmations</h3>
         <table class="min-w-full table-auto" id="taskCompletionTable">
-            <thead class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+            <thead class="bg-gray-100 text-gray-700 uppercase text-sm leading-normal">
                 <tr>
                     <th class="py-3 px-4 text-left min-w-[100px]">Prod ID</th>
                     <th class="py-3 px-4 text-left min-w-[150px]">Member</th>
@@ -1448,7 +1448,7 @@ function getStatusClass(status) {
                     <th class="py-3 px-4 text-left min-w-[180px]">Actions</th>
                 </tr>
             </thead>
-            <tbody class="text-gray-600 text-sm">
+            <tbody class="text-gray-800 text-sm">
                 <!-- Data will be populated later -->
                 <tr>
                     <td colspan="9" class="py-3 px-4 text-center text-gray-500">No completion requests found</td>

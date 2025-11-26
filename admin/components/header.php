@@ -49,7 +49,7 @@ $_SESSION['current_admin_page'] = $current_page;
   <!-- SweetAlert2 JS -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 </head>
 <body class="hampco-admin-sidebar-layout">

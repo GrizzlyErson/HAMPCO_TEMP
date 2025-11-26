@@ -3,7 +3,11 @@ const sidebar = document.getElementById('sidebar');
 
 function toggleSidebar() {
   sidebar.classList.toggle('close');
-  toggleButton.classList.toggle('rotate');
+  const iconOpen = document.getElementById('icon-open');
+  const iconClose = document.getElementById('icon-close');
+
+  iconOpen.classList.toggle('hidden');
+  iconClose.classList.toggle('hidden');
 
   // Close all sub-menus when toggling sidebar
   closeAllSubMenus();

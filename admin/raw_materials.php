@@ -11,10 +11,16 @@
     <!-- Search bar and Add button -->
     <div class="mb-4 flex justify-between items-center">
         <input type="text" id="searchInput" placeholder="Search ..." class="w-64 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-        <button id="openAddRawMaterialsModal" class="bg-blue-500 text-white px-4 py-2 rounded-md shadow hover:bg-blue-600 transition flex items-center gap-2">
-            <span class="material-icons">add</span>
-            Add Raw Materials
-        </button>
+        <div class="flex gap-2">
+            <button id="scrollToFinished" class="bg-green-500 text-white px-4 py-2 rounded-md shadow hover:bg-green-600 transition flex items-center gap-2">
+                <span class="material-icons">arrow_downward</span>
+                Finished Products
+            </button>
+            <button id="openAddRawMaterialsModal" class="bg-blue-500 text-white px-4 py-2 rounded-md shadow hover:bg-blue-600 transition flex items-center gap-2">
+                <span class="material-icons">add</span>
+                Add Raw Materials
+            </button>
+        </div>
     </div>
 
     <table class="min-w-full table-auto" id="productionTable">
@@ -82,7 +88,7 @@
 </div>
 
 <!-- Finished Products Label -->
-<div class="mt-8 mb-4">
+<div id="finished-products-section" class="mt-8 mb-4">
     <h3 class="text-lg font-semibold text-gray-700">Finished Piña Products</h3>
 </div>
 
@@ -643,7 +649,14 @@ $(document).ready(function() {
 </div>
 
 <script>
-
+$(document).ready(function() {
+    $('#scrollToFinished').on('click', function(e) {
+        e.preventDefault();
+        $('html, body').animate({
+            scrollTop: $('#finished-products-section').offset().top
+        }, 800);
+    });
+});
 </script>
 
 <!-- Modal Structure -->

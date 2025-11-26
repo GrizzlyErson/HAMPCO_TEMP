@@ -9,7 +9,11 @@ function toggleSidebar(){
   // On mobile, don't toggle the sidebar closed
   if (!isMobile()) {
     sidebar.classList.toggle('close')
-    toggleButton.classList.toggle('rotate')
+    const iconOpen = document.getElementById('icon-open');
+    const iconClose = document.getElementById('icon-close');
+
+    iconOpen.classList.toggle('hidden');
+    iconClose.classList.toggle('hidden');
     closeAllSubMenus()
     
     // Remove rotate class from dropdown buttons when sidebar closes
