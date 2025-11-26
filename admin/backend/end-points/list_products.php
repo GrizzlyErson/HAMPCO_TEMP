@@ -20,8 +20,8 @@ if ($productResult && $productResult->num_rows > 0) {
             <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['prod_stocks']); ?></td>
             <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['prod_price']); ?></td>
             <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['category_name']); ?></td>
-            <td class="py-3 px-6 text-left max-w-xs">
-                <p class="truncate" title="<?php echo htmlspecialchars($row['prod_description']); ?>">
+            <td class="py-3 px-6 text-left">
+                <p title="<?php echo htmlspecialchars($row['prod_description']); ?>">
                     <?php echo htmlspecialchars($row['prod_description']); ?>
                 </p>
             </td>

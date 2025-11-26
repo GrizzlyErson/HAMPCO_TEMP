@@ -15,19 +15,19 @@
     <input type="text" id="searchInput" placeholder="Search..." class="w-64 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
 </div>
 
-    <table class="min-w-full table-auto" id="taskTable">
-        <thead>
-            <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                <th class="py-3 px-6 text-left">Raw Name</th>
-                <th class="py-3 px-6 text-left">Name</th>
-                <th class="py-3 px-6 text-left">Account Type</th>
-                <th class="py-3 px-6 text-left">Activity</th>
-                <th class="py-3 px-6 text-left">Quantity</th>
-                <th class="py-3 px-6 text-left">Changes</th>
-                <th class="py-3 px-6 text-left">Date</th>
+    <table class="w-full border-collapse" id="taskTable">
+        <thead class="bg-gray-200">
+            <tr>
+                <th class="px-6 py-3 text-left font-semibold text-gray-700">Raw Name</th>
+                <th class="px-6 py-3 text-left font-semibold text-gray-700">Name</th>
+                <th class="px-6 py-3 text-left font-semibold text-gray-700">Account Type</th>
+                <th class="px-6 py-3 text-left font-semibold text-gray-700">Activity</th>
+                <th class="px-6 py-3 text-left font-semibold text-gray-700">Quantity</th>
+                <th class="px-6 py-3 text-left font-semibold text-gray-700">Changes</th>
+                <th class="px-6 py-3 text-left font-semibold text-gray-700">Date</th>
             </tr>
         </thead>
-        <tbody class="text-gray-600 text-sm">
+        <tbody id="rawStockLogsTableBody" class="divide-y divide-gray-200">
             <?php 
             include "backend/end-points/list_stock_logs.php";
             ?>

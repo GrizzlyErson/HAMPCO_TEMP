@@ -242,7 +242,7 @@ require_once "components/header.php";
                                         </thead>
                                         <tbody>
                                         <tr>
-                                            <td colspan="7" class="text-center text-muted py-3">Loading task data...</td>
+                                            <td colspan="6" class="text-center text-muted py-3">Loading task data...</td>
                                         </tr>
                                         </tbody>
                                     </table>
@@ -911,7 +911,7 @@ require_once "components/header.php";
             const recentTasks = allTasks.slice(0, 8);
             
             if (recentTasks.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">No active tasks</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">No active tasks</td></tr>';
                 return;
             }
             
@@ -966,7 +966,7 @@ require_once "components/header.php";
         .catch(error => {
             console.error('Error loading recent tasks:', error);
             const tableBody = document.querySelector('#recentTasksTable tbody');
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-3">Error loading tasks</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">Error loading tasks</td></tr>';
         });
     }
 

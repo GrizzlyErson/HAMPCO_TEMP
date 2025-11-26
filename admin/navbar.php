@@ -34,7 +34,7 @@
   <link rel="stylesheet" href="navbar.css">
 
 <div class="hampco-sidebar-isolation">
-<nav id="sidebar">
+<nav id="sidebar" class="close">
     <ul>
       <li>
         <span class="logo"><img src="../img/logo.png" alt="HAMPCO" class="navbar-logo" style="height: 30px; width: auto;"></span>

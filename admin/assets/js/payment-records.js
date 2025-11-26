@@ -47,7 +47,7 @@ function updatePaymentTable(records) {
     if (!records || records.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="10" class="text-center text-gray-500 py-3 sm:py-4 text-xs sm:text-sm">
+                <td colspan="10" class="px-6 py-3 text-center text-gray-500">
                     No payment records found
                 </td>
             </tr>
@@ -56,21 +56,21 @@ function updatePaymentTable(records) {
     }
 
     tableBody.innerHTML = records.map(record => `
-        <tr class="hover:bg-gray-50">
-            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm truncate max-w-20 hidden sm:table-cell">${record.member_name}</td>
-            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm truncate max-w-24 hidden md:table-cell">${record.product_name}</td>
-            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm truncate max-w-20 hidden lg:table-cell">${record.measurements}</td>
-            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">${record.weight_g}</td>
-            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm hidden sm:table-cell">${record.quantity}</td>
-            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">₱${record.unit_rate}</td>
-            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">₱${record.total}</td>
-            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm hidden md:table-cell">
+        <tr class="hover:bg-gray-50 transition">
+            <td class="px-6 py-3 text-gray-800">${record.member_name}</td>
+            <td class="px-6 py-3 text-gray-800">${record.product_name}</td>
+            <td class="px-6 py-3 text-gray-800">${record.measurements}</td>
+            <td class="px-6 py-3 text-gray-800">${record.weight_g}</td>
+            <td class="px-6 py-3 text-gray-800">${record.quantity}</td>
+            <td class="px-6 py-3 text-gray-800">₱${record.unit_rate}</td>
+            <td class="px-6 py-3 text-gray-800">₱${record.total}</td>
+            <td class="px-6 py-3 text-gray-800">
                 <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(record.payment_status)}">
                     ${record.payment_status}
                 </span>
             </td>
-            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm hidden lg:table-cell">${record.date_paid}</td>
-            <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-center">
+            <td class="px-6 py-3 text-gray-800">${record.date_paid}</td>
+            <td class="px-6 py-3 text-center">
                 ${getActionButtons(record)}
             </td>
         </tr>
@@ -99,13 +99,13 @@ function getActionButtons(record) {
         <div class="flex flex-col gap-1 sm:flex-row sm:justify-center">
             ${record.payment_status !== 'Paid' ? `
                 <button onclick="processPayment(${record.id})"
-                    class="bg-green-500 hover:bg-green-600 text-white px-2 sm:px-3 py-1 rounded-md text-xs whitespace-nowrap transition-colors">
+                    class="bg-green-500 hover:bg-green-600 text-white px-2 sm:px-3 py-1 rounded-md text-xs transition-colors">
                     Pay
                 </button>
             ` : ''}
             ${record.payment_status === 'Pending' ? `
                 <button onclick="adjustPayment(${record.id})"
-                    class="bg-blue-500 hover:bg-blue-600 text-white px-2 sm:px-3 py-1 rounded-md text-xs whitespace-nowrap transition-colors">
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-2 sm:px-3 py-1 rounded-md text-xs transition-colors">
                     Adj
                 </button>
             ` : ''}
