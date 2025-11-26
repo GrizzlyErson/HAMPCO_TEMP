@@ -1,45 +1,19 @@
 <?php include "components/header.php";?>
 
-<!-- Top bar with user profile -->
-<div class="flex justify-between items-center bg-white p-4 mb-6 rounded-md shadow-md">
-    <h2 class="text-lg font-semibold text-gray-700">Members Management</h2>
-</div>
-
-<!-- Search bar -->
-<div class="mb-4">
-    <input type="text" id="searchInput" placeholder="Search members..." 
-        class="w-64 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-</div>
-
-<!-- New Members Section -->
-<div class="mb-8">
-    <h3 class="text-lg font-semibold text-gray-700 mb-4">New Members Verification</h3>
-    <div class="overflow-x-auto bg-white rounded-md shadow-md p-4">
-        <table class="min-w-full table-auto" id="newMemberTable">
-            <thead>
-                <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                    <th class="py-3 px-4 text-left min-w-24">Member ID</th>
-                    <th class="py-3 px-4 text-left min-w-32">Full Name</th>
-                    <th class="py-3 px-4 text-left min-w-40">Email</th>
-                    <th class="py-3 px-4 text-left min-w-24">Phone</th>
-                    <th class="py-3 px-4 text-left min-w-20">Role</th>
-                    <th class="py-3 px-4 text-left min-w-16">Sex</th>
-                    <th class="py-3 px-4 text-left min-w-28">Status</th>
-                    <th class="py-3 px-4 text-left min-w-32">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="text-gray-600 text-sm">
-                <?php include "backend/end-points/list_unverified_members.php";?>
-            </tbody>
-        </table>
+<div class="bg-white rounded-md shadow-md p-4">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-gray-700">Members Management</h2>
+        <div class="relative">
+            <input type="text" id="searchInput" placeholder="Search members..."
+                class="w-64 p-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            </svg>
+        </div>
     </div>
-</div>
-
-<!-- Verified Members Section -->
-<div>
-    <h3 class="text-lg font-semibold text-gray-700 mb-4">Members</h3>
-    <div class="overflow-x-auto bg-white rounded-md shadow-md p-4">
-        <table class="min-w-full table-auto" id="verifiedMemberTable">
+    
+    <div class="overflow-x-auto">
+        <table class="min-w-full table-auto" id="memberTable">
             <thead>
                 <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
                     <th class="py-3 px-4 text-left min-w-24">Member ID</th>
@@ -53,6 +27,14 @@
                 </tr>
             </thead>
             <tbody class="text-gray-600 text-sm">
+                <tr class="bg-gray-50">
+                    <th colspan="8" class="py-3 px-4 text-left text-lg font-semibold text-gray-700">New Members Verification</th>
+                </tr>
+                <?php include "backend/end-points/list_unverified_members.php";?>
+                
+                <tr class="bg-gray-50">
+                    <th colspan="8" class="py-3 px-4 text-left text-lg font-semibold text-gray-700">Members</th>
+                </tr>
                 <?php include "backend/end-points/list_verified_members.php";?>
             </tbody>
         </table>
@@ -82,7 +64,7 @@ $(document).ready(function() {
     // Search functionality
     $("#searchInput").on("keyup", function() {
         var value = $(this).val().toLowerCase();
-        $("#newMemberTable tbody tr, #verifiedMemberTable tbody tr").filter(function() {
+        $("#memberTable tbody tr:has(td)").filter(function() {
             $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
         });
     });

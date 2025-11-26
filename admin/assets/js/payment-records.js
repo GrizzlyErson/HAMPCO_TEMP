@@ -110,7 +110,7 @@ function getActionButtons(record) {
             ${record.payment_status === 'Pending' ? `
                 <button onclick="adjustPayment(${record.id})"
                     class="w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-xs transition-colors">
-                    Adj
+                    Adjust
                 </button>
             ` : ''}
         </div>
