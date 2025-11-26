@@ -26,6 +26,22 @@ require_once "components/header.php";
                     <option value="warper">Warper</option>
                     <option value="weaver">Weaver</option>
                 </select>
+                <div class="relative inline-block text-left">
+                    <div>
+                        <button type="button" id="exportDropdownBtn" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500">
+                            Export
+                            <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="exportDropdownMenu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+                        <div class="py-1" role="none">
+                            <button id="exportExcelBtn" class="text-gray-700 block w-full text-left px-4 py-2 text-sm" role="menuitem" tabindex="-1">Export as Excel</button>
+                            <button id="exportPdfBtn" class="text-gray-700 block w-full text-left px-4 py-2 text-sm" role="menuitem" tabindex="-1">Export as PDF</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -96,7 +112,7 @@ require_once "components/header.php";
     <!-- Payment Records Table -->
     <div class="overflow-x-auto bg-white rounded-md shadow-md p-4">
         <h2 class="text-lg font-semibold text-gray-700 mb-4">Payment Records</h2>
-        <table class="w-full border-collapse">
+        <table id="paymentTable" class="w-full border-collapse">
             <thead class="bg-gray-200">
                 <tr>
                     <th class="px-6 py-3 text-left font-semibold text-gray-700">Member</th>
@@ -118,10 +134,70 @@ require_once "components/header.php";
     </div>
 
 
+<!-- Export libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
 <!-- Include SweetAlert2 for better alerts -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- Include the payment records JavaScript -->
 <script src="assets/js/payment-records.js"></script>
+
+<script>
+$(document).ready(function() {
+    $("#memberSearch").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        $("#paymentRecordsTableBody tr").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+    });
+
+    $('#exportDropdownBtn').on('click', function(e) {
+        e.stopPropagation();
+        $('#exportDropdownMenu').toggleClass('hidden');
+    });
+
+    $(document).on('click', function(event) {
+        if (!$(event.target).closest('.relative').length) {
+            $('#exportDropdownMenu').addClass('hidden');
+        }
+    });
+
+    $('#exportExcelBtn').on('click', function() {
+        const table = document.getElementById('paymentTable');
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Payment Records" });
+        XLSX.writeFile(wb, 'payment_records.xlsx');
+        $('#exportDropdownMenu').addClass('hidden');
+    });
+
+    $('#exportPdfBtn').on('click', function() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.autoTable({
+            html: '#paymentTable',
+            startY: 20,
+            theme: 'striped',
+            headStyles: { fillColor: [22, 160, 133] },
+            styles: {
+                halign: 'center',
+                valign: 'middle',
+                fontSize: 8,
+            },
+            didDrawPage: function (data) {
+                // Header
+                doc.setFontSize(20);
+                doc.setTextColor(40);
+                doc.text("Payment Records", data.settings.margin.left, 15);
+            }
+        });
+
+        doc.save('payment_records.pdf');
+        $('#exportDropdownMenu').addClass('hidden');
+    });
+});
+</script>
 
 <?php
 require_once "components/footer.php";
