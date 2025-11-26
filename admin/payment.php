@@ -2,6 +2,13 @@
 require_once "components/header.php";
 ?>
 
+    <style>
+        .force-truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
     <h1 class="text-3xl font-bold text-gray-800 mb-8">Payment Management</h1>
 
     <!-- Search and Filter Section -->
@@ -112,22 +119,22 @@ require_once "components/header.php";
     <!-- Payment Records Table -->
     <div class="overflow-x-auto bg-white rounded-md shadow-md p-4">
         <h2 class="text-lg font-semibold text-gray-700 mb-4">Payment Records</h2>
-        <table id="paymentTable" class="w-full border-collapse">
-            <thead class="bg-gray-200">
-                <tr>
-                    <th class="px-6 py-3 text-left font-semibold text-gray-700">Member</th>
-                    <th class="px-6 py-3 text-left font-semibold text-gray-700">Product</th>
-                    <th class="px-6 py-3 text-left font-semibold text-gray-700">Measure</th>
-                    <th class="px-6 py-3 text-left font-semibold text-gray-700">Wt(g)</th>
-                    <th class="px-6 py-3 text-left font-semibold text-gray-700">Qty</th>
-                    <th class="px-6 py-3 text-left font-semibold text-gray-700">Rate</th>
-                    <th class="px-6 py-3 text-left font-semibold text-gray-700">Total</th>
-                    <th class="px-6 py-3 text-left font-semibold text-gray-700">Status</th>
-                    <th class="px-6 py-3 text-left font-semibold text-gray-700">Paid Date</th>
-                    <th class="px-6 py-3 text-center font-semibold text-gray-700">Actions</th>
+        <table id="paymentTable" class="w-full table-fixed">
+            <thead>
+                <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                    <th class="py-3 px-2 text-left" style="width: 15%">Member</th>
+                    <th class="py-3 px-2 text-left" style="width: 15%">Prod</th>
+                    <th class="py-3 px-2 text-left" style="width: 8%">Size</th>
+                    <th class="py-3 px-2 text-left" style="width: 7%">Wt(g)</th>
+                    <th class="py-3 px-2 text-left" style="width: 7%">Qty</th>
+                    <th class="py-3 px-2 text-left" style="width: 10%">Rate</th>
+                    <th class="py-3 px-2 text-left" style="width: 10%">Total</th>
+                    <th class="py-3 px-2 text-left" style="width: 10%">Stat</th>
+                    <th class="py-3 px-2 text-left" style="width: 8%">Paid</th>
+                    <th class="py-3 px-2 text-center" style="width: 10%">Act</th>
                 </tr>
             </thead>
-            <tbody id="paymentRecordsTableBody" class="divide-y divide-gray-200">
+            <tbody id="paymentRecordsTableBody" class="text-gray-600 text-sm">
                 <!-- Payment records will be loaded here -->
             </tbody>
         </table>
