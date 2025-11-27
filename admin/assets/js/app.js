@@ -23,12 +23,19 @@ async function loadMembers(role, selectElement) {
 }
 
 // Function to handle task assignment
-function assignTask(prodLineId, productName, quantity) {
-    // Set the production line ID in the form
+async function assignTask(prodLineId, productName, quantity) { // Made async
+    const form = document.getElementById('taskAssignmentForm');
+    const modalTitle = document.querySelector('#taskAssignmentModal h3');
     const identifierInput = document.getElementById('identifier');
     const prodLineIdInput = document.getElementById('prod_line_id');
+    const isReassignmentInput = document.getElementById('is_reassignment'); // New hidden input
+
     if (identifierInput) identifierInput.value = prodLineId;
     if (prodLineIdInput) prodLineIdInput.value = prodLineId;
+
+    // Reset form fields and hidden inputs
+    if (form) form.reset();
+    if (isReassignmentInput) isReassignmentInput.value = '';
 
     // Get modal sections
     const knotterSection = document.getElementById('knotterSection');
@@ -37,70 +44,104 @@ function assignTask(prodLineId, productName, quantity) {
     const assignBtn = document.querySelector('#taskAssignmentForm button[type="submit"]');
 
     // Hide all sections and error messages by default
-    if (knotterSection) {
-        knotterSection.classList.add('hidden');
-        const knotterError = document.getElementById('knotterError');
-        if (knotterError) knotterError.classList.add('hidden');
-    }
-    if (warperSection) {
-        warperSection.classList.add('hidden');
-        const warperError = document.getElementById('warperError');
-        if (warperError) warperError.classList.add('hidden');
-    }
-    if (weaverSection) {
-        weaverSection.classList.add('hidden');
-        const weaverError = document.getElementById('weaverError');
-        if (weaverError) weaverError.classList.add('hidden');
-    }
+    [knotterSection, warperSection, weaverSection].forEach(section => {
+        if (section) {
+            section.classList.add('hidden');
+            const error = section.querySelector('.text-red-500');
+            if (error) error.classList.add('hidden');
+            // Also reset required attribute for select and deadline
+            const select = section.querySelector('select');
+            const deadline = section.querySelector('input[type="datetime-local"]');
+            if (select) select.required = false;
+            if (deadline) deadline.required = false;
+        }
+    });
     if (assignBtn) assignBtn.disabled = false;
 
     // Get select elements
-    const knotterSelects = document.querySelectorAll('.knotter-select');
+    const knotterSelect = document.querySelector('select[name="knotter_id[]"]');
     const warperSelect = document.querySelector('select[name="warper_id"]');
     const weaverSelect = document.querySelector('select[name="weaver_id"]');
 
-    // Reset form fields
-    const form = document.getElementById('taskAssignmentForm');
-    if (form) form.reset();
-
     // Load members for each role
-    knotterSelects.forEach(select => loadMembers('knotter', select));
-    if (warperSelect) loadMembers('warper', warperSelect);
-    if (weaverSelect) loadMembers('weaver', weaverSelect);
+    // Using a Promise.all to load members concurrently
+    await Promise.all([
+        loadMembers('knotter', knotterSelect),
+        loadMembers('warper', warperSelect),
+        loadMembers('weaver', weaverSelect)
+    ]);
 
-    // Show appropriate sections based on product type
+    // Fetch existing assignments for pre-population
+    let existingAssignments = [];
+    try {
+        const response = await fetch(`backend/end-points/get_assignments.php?prod_line_id=${prodLineId}`);
+        const data = await response.json();
+        if (data.success && data.assignments.length > 0) {
+            existingAssignments = data.assignments;
+        }
+    } catch (error) {
+        console.error('Error fetching existing assignments:', error);
+    }
+
+    let isReassignment = existingAssignments.length > 0;
+    if (isReassignmentInput) isReassignmentInput.value = isReassignment ? 'true' : '';
+    if (modalTitle) modalTitle.textContent = isReassignment ? 'Reassign Tasks' : 'Assign Tasks';
+
+
+    // Show appropriate sections and pre-populate fields based on product type
     if (productName === 'Knotted Liniwan' || productName === 'Knotted Bastos') {
-        // Only show knotter section for knotted products
         if (knotterSection) {
             knotterSection.classList.remove('hidden');
-            // Make knotter fields required
             const knotterDeadline = knotterSection.querySelector('input[name="deadline"]');
-            const knotterSelect = knotterSection.querySelector('select[name="knotter_id[]"]');
-            
             if (knotterDeadline) knotterDeadline.required = true;
             if (knotterSelect) knotterSelect.required = true;
+
+            const assignment = existingAssignments.find(a => a.role === 'knotter');
+            if (assignment) {
+                knotterSelect.value = assignment.member_id;
+                knotterDeadline.value = assignment.deadline.substring(0, 16); // Format for datetime-local
+                const hiddenTaskId = document.createElement('input');
+                hiddenTaskId.type = 'hidden';
+                hiddenTaskId.name = 'knotter_task_id';
+                hiddenTaskId.value = assignment.task_id;
+                form.appendChild(hiddenTaskId);
+            }
         }
     } else if (productName === 'Warped Silk') {
-        // Only show warper section for Warped Silk
         if (warperSection) {
             warperSection.classList.remove('hidden');
-            // Make warper fields required
             const warperDeadline = warperSection.querySelector('input[name="warper_deadline"]');
-            const warperSelect = warperSection.querySelector('select[name="warper_id"]');
-            
             if (warperDeadline) warperDeadline.required = true;
             if (warperSelect) warperSelect.required = true;
+
+            const assignment = existingAssignments.find(a => a.role === 'warper');
+            if (assignment) {
+                warperSelect.value = assignment.member_id;
+                warperDeadline.value = assignment.deadline.substring(0, 16); // Format for datetime-local
+                const hiddenTaskId = document.createElement('input');
+                hiddenTaskId.type = 'hidden';
+                hiddenTaskId.name = 'warper_task_id';
+                hiddenTaskId.value = assignment.task_id;
+                form.appendChild(hiddenTaskId);
+            }
         }
     } else if (productName === 'Piña Seda' || productName === 'Pure Piña Cloth') {
-        // Only show weaver section for Piña Seda and Pure Piña Cloth
         if (weaverSection) {
             weaverSection.classList.remove('hidden');
-            // Make weaver fields required
             const weaverDeadline = weaverSection.querySelector('input[name="weaver_deadline"]');
-            const weaverSelect = weaverSection.querySelector('select[name="weaver_id"]');
-            
             if (weaverDeadline) weaverDeadline.required = true;
             if (weaverSelect) weaverSelect.required = true;
+
+            const assignment = existingAssignments.find(a => a.role === 'weaver');
+            if (assignment) {
+                weaverSelect.value = assignment.member_id;
+                weaverDeadline.value = assignment.deadline.substring(0, 16); // Format for datetime-local
+                const hiddenTaskId = document.createElement('input');
+                hiddenTaskId.type = 'hidden';
+                hiddenTaskId.name = 'weaver_task_id';
+                hiddenTaskId.value = assignment.task_id;
+                form.appendChild(hiddenTaskId);
+            }
         }
     }
 

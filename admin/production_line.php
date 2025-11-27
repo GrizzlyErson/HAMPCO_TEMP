@@ -1468,6 +1468,7 @@ function getStatusClass(status) {
                 <input type="hidden" id="identifier" name="identifier">
                 <input type="hidden" id="prod_line_id" name="prod_line_id">
                 <input type="hidden" id="product_details" name="product_details">
+                <input type="hidden" id="is_reassignment" name="is_reassignment">
                 
                 <!-- Knotter Section -->
                 <div id="knotterSection" class="space-y-2 hidden">
