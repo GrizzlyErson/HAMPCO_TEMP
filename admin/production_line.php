@@ -1,5 +1,7 @@
 <?php 
 include "components/header.php";
+// Add custom CSS for tables
+echo '<link rel="stylesheet" href="css/table-styles.css">';
 
 // Fetch assigned tasks
 $tasks_query = "SELECT 
@@ -59,7 +61,7 @@ while ($row = mysqli_fetch_assoc($production_result)) {
 ?>
 
 <!-- Materials Modal -->
-<div id="materialsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+<div id="materialsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-[1000] hidden">
     <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-semibold">Raw Materials Information</h2>
@@ -72,41 +74,6 @@ while ($row = mysqli_fetch_assoc($production_result)) {
 </div>
 
 <script>
-// New function to close all dropdowns
-function closeAllDropdowns() {
-    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-        if (!menu.classList.contains('hidden')) {
-            menu.classList.add('hidden');
-        }
-    });
-}
-
-// Modified toggleDropdown function
-function toggleDropdown(element) {
-    const dropdownMenu = element.nextElementSibling;
-    
-    // Close all other dropdowns first
-    closeAllDropdowns();
-
-    if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
-        dropdownMenu.classList.toggle('hidden');
-    }
-}
-
-// Close dropdowns when clicking outside
-document.addEventListener('click', function (event) {
-    let isClickInsideDropdown = false;
-    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-        if (menu.parentElement.contains(event.target)) {
-            isClickInsideDropdown = true;
-        }
-    });
-
-    if (!isClickInsideDropdown) {
-        closeAllDropdowns();
-    }
-});
-
 function updateSummaryPanels() {
     fetch('backend/end-points/list_member.php')
         .then(function(response) { return response.text(); })
@@ -329,13 +296,15 @@ function refreshTaskAssignments() {
                     <td class="px-6 py-4 text-sm text-gray-900">
                         ${assignedMembersHtml || 'No members assigned'}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                         ${item.status !== 'completed' ? `
-                            <button onclick="confirmTaskCompletion('${item.raw_id}')" 
-                                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors ${displayStatus !== 'submitted' ? 'opacity-50 cursor-not-allowed' : ''}"
-                                ${displayStatus !== 'submitted' ? 'disabled' : ''}>
-                                Confirm Task Completion
-                            </button>
+                            <div class="flex flex-col items-center space-y-2">
+                                <button onclick="confirmTaskCompletion('${item.raw_id}')" 
+                                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors w-full ${displayStatus !== 'submitted' ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    ${displayStatus !== 'submitted' ? 'disabled' : ''}>
+                                    Confirm Task Completion
+                                </button>
+                            </div>
                         ` : ''}
                     </td>
                 `;
@@ -394,13 +363,13 @@ function refreshTaskApprovalRequests() {
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             ${request.status === 'pending' ? `
-                                <div class="flex flex-col items-center gap-2">
+                                <div class="flex flex-col space-y-2">
                                     <button onclick="handleTaskRequest(${request.request_id}, 'approve')"
-                                            class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md">
+                                            class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md w-full">
                                         Approve
                                     </button>
                                     <button onclick="handleTaskRequest(${request.request_id}, 'reject')"
-                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md">
+                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md w-full">
                                         Reject
                                     </button>
                                 </div>
@@ -600,7 +569,6 @@ document.addEventListener('DOMContentLoaded', function() {
     renderMemberList('knotter', 'knotterList');
     renderMemberList('warper', 'warperList');
     renderMemberList('weaver', 'weaverList');
-    updateSummaryPanels();
     refreshTaskAssignments();
     
     // Get the active tab from URL or localStorage
@@ -699,12 +667,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.getElementById('createProductBtn').addEventListener('click', function() {
-        document.getElementById('createProductModal').classList.remove('hidden');
+    document.getElementById('createTaskBtn').addEventListener('click', function() {
+        document.getElementById('createTaskModal').classList.remove('hidden');
     });
 
-    document.getElementById('cancelCreateProduct').addEventListener('click', function() {
-        document.getElementById('createProductModal').classList.add('hidden');
+    document.getElementById('cancelCreateTask').addEventListener('click', function() {
+        document.getElementById('createTaskModal').classList.add('hidden');
     });
 
     // Update the product type selection event listener
@@ -726,7 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Update the form submission to handle quantity
-    document.getElementById('createProductForm').addEventListener('submit', function(e) {
+    document.getElementById('createTaskForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(this);
         const selectedProduct = formData.get('product_name');
@@ -743,8 +711,8 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Product created successfully!');
-                document.getElementById('createProductModal').classList.add('hidden');
+                alert('Task created successfully!');
+                document.getElementById('createTaskModal').classList.add('hidden');
                 this.reset();
                 location.reload();
             } else {
@@ -753,7 +721,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while creating the product. Please check the console for details.');
+            alert('An error occurred while creating the task. Please check the console for details.');
         });
     });
 
@@ -765,57 +733,34 @@ function updateWorkforceManagement() {
     fetch('backend/end-points/get_members_availability.php')
         .then(response => response.json())
         .then(data => {
-            const summary = {
-                knotter: { total: 0, active: 0, inactive: 0, members: [] },
-                warper: { total: 0, active: 0, inactive: 0, members: [] },
-                weaver: { total: 0, active: 0, inactive: 0, members: [] }
-            };
-
-            // Process the data
-            data.forEach(member => {
-                const role = member.role.toLowerCase();
-                if (summary[role]) {
-                    summary[role].total++;
-                    if (member.availability_status === 'available') {
-                        summary[role].active++;
-                    } else {
-                        summary[role].inactive++;
-                    }
-                    summary[role].members.push(member);
-                }
-            });
-
-            // Update the summary numbers
+            // Update the summary numbers directly using the data object
             ['knotter', 'warper', 'weaver'].forEach(role => {
-                document.getElementById(`${role}Total`).textContent = summary[role].total;
-                document.getElementById(`${role}Active`).textContent = summary[role].active;
-                document.getElementById(`${role}Inactive`).textContent = summary[role].inactive;
-
-                // Update member lists
-                const list = document.getElementById(`${role}List`);
-                if (summary[role].members.length > 0) {
-                    list.innerHTML = summary[role].members.map(member => `
-                        <li class="flex items-center justify-between p-2 bg-white rounded shadow-sm">
-                            <span>${member.fullname}</span>
-                            <span class="px-2 py-1 text-xs rounded-full ${
-                                member.availability_status === 'available' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
-                            }">
-                                ${member.availability_status === 'available' ? 'Available' : 'Unavailable'}
-                            </span>
-                        </li>
-                    `).join('');
+                const pluralRole = role + 's'; // e.g., 'knotters'
+                if (data[pluralRole]) {
+                    document.getElementById(`${role}Total`).textContent = data[pluralRole].total;
+                    document.getElementById(`${role}Active`).textContent = data[pluralRole].available;
+                    document.getElementById(`${role}Inactive`).textContent = data[pluralRole].unavailable;
                 } else {
-                    list.innerHTML = '<li class="text-gray-500">No members found.</li>';
+                    // If data for a specific role is missing, set counts to 0
+                    document.getElementById(`${role}Total`).textContent = '0';
+                    document.getElementById(`${role}Active`).textContent = '0';
+                    document.getElementById(`${role}Inactive`).textContent = '0';
                 }
             });
+            // The member lists are now updated by renderMemberList(), so this function
+            // should not attempt to update them. The previous code block for updating
+            // member lists will be removed.
         })
         .catch(error => {
             console.error('Error fetching workforce data:', error);
+            // On error, set counts to 0
+            ['knotter', 'warper', 'weaver'].forEach(role => {
+                document.getElementById(`${role}Total`).textContent = '0';
+                document.getElementById(`${role}Active`).textContent = '0';
+                document.getElementById(`${role}Inactive`).textContent = '0';
+            });
         });
 }
-
 // Call updateWorkforceManagement initially and set up periodic updates
 document.addEventListener('DOMContentLoaded', function() {
     updateWorkforceManagement();
@@ -891,11 +836,34 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Function to filter production line items
+function filterProductionItems() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('#monitoringContent table tbody tr');
+    
+    rows.forEach(row => {
+        // Skip the header row if it's included in the selection
+        if (row.querySelector('th')) return;
+        
+        const productName = row.cells[1].textContent.toLowerCase();
+        const productionId = row.cells[0].textContent.toLowerCase();
+        
+        if (productName.includes(searchTerm) || productionId.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
 // Function to filter tasks
 function filterTasks() {
-    const statusFilter = document.getElementById('statusFilter').value;
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+    const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
     const rows = document.querySelectorAll('#assignedTasksTable tbody tr');
+    
+    // If no rows found, exit early
+    if (!rows.length) return;
 
     rows.forEach(row => {
         const status = row.querySelector('td:nth-child(3)').textContent.trim().toLowerCase();
@@ -942,12 +910,14 @@ function loadTaskCompletions() {
                             ${task.status.charAt(0).toUpperCase() + task.status.slice(1)}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
                         ${task.status === 'in_progress' ? `
-                            <button onclick="confirmTaskCompletion('${task.production_id}')"
-                                class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors">
-                                Confirm Completion
-                            </button>
+                            <div class="flex flex-col items-center space-y-2">
+                                <button onclick="confirmTaskCompletion('${task.production_id}')"
+                                    class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors w-full">
+                                    Confirm Completion
+                                </button>
+                            </div>
                         ` : '-'}
                     </td>
                 </tr>
@@ -981,16 +951,16 @@ function getStatusClass(status) {
 <!-- Top bar with user profile -->
 <div class="flex justify-between items-center bg-white p-4 mb-6 rounded-md shadow-md">
     <h2 class="text-lg font-semibold text-gray-700">Production Line</h2>
-    <button id="createProductBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">
-        Create a Product
+    <button id="createTaskBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">
+            Create a Task
     </button>
 </div>
 
-<!-- Add this modal HTML right after the top bar div -->
-<div id="createProductModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h3 class="text-lg font-semibold mb-4">Create a Product</h3>
-        <form id="createProductForm">
+<!-- Create Task Modal -->
+<div id="createTaskModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-[1000]">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-96 max-h-[90vh] overflow-y-auto">
+        <h3 class="text-lg font-semibold mb-4">Create a Task</h3>
+        <form id="createTaskForm">
             <div class="mb-4">
                 <label for="product_name" class="block text-sm font-medium text-gray-700">Product Name</label>
                 <select id="product_name" name="product_name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
@@ -1027,9 +997,34 @@ function getStatusClass(status) {
                 <input type="number" id="quantity" name="quantity" min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
             </div>
 
+            <!-- Available Materials -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Available Materials</label>
+                <div id="materialsList" class="space-y-2 max-h-40 overflow-y-auto p-2 border rounded-md">
+                    <div class="flex items-center">
+                        <div class="flex-1 text-sm">Loading materials...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deadline -->
+            <div class="mb-4">
+                <label for="deadline" class="block text-sm font-medium text-gray-700">Deadline</label>
+                <input type="datetime-local" id="deadline" name="deadline" min="" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+
+            <!-- Assign To -->
+            <div class="mb-4">
+                <label for="assigned_to" class="block text-sm font-medium text-gray-700">Assign To</label>
+                <select id="assigned_to" name="assigned_to" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Select a member</option>
+                    <!-- Will be populated by JavaScript -->
+                </select>
+            </div>
+
             <div class="flex justify-end space-x-2">
-                <button type="button" id="cancelCreateProduct" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Create Product</button>
+                <button type="button" id="cancelCreateTask" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Create Task</button>
             </div>
         </form>
     </div>
@@ -1059,7 +1054,14 @@ function getStatusClass(status) {
 <div id="monitoringContent" class="tab-content">
     <!-- Search bar -->
     <div class="mb-4">
-        <input type="text" id="searchInput" placeholder="Search products..." class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <div class="relative">
+    <input type="text" id="searchInput" placeholder="Search products by name or ID..." class="w-full p-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400" onkeyup="filterProductionItems()">
+    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+        </svg>
+    </div>
+</div>
     </div>
 
     <!-- Production Line List Table -->
@@ -1067,15 +1069,15 @@ function getStatusClass(status) {
         <table class="min-w-full">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Production ID</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Length (m)</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Width (in)</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Weight (g)</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Raw Materials</th>
-                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Date Added</th>
-                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Production ID</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Product Name</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Length (m)</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Width (in)</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Weight (g)</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Quantity</th>
+                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-800 uppercase">Raw Materials</th>
+                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-800 uppercase">Date Added</th>
+                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-800 uppercase">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -1147,18 +1149,20 @@ function getStatusClass(status) {
                             </td>
                             <td class="px-4 py-2 text-center"><?php echo $item['date_created']; ?></td>
                             <td class="px-4 py-2 text-center relative">
-                                <button type="button" class="inline-flex items-center p-2 text-sm font-medium text-gray-500 bg-white rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="options-menu-<?php echo $item['raw_id']; ?>" aria-haspopup="true" aria-expanded="true" onclick="toggleDropdown(this)">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
-                                </button>
-                                <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none hidden dropdown-menu" role="menu" aria-orientation="vertical" aria-labelledby="options-menu-<?php echo $item['raw_id']; ?>">
-                                    <div class="py-1">
-                                        <a href="#" onclick="assignTask('<?php echo $item['raw_id']; ?>', '<?php echo htmlspecialchars($item['product_name'], ENT_QUOTES); ?>', <?php echo $item['quantity']; ?>); return false;" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 <?php echo $item['has_assignments'] ? 'opacity-50 cursor-not-allowed' : ''; ?>" <?php echo $item['has_assignments'] ? 'disabled' : ''; ?> role="menuitem">Assign Tasks</a>
-                                    </div>
-                                    <div class="py-1">
-                                        <a href="#" onclick="editProduct('<?php echo $item['raw_id']; ?>'); return false;" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Edit</a>
-                                    </div>
-                                    <div class="py-1">
-                                        <a href="#" onclick="deleteProduct('<?php echo $item['raw_id']; ?>'); return false;" class="block px-4 py-2 text-sm text-red-700 hover:bg-red-100" role="menuitem">Delete</a>
+                                <div class="relative inline-block text-left z-10">
+                                    <button type="button" class="inline-flex justify-center w-full rounded-md px-4 py-2 bg-indigo-500 text-sm font-semibold text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200" id="options-menu-<?php echo $item['raw_id']; ?>" aria-haspopup="true" aria-expanded="true">
+                                        Actions
+                                        <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+
+                                    <div id="dropdown-menu-<?php echo $item['raw_id']; ?>" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10" role="menu" aria-orientation="vertical" aria-labelledby="options-menu-<?php echo $item['raw_id']; ?>">
+                                        <div class="py-1" role="none">
+                                            <a href="#" onclick="assignTask('<?php echo $item['raw_id']; ?>', '<?php echo htmlspecialchars($item['product_name'], ENT_QUOTES); ?>', <?php echo $item['quantity']; ?>); return false;" class="block px-4 py-2 text-sm text-gray-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-150 <?php echo $item['has_assignments'] ? 'opacity-50 cursor-not-allowed' : ''; ?>" role="menuitem" <?php echo $item['has_assignments'] ? 'disabled' : ''; ?>>Assign Tasks</a>
+                                            <a href="#" onclick="editProduct('<?php echo $item['raw_id']; ?>'); return false;" class="block px-4 py-2 text-sm text-gray-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-150" role="menuitem">Edit</a>
+                                            <a href="#" onclick="deleteProduct('<?php echo $item['raw_id']; ?>'); return false;" class="block px-4 py-2 text-sm text-gray-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-150" role="menuitem">Delete</a>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
@@ -1180,13 +1184,13 @@ function getStatusClass(status) {
             <table class="min-w-full">
                 <thead>
                     <tr>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Member's Name</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Measurements</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Weight (g)</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Completed Date</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Product Name</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Member's Name</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Role</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Measurements</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Weight (g)</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Quantity</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Completed Date</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1273,21 +1277,27 @@ function getStatusClass(status) {
 <!-- Assigned Tasks Tab Content -->
 <div id="tasksContent" class="tab-content hidden">
     <div class="bg-white rounded-lg shadow-sm p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-semibold text-gray-800">Assigned Tasks</h3>
-            <div class="flex items-center space-x-4">
-                <div>
-                    <label for="statusFilter" class="block text-sm font-medium text-gray-700">Filter by Status</label>
-                    <select id="statusFilter" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        <div class="flex flex-col space-y-4 mb-6">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h3 class="text-xl font-semibold text-gray-800">Assigned Tasks</h3>
+                    <div class="relative w-64 z-10">
+                        <input type="text" id="searchInput" placeholder="Search tasks..." class="pl-10 pr-4 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-48 z-10">
+                    <label for="statusFilter" class="sr-only">Filter by Status</label>
+                    <select id="statusFilter" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                         <option value="all">All Status</option>
                         <option value="pending">Pending</option>
                         <option value="in_progress">In Progress</option>
                         <option value="completed">Completed</option>
                     </select>
-                </div>
-                <div>
-                    <label for="searchInput" class="block text-sm font-medium text-gray-700">Search</label>
-                    <input type="text" id="searchInput" placeholder="Search by product name..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
             </div>
         </div>
@@ -1295,12 +1305,12 @@ function getStatusClass(status) {
             <table class="min-w-full divide-y divide-gray-200" id="assignedTasksTable">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Production ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Created</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Members</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Production ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Product Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Date Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Assigned Members</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -1341,7 +1351,7 @@ function getStatusClass(status) {
                         <span id="warperActive">0</span> Available
                     </div>
                     <div class="text-red-600">
-                        <span id="warperUnavailable">0</span> Unavailable
+                        <span id="warperInactive">0</span> Unavailable
                     </div>
                 </div>
             </div>
@@ -1355,7 +1365,7 @@ function getStatusClass(status) {
                         <span id="weaverActive">0</span> Available
                     </div>
                     <div class="text-red-600">
-                        <span id="weaverUnavailable">0</span> Unavailable
+                        <span id="weaverInactive">0</span> Unavailable
                     </div>
                 </div>
             </div>
@@ -1401,11 +1411,11 @@ function getStatusClass(status) {
             <table class="min-w-full divide-y divide-gray-200" id="taskApprovalTable">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Production ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight (g)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Production ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Member Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Role</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Product Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Weight (g)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Created</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -1453,7 +1463,7 @@ function getStatusClass(status) {
 </div>
 
 <!-- Task Assignment Modal -->
-<div id="taskAssignmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+<div id="taskAssignmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-[1000]">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3">
             <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Assign Tasks</h3>
@@ -1520,5 +1530,213 @@ function getStatusClass(status) {
 <!-- Load scripts after the DOM is ready -->
 <script src="assets/js/app.js"></script>
 <script src="assets/js/task-completions.js"></script>
+
+<script>
+// Function to fetch and display available materials and members
+function loadModalData() {
+    // Load available materials
+    fetch('backend/end-points/get_available_materials.php')
+        .then(response => response.json())
+        .then(data => {
+            const materialsList = document.getElementById('materialsList');
+            if (data.success && data.materials && data.materials.length > 0) {
+                materialsList.innerHTML = '';
+                data.materials.forEach(material => {
+                    const materialItem = document.createElement('div');
+                    materialItem.className = 'flex items-center justify-between py-1';
+                    materialItem.innerHTML = `
+                        <span class="text-sm text-gray-700">${material.name}</span>
+                        <span class="text-sm font-medium ${material.quantity_available > 0 ? 'text-green-600' : 'text-red-600'}">
+                            ${material.quantity_available} ${material.unit} available
+                        </span>
+                    `;
+                    materialsList.appendChild(materialItem);
+                });
+            } else {
+                materialsList.innerHTML = '<div class="text-sm text-gray-500">No materials available</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading materials:', error);
+            document.getElementById('materialsList').innerHTML = 
+                '<div class="text-sm text-red-600">Error loading materials. Please try again.</div>';
+        });
+    
+    // Load assignable members
+    fetch('backend/end-points/get_members_by_role.php?role=all')
+        .then(response => response.json())
+        .then(members => {
+            const assignedToSelect = document.getElementById('assigned_to');
+            // Clear existing options except the first one
+            while (assignedToSelect.options.length > 1) {
+                assignedToSelect.remove(1);
+            }
+            
+            if (members && members.length > 0) {
+                members.forEach(member => {
+                    const option = document.createElement('option');
+                    option.value = member.id;
+                    option.textContent = `${member.first_name} ${member.last_name} (${member.role})`;
+                    assignedToSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No members available';
+                option.disabled = true;
+                assignedToSelect.appendChild(option);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading members:', error);
+            const assignedToSelect = document.getElementById('assigned_to');
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Error loading members';
+            option.disabled = true;
+            assignedToSelect.appendChild(option);
+        });
+}
+
+// Function to set minimum date for deadline (today)
+function setMinDeadlineDate() {
+    const now = new Date();
+    // Format: YYYY-MM-DDTHH:MM
+    const minDate = now.toISOString().slice(0, 16);
+    document.getElementById('deadline').min = minDate;
+    // Set default deadline to 7 days from now
+    const defaultDeadline = new Date(now.setDate(now.getDate() + 7)).toISOString().slice(0, 16);
+    document.getElementById('deadline').value = defaultDeadline;
+}
+
+// Initialize the create task form
+// Initialize search functionality for assigned tasks
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize search and filter event listeners
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', filterTasks);
+    }
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', filterTasks);
+    }
+    
+    // Initial filter call to ensure everything is in sync
+    filterTasks();
+    
+    // Handle dropdown menus
+    document.querySelectorAll('[id^="options-menu-"]').forEach(button => {
+        button.addEventListener('click', function() {
+            const dropdownId = this.id.replace('options-menu-', 'dropdown-menu-');
+            const dropdownMenu = document.getElementById(dropdownId);
+            if (dropdownMenu) {
+                dropdownMenu.classList.toggle('hidden');
+                this.setAttribute('aria-expanded', dropdownMenu.classList.contains('hidden') ? 'false' : 'true');
+            }
+        });
+    });
+
+    // Handle create task modal
+    const createTaskBtn = document.getElementById('createTaskBtn');
+    const createTaskModal = document.getElementById('createTaskModal');
+    const cancelCreateTask = document.getElementById('cancelCreateTask');
+    const createTaskForm = document.getElementById('createTaskForm');
+    const productNameSelect = document.getElementById('product_name');
+    const dimensionFields = document.getElementById('dimensionFields');
+    const weightField = document.getElementById('weightField');
+    const quantityField = document.getElementById('quantityField');
+
+    // Show modal and load data
+    createTaskBtn.addEventListener('click', function() {
+        createTaskModal.classList.remove('hidden');
+        loadModalData();
+        setMinDeadlineDate();
+    });
+
+    // Hide modal
+    cancelCreateTask.addEventListener('click', function() {
+        createTaskModal.classList.add('hidden');
+    });
+
+    // Toggle fields based on product type
+    productNameSelect.addEventListener('change', function() {
+        const selectedProduct = this.value;
+        
+        // Reset all fields
+        dimensionFields.classList.add('hidden');
+        weightField.classList.add('hidden');
+        
+        // Show/hide fields based on product type
+        if (['Piña Seda', 'Pure Piña Cloth'].includes(selectedProduct)) {
+            dimensionFields.classList.remove('hidden');
+            weightField.classList.add('hidden');
+        } else if (['Knotted Liniwan', 'Knotted Bastos'].includes(selectedProduct)) {
+            dimensionFields.classList.add('hidden');
+            weightField.classList.remove('hidden');
+        } else if (selectedProduct === 'Warped Silk') {
+            dimensionFields.classList.add('hidden');
+            weightField.classList.add('hidden');
+        }
+    });
+
+    // Handle form submission
+    createTaskForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate form
+        const formData = new FormData(this);
+        const productName = formData.get('product_name');
+        const quantity = formData.get('quantity');
+        const deadline = formData.get('deadline');
+        
+        if (!productName) {
+            alert('Please select a product');
+            return;
+        }
+        
+        if (!quantity || quantity < 1) {
+            alert('Please enter a valid quantity');
+            return;
+        }
+        
+        // Submit the form
+        fetch('backend/end-points/create_task.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                alert('Task created successfully!');
+                // Reload the page or update the UI as needed
+                window.location.reload();
+            } else {
+                alert('Error: ' + (data.message || 'Failed to create task'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while creating the task');
+        });
+    });
+
+    // Close the dropdown menu if the user clicks outside of it
+    window.addEventListener('click', function(event) {
+        document.querySelectorAll('[id^="dropdown-menu-"]').forEach(dropdownMenu => {
+            const buttonId = dropdownMenu.id.replace('dropdown-menu-', 'options-menu-');
+            const button = document.getElementById(buttonId);
+
+            if (dropdownMenu && button && !dropdownMenu.contains(event.target) && !button.contains(event.target) && !dropdownMenu.classList.contains('hidden')) {
+                dropdownMenu.classList.add('hidden');
+                button.setAttribute('aria-expanded', 'false');
+            }
+        });
+    });
+});
+</script>
 </body>
 </html>
