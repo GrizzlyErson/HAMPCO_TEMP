@@ -1543,6 +1543,47 @@ function getStatusClass(status) {
 
 <?php include "components/footer.php"; ?>
 
+<style>
+    /* Action dropdown menu */
+    [id^="dropdown-menu-"] {
+        z-index: 99999 !important;
+        position: absolute !important;
+        transform: translateZ(99999px);
+        will-change: transform;
+    }
+    
+    /* Task dropdown menu */
+    [id^="task-dropdown-"] {
+        z-index: 9999 !important;
+        position: absolute !important;
+        transform: translateZ(9999px);
+        will-change: transform;
+    }
+    
+    /* Dropdown toggle buttons */
+    [id^="options-menu-"],
+    [id^="task-options-"] {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Ensure dropdown stays on top of other elements */
+    .relative {
+        position: relative;
+    }
+    
+    /* Make sure the dropdown container has a higher stacking context */
+    .dropdown-container {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Ensure dropdown items are clickable */
+    [role="menu"] {
+        z-index: 99999 !important;
+    }
+</style>
+
 <!-- Load scripts after the DOM is ready -->
 <script src="assets/js/app.js"></script>
 <script src="assets/js/task-completions.js"></script>
