@@ -957,76 +957,92 @@ function getStatusClass(status) {
 </div>
 
 <!-- Create Task Modal -->
-<div id="createTaskModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-[1000]">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-96 max-h-[90vh] overflow-y-auto">
-        <h3 class="text-lg font-semibold mb-4">Create a Task</h3>
-        <form id="createTaskForm">
-            <div class="mb-4">
-                <label for="product_name" class="block text-sm font-medium text-gray-700">Product Name</label>
-                <select id="product_name" name="product_name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <option value="">Select a product</option>
-                    <option value="Piña Seda">Piña Seda</option>
-                    <option value="Pure Piña Cloth">Pure Piña Cloth</option>
-                    <option value="Knotted Liniwan">Knotted Liniwan</option>
-                    <option value="Knotted Bastos">Knotted Bastos</option>
-                    <option value="Warped Silk">Warped Silk</option>
-                </select>
-            </div>
-            
-            <!-- Length and Width fields (shown for Piña Seda and Pure Piña Cloth) -->
-            <div id="dimensionFields" class="mb-4">
-                <div class="mb-4">
-                    <label for="length" class="block text-sm font-medium text-gray-700">Length (m)</label>
-                    <input type="number" id="length" name="length" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-                <div class="mb-4">
-                    <label for="width" class="block text-sm font-medium text-gray-700">Width (in)</label>
-                    <input type="number" id="width" name="width" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-            </div>
-
-            <!-- Weight field (shown for Knotted Liniwan and Knotted Bastos) -->
-            <div id="weightField" class="mb-4 hidden">
-                <label for="weight" class="block text-sm font-medium text-gray-700">Weight (g)</label>
-                <input type="number" id="weight" name="weight" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            </div>
-
-            <!-- Quantity field (hidden for Knotted products) -->
-            <div id="quantityField" class="mb-4">
-                <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
-                <input type="number" id="quantity" name="quantity" min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            </div>
-
-            <!-- Available Materials -->
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Available Materials</label>
-                <div id="materialsList" class="space-y-2 max-h-40 overflow-y-auto p-2 border rounded-md">
-                    <div class="flex items-center">
-                        <div class="flex-1 text-sm">Loading materials...</div>
+<div id="createTaskModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-[1000] p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Create New Task</h3>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6 overflow-y-auto flex-1">
+            <form id="createTaskForm" class="space-y-4">
+                <!-- Row 1: Product Name -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="col-span-2">
+                        <label for="product_name" class="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                        <select id="product_name" name="product_name" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                            <option value="">Select a product</option>
+                            <option value="Piña Seda">Piña Seda</option>
+                            <option value="Pure Piña Cloth">Pure Piña Cloth</option>
+                            <option value="Knotted Liniwan">Knotted Liniwan</option>
+                            <option value="Knotted Bastos">Knotted Bastos</option>
+                            <option value="Warped Silk">Warped Silk</option>
+                        </select>
                     </div>
                 </div>
-            </div>
 
-            <!-- Deadline -->
-            <div class="mb-4">
-                <label for="deadline" class="block text-sm font-medium text-gray-700">Deadline</label>
-                <input type="datetime-local" id="deadline" name="deadline" min="" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            </div>
+                <!-- Row 2: Dimensions / Weight -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Length and Width Fields -->
+                    <div id="dimensionFields" class="col-span-2 grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="length" class="block text-xs font-medium text-gray-700 mb-1">Length (m)</label>
+                            <input type="number" id="length" name="length" step="0.001" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                        </div>
+                        <div>
+                            <label for="width" class="block text-xs font-medium text-gray-700 mb-1">Width (in)</label>
+                            <input type="number" id="width" name="width" step="0.001" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                        </div>
+                    </div>
+                    
+                    <!-- Weight Field -->
+                    <div id="weightField" class="hidden">
+                        <label for="weight" class="block text-xs font-medium text-gray-700 mb-1">Weight (g)</label>
+                        <input type="number" id="weight" name="weight" step="0.001" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                    </div>
+                    
+                    <!-- Quantity -->
+                    <div id="quantityField">
+                        <label for="quantity" class="block text-xs font-medium text-gray-700 mb-1">Quantity</label>
+                        <input type="number" id="quantity" name="quantity" min="1" value="1" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                    </div>
+                </div>
 
-            <!-- Assign To -->
-            <div class="mb-4">
-                <label for="assigned_to" class="block text-sm font-medium text-gray-700">Assign To</label>
-                <select id="assigned_to" name="assigned_to" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <option value="">Select a member</option>
-                    <!-- Will be populated by JavaScript -->
-                </select>
-            </div>
+                <!-- Row 3: Deadline and Assign To -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="deadline" class="block text-xs font-medium text-gray-700 mb-1">Deadline</label>
+                        <input type="datetime-local" id="deadline" name="deadline" min="" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                    </div>
+                    <div>
+                        <label for="assigned_to" class="block text-xs font-medium text-gray-700 mb-1">Assign To</label>
+                        <select id="assigned_to" name="assigned_to" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                            <option value="">Select a member</option>
+                            <!-- Will be populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
 
-            <div class="flex justify-end space-x-2">
-                <button type="button" id="cancelCreateTask" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Create Task</button>
-            </div>
-        </form>
+                <!-- Row 4: Available Materials -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Available Materials</label>
+                    <div id="materialsList" class="p-2 border rounded-md max-h-32 overflow-y-auto bg-gray-50">
+                        <div class="text-sm text-gray-500">Select a product to view materials</div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+                    <button type="button" id="cancelCreateTask" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Create Task
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
