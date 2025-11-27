@@ -311,6 +311,37 @@ require_once "components/header.php";
                             </div>
                         </div>
                     </div>
+                    <!-- Upcoming Deadlines & Overdue Tasks Row -->
+                    <div class="row">
+                        <div class="col-lg-12 mb-4">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 bg-success">
+                                    <h6 class="m-0 font-weight-bold text-light">⏰ Upcoming Deadlines & Overdue Tasks</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" id="taskDeadlinesTable" width="100%" cellspacing="0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Production ID</th>
+                                                    <th>Product Name</th>
+                                                    <th>Assigned To</th>
+                                                    <th>Role</th>
+                                                    <th>Deadline</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td colspan="6" class="text-center text-muted py-3">Loading deadlines...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Workforce Summary Row -->
                     <div class="row">
                         <div class="col-lg-12 mb-4">
@@ -859,6 +890,51 @@ require_once "components/header.php";
 
     <!-- Recent Tasks Data Loading Script -->
     <script>
+    function loadTaskDeadlines() {
+        fetch('backend/end-points/get_task_deadlines.php')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.querySelector('#taskDeadlinesTable tbody');
+                if (data.success && data.data.length > 0) {
+                    tableBody.innerHTML = data.data.map(task => {
+                        const deadline = new Date(task.deadline);
+                        const now = new Date();
+                        const isOverdue = deadline < now;
+
+                        let statusBadge;
+                        if (isOverdue) {
+                            statusBadge = `<span class="badge badge-danger">Overdue</span>`;
+                        } else {
+                            const diffTime = Math.abs(deadline - now);
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            if (diffDays <= 3) {
+                                statusBadge = `<span class="badge badge-warning">Upcoming</span>`;
+                            } else {
+                                statusBadge = `<span class="badge badge-success">On Track</span>`;
+                            }
+                        }
+
+                        return `
+                            <tr>
+                                <td>${task.prod_line_id}</td>
+                                <td>${task.product_name}</td>
+                                <td>${task.assigned_to}</td>
+                                <td>${task.role}</td>
+                                <td>${new Date(task.deadline).toLocaleDateString()}</td>
+                                <td>${statusBadge}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">No upcoming deadlines</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading task deadlines:', error);
+                const tableBody = document.querySelector('#taskDeadlinesTable tbody');
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">Error loading deadlines</td></tr>';
+            });
+    }
     // Load recent tasks data - combines assigned tasks and member task requests
     function loadRecentTasks() {
         Promise.all([
@@ -1099,12 +1175,14 @@ require_once "components/header.php";
         loadTaskCompletionChart();
         loadTaskStatusOverview();
         loadActiveMembersByRole();
+        loadTaskDeadlines();
         // Refresh every 30 seconds
         setInterval(loadRecentTasks, 30000);
         setInterval(loadMemberCreatedTasks, 30000);
         setInterval(loadTaskCompletionChart, 60000);
         setInterval(loadTaskStatusOverview, 60000);
         setInterval(loadActiveMembersByRole, 60000);
+        setInterval(loadTaskDeadlines, 60000);
     });
 
     // Load Task Status Overview with Progress Bars
