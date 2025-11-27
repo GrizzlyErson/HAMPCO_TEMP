@@ -1032,6 +1032,63 @@ function getStatusClass(status) {
                 <input type="number" id="quantity" name="quantity" min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
             </div>
 
+            <input type="hidden" id="action_type" name="action_type" value="create_product">
+
+            <!-- Toggle for Reassign Task -->
+            <div class="mb-4 flex items-center justify-between">
+                <label for="toggleReassign" class="text-sm font-medium text-gray-700">Reassign Existing Task?</label>
+                <input type="checkbox" id="toggleReassign" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+            </div>
+
+            <!-- Reassign Task Section (Initially Hidden) -->
+            <div id="reassignTaskSection" class="space-y-4 hidden">
+                <h4 class="text-md font-semibold text-gray-800 border-b pb-2 mb-3">Reassign Task Details</h4>
+                
+                <div class="mb-4">
+                    <label for="reassign_prod_line_id" class="block text-sm font-medium text-gray-700">Select Production ID</label>
+                    <select id="reassign_prod_line_id" name="reassign_prod_line_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Select Production ID</option>
+                        <!-- Options will be loaded dynamically by JavaScript -->
+                    </select>
+                </div>
+
+                <!-- Knotter Section for Reassign -->
+                <div id="reassignKnotterSection" class="space-y-2 hidden">
+                    <label class="block text-sm font-medium text-gray-700">Knotter</label>
+                    <select name="reassign_knotter_id" class="reassign-knotter-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Select Knotter</option>
+                    </select>
+                    <div class="text-sm text-gray-500">
+                        Deadline:
+                    </div>
+                    <input type="datetime-local" name="reassign_knotter_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+
+                <!-- Warper Section for Reassign -->
+                <div id="reassignWarperSection" class="space-y-2 hidden">
+                    <label class="block text-sm font-medium text-gray-700">Warper</label>
+                    <select name="reassign_warper_id" class="reassign-warper-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Select Warper</option>
+                    </select>
+                    <div class="text-sm text-gray-500">
+                        Deadline:
+                    </div>
+                    <input type="datetime-local" name="reassign_warper_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+
+                <!-- Weaver Section for Reassign -->
+                <div id="reassignWeaverSection" class="space-y-2 hidden">
+                    <label class="block text-sm font-medium text-gray-700">Weaver</label>
+                    <select name="reassign_weaver_id" class="reassign-weaver-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Select Weaver</option>
+                    </select>
+                    <div class="text-sm text-gray-500">
+                        Deadline:
+                    </div>
+                    <input type="datetime-local" name="reassign_weaver_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+            </div>
+
             <div class="flex justify-end space-x-2">
                 <button type="button" id="cancelCreateProduct" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
                 <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Create Product</button>
