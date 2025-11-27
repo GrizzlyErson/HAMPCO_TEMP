@@ -199,6 +199,13 @@ html{
 .hampco-sidebar-isolation #sidebar ul li.active a svg{
   fill: var(--accent-clr) !important;
 }
+/* New rules for Font Awesome icons */
+.hampco-sidebar-isolation #sidebar i {
+  color: var(--text-clr) !important;
+}
+.hampco-sidebar-isolation #sidebar ul li.active a i{
+  color: var(--accent-clr) !important;
+}
 
 .hampco-sidebar-isolation #sidebar a,
 .hampco-sidebar-isolation #sidebar .dropdown-btn,
@@ -220,15 +227,21 @@ html{
   text-align: left !important;
   cursor: pointer !important;
 }
-.hampco-sidebar-isolation #sidebar svg{
+.hampco-sidebar-isolation #sidebar svg,
+.hampco-sidebar-isolation #sidebar i { /* Include Font Awesome icons */
   flex-shrink: 0 !important;
-  fill: var(--text-clr) !important;
+  fill: var(--text-clr) !important; /* For SVGs */
+  color: var(--text-clr) !important; /* For Font Awesome */
   transition: width 200ms ease, height 200ms ease, opacity 200ms ease !important;
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
 }
 /* Ensure main icons stay visible and sized during collapse */
 .hampco-sidebar-isolation #sidebar.close a svg:first-child,
 .hampco-sidebar-isolation #sidebar.close .dropdown-btn svg:first-child,
-.hampco-sidebar-isolation #sidebar.close #toggle-btn svg{
+.hampco-sidebar-isolation #sidebar.close #toggle-btn svg,
+.hampco-sidebar-isolation #sidebar.close a i, /* For Font Awesome */
+.hampco-sidebar-isolation #sidebar.close .dropdown-btn i { /* For Font Awesome */
   width: 24px !important;
   height: 24px !important;
   opacity: 1 !important;
