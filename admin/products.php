@@ -2,7 +2,7 @@
 
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Manage Products</h1>
-                        <i class="fa-solid fa-cart-plus"></i>
+                        
                         <!-- Notification Bell Icon -->
                     <button class="relative focus:outline-none" title="Notifications">
                         <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

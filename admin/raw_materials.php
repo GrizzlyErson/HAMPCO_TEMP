@@ -12,6 +12,10 @@
     <div class="mb-4 flex justify-between items-center">
         <input type="text" id="searchInput" placeholder="Search ..." class="w-64 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
         <div class="flex gap-2">
+            <button id="scrollToProcessed" class="bg-yellow-500 text-white px-4 py-2 rounded-md shadow hover:bg-yellow-600 transition flex items-center gap-2">
+                <span class="material-icons">arrow_downward</span>
+                Processed Materials
+            </button>
             <button id="scrollToFinished" class="bg-green-500 text-white px-4 py-2 rounded-md shadow hover:bg-green-600 transition flex items-center gap-2">
                 <span class="material-icons">arrow_downward</span>
                 Finished Products
@@ -43,7 +47,7 @@
 </div>
 
 <!-- Processed Materials Label -->
-<div class="mt-8 mb-4">
+<div id="processed-materials-section" class="mt-8 mb-4">
     <h3 class="text-lg font-semibold text-gray-700">Processed Materials</h3>
 </div>
 
@@ -654,6 +658,13 @@ $(document).ready(function() {
         e.preventDefault();
         $('html, body').animate({
             scrollTop: $('#finished-products-section').offset().top
+        }, 800);
+    });
+
+    $('#scrollToProcessed').on('click', function(e) {
+        e.preventDefault();
+        $('html, body').animate({
+            scrollTop: $('#processed-materials-section').offset().top
         }, 800);
     });
 });

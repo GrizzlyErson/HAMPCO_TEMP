@@ -126,7 +126,7 @@ function renderMemberList(role, listId) {
                     found = true;
                     const name = member.fullname;
                     const status = member.work_status;
-                    const badgeClass = status === 'Work In Progress' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+                    const badgeClass = status === 'Work In Progress' ? 'bg-blue-200 text-blue-900' : 'bg-green-200 text-green-900';
                     const li = document.createElement('li');
                     li.className = 'flex items-center justify-between py-2';
                     li.innerHTML = `
@@ -275,10 +275,10 @@ function refreshTaskAssignments() {
 
 
                 // Get status class for the status badge
-                const statusClass = displayStatus === 'completed' ? 'bg-green-100 text-green-800' :
-                                  displayStatus === 'submitted' ? 'bg-orange-100 text-orange-800' :
-                                  displayStatus === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                                  'bg-gray-100 text-gray-800';
+                const statusClass = displayStatus === 'completed' ? 'bg-green-200 text-green-900' :
+                                  displayStatus === 'submitted' ? 'bg-yellow-200 text-yellow-900' :
+                                  displayStatus === 'in_progress' ? 'bg-blue-200 text-blue-900' :
+                                  'bg-gray-200 text-gray-900';
 
                 // Determine if all tasks are submitted
                 const allSubmitted = item.assignments.every(assignment => 
@@ -343,9 +343,9 @@ function refreshTaskApprovalRequests() {
             }
 
             tableBody.innerHTML = data.map(request => {
-                const statusClass = request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                  request.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                  'bg-red-100 text-red-800';
+                const statusClass = request.status === 'pending' ? 'bg-yellow-200 text-yellow-900' :
+                                  request.status === 'approved' ? 'bg-green-200 text-green-900' :
+                                  'bg-red-200 text-red-900';
 
                 return `
                     <tr class="border-b border-gray-200 hover:bg-gray-50">
@@ -362,13 +362,13 @@ function refreshTaskApprovalRequests() {
                         </td>
                         <td class="py-3 px-4 text-left">
                             ${request.status === 'pending' ? `
-                                <div class="flex space-x-2">
+                                <div class="flex flex-col space-y-2">
                                     <button onclick="handleTaskRequest(${request.request_id}, 'approve')"
-                                            class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-xs">
+                                            class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-xs w-20">
                                         Approve
                                     </button>
                                     <button onclick="handleTaskRequest(${request.request_id}, 'reject')"
-                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-xs">
+                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-xs w-20">
                                         Reject
                                     </button>
                                 </div>
@@ -675,43 +675,119 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('createProductModal').classList.add('hidden');
     });
 
-    // Update the product type selection event listener
     document.getElementById('product_name').addEventListener('change', function() {
         const selectedProduct = this.value;
         const dimensionFields = document.getElementById('dimensionFields');
         const weightField = document.getElementById('weightField');
         const quantityField = document.getElementById('quantityField');
-        
-        if (selectedProduct === 'Knotted Liniwan' || selectedProduct === 'Knotted Bastos' || selectedProduct === 'Warped Silk') {
-            dimensionFields.classList.add('hidden');
+        const knotterSection = document.getElementById('knotterSection');
+        const warperSection = document.getElementById('warperSection');
+        const weaverSection = document.getElementById('weaverSection');
+
+        // Hide all optional fields first
+        dimensionFields.classList.add('hidden');
+        weightField.classList.add('hidden');
+        quantityField.classList.add('hidden');
+        knotterSection.classList.add('hidden');
+        warperSection.classList.add('hidden');
+        weaverSection.classList.add('hidden');
+
+        if (selectedProduct === 'Knotted Liniwan' || selectedProduct === 'Knotted Bastos') {
             weightField.classList.remove('hidden');
-            quantityField.classList.add('hidden');
-        } else {
+            knotterSection.classList.remove('hidden');
+            // Fetch knotters
+            fetch('backend/end-points/get_members_by_role.php?role=knotter&status=available')
+                .then(response => response.json())
+                .then(data => {
+                    const knotterSelect = document.querySelector('.knotter-select');
+                    knotterSelect.innerHTML = '<option value="">Select Knotter</option>';
+                    data.forEach(member => {
+                        knotterSelect.innerHTML += `<option value="${member.id}">${member.fullname}</option>`;
+                    });
+                });
+        } else if (selectedProduct === 'Warped Silk') {
+            weightField.classList.remove('hidden');
+            warperSection.classList.remove('hidden');
+            // Fetch warpers
+            fetch('backend/end-points/get_members_by_role.php?role=warper&status=available')
+                .then(response => response.json())
+                .then(data => {
+                    const warperSelect = document.querySelector('[name=warper_id]');
+                    warperSelect.innerHTML = '<option value="">Select Warper</option>';
+                    data.forEach(member => {
+                        warperSelect.innerHTML += `<option value="${member.id}">${member.fullname}</option>`;
+                    });
+                });
+        } else if (selectedProduct === 'Piña Seda' || selectedProduct === 'Pure Piña Cloth') {
             dimensionFields.classList.remove('hidden');
-            weightField.classList.add('hidden');
             quantityField.classList.remove('hidden');
+            weaverSection.classList.remove('hidden');
+            // Fetch weavers
+            fetch('backend/end-points/get_members_by_role.php?role=weaver&status=available')
+                .then(response => response.json())
+                .then(data => {
+                    const weaverSelect = document.querySelector('[name=weaver_id]');
+                    weaverSelect.innerHTML = '<option value="">Select Weaver</option>';
+                    data.forEach(member => {
+                        weaverSelect.innerHTML += `<option value="${member.id}">${member.fullname}</option>`;
+                    });
+                });
         }
+    });
+
+    // Fetch available materials
+    function fetchAvailableMaterials() {
+        fetch('backend/end-points/get_available_materials.php')
+            .then(response => response.json())
+            .then(data => {
+                const materialsDiv = document.getElementById('availableMaterials');
+                materialsDiv.innerHTML = '';
+                if (data.success) {
+                    let html = '<ul>';
+                    if (data.raw_materials.length > 0) {
+                        html += '<li><strong>Raw Materials:</strong><ul>';
+                        data.raw_materials.forEach(material => {
+                            html += `<li>${material.rm_name}: ${material.rm_stocks}</li>`;
+                        });
+                        html += '</ul></li>';
+                    }
+                    if (data.processed_materials.length > 0) {
+                        html += '<li><strong>Processed Materials:</strong><ul>';
+                        data.processed_materials.forEach(material => {
+                            html += `<li>${material.material_name}: ${material.quantity}</li>`;
+                        });
+                        html += '</ul></li>';
+                    }
+                    html += '</ul>';
+                    materialsDiv.innerHTML = html;
+                } else {
+                    materialsDiv.innerHTML = '<p>Could not load materials.</p>';
+                }
+            });
+    }
+
+    document.getElementById('createProductBtn').addEventListener('click', function() {
+        fetchAvailableMaterials();
+        document.getElementById('createProductModal').classList.remove('hidden');
+    });
+
+    document.getElementById('cancelCreateProduct').addEventListener('click', function() {
+        document.getElementById('createProductModal').classList.add('hidden');
     });
 
     // Update the form submission to handle quantity
     document.getElementById('createProductForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(this);
-        const selectedProduct = formData.get('product_name');
         
-        // Set quantity to 1 for Knotted products and Warped Silk
-        if (selectedProduct === 'Knotted Liniwan' || selectedProduct === 'Knotted Bastos' || selectedProduct === 'Warped Silk') {
-            formData.set('quantity', '1');
-        }
-        
-        fetch('backend/end-points/create_production_item.php', {
+        fetch('backend/end-points/create_task.php', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Product created successfully!');
+                alert('Task created successfully!');
                 document.getElementById('createProductModal').classList.add('hidden');
                 this.reset();
                 location.reload();
@@ -721,7 +797,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while creating the product. Please check the console for details.');
+            alert('An error occurred while creating the task. Please check the console for details.');
         });
     });
 
@@ -767,8 +843,8 @@ function updateWorkforceManagement() {
                             <span>${member.fullname}</span>
                             <span class="px-2 py-1 text-xs rounded-full ${
                                 member.availability_status === 'available' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
+                                ? 'bg-green-200 text-green-900' 
+                                : 'bg-red-200 text-red-900'
                             }">
                                 ${member.availability_status === 'available' ? 'Available' : 'Unavailable'}
                             </span>
@@ -972,13 +1048,13 @@ function loadTaskCompletions() {
 function getStatusClass(status) {
     switch (status.toLowerCase()) {
         case 'completed':
-            return 'bg-green-100 text-green-800';
+            return 'bg-green-200 text-green-900';
         case 'in_progress':
-            return 'bg-blue-100 text-blue-800';
+            return 'bg-blue-200 text-blue-900';
         case 'pending':
-            return 'bg-gray-100 text-gray-800';
+            return 'bg-yellow-200 text-yellow-900';
         default:
-            return 'bg-gray-100 text-gray-800';
+            return 'bg-gray-200 text-gray-900';
     }
 }
 </script>
@@ -987,111 +1063,101 @@ function getStatusClass(status) {
 <div class="flex justify-between items-center bg-white p-4 mb-6 rounded-md shadow-md">
     <h2 class="text-lg font-semibold text-gray-700">Production Line</h2>
     <button id="createProductBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md" style="background-color: #D4AF37;">
-        Create a Product
+        Create a Task
     </button>
 </div>
 
 <!-- Add this modal HTML right after the top bar div -->
-<div id="createProductModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h3 class="text-lg font-semibold mb-4">Create a Product</h3>
+<div id="createProductModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+        <h3 class="text-lg font-semibold mb-4">Create a Task</h3>
         <form id="createProductForm">
-            <div class="mb-4">
-                <label for="product_name" class="block text-sm font-medium text-gray-700">Product Name</label>
-                <select id="product_name" name="product_name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <option value="">Select a product</option>
-                    <option value="Piña Seda">Piña Seda</option>
-                    <option value="Pure Piña Cloth">Pure Piña Cloth</option>
-                    <option value="Knotted Liniwan">Knotted Liniwan</option>
-                    <option value="Knotted Bastos">Knotted Bastos</option>
-                    <option value="Warped Silk">Warped Silk</option>
-                </select>
-            </div>
-            
-            <!-- Length and Width fields (shown for Piña Seda and Pure Piña Cloth) -->
-            <div id="dimensionFields" class="mb-4">
-                <div class="mb-4">
-                    <label for="length" class="block text-sm font-medium text-gray-700">Length (m)</label>
-                    <input type="number" id="length" name="length" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-                <div class="mb-4">
-                    <label for="width" class="block text-sm font-medium text-gray-700">Width (in)</label>
-                    <input type="number" id="width" name="width" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-            </div>
-
-            <!-- Weight field (shown for Knotted Liniwan and Knotted Bastos) -->
-            <div id="weightField" class="mb-4 hidden">
-                <label for="weight" class="block text-sm font-medium text-gray-700">Weight (g)</label>
-                <input type="number" id="weight" name="weight" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            </div>
-
-            <!-- Quantity field (hidden for Knotted products) -->
-            <div id="quantityField" class="mb-4">
-                <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
-                <input type="number" id="quantity" name="quantity" min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            </div>
-
-            <input type="hidden" id="action_type" name="action_type" value="create_product">
-
-            <!-- Toggle for Reassign Task -->
-            <div class="mb-4 flex items-center justify-between">
-                <label for="toggleReassign" class="text-sm font-medium text-gray-700">Reassign Existing Task?</label>
-                <input type="checkbox" id="toggleReassign" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-            </div>
-
-            <!-- Reassign Task Section (Initially Hidden) -->
-            <div id="reassignTaskSection" class="space-y-4 hidden">
-                <h4 class="text-md font-semibold text-gray-800 border-b pb-2 mb-3">Reassign Task Details</h4>
-                
-                <div class="mb-4">
-                    <label for="reassign_prod_line_id" class="block text-sm font-medium text-gray-700">Select Production ID</label>
-                    <select id="reassign_prod_line_id" name="reassign_prod_line_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="">Select Production ID</option>
-                        <!-- Options will be loaded dynamically by JavaScript -->
-                    </select>
-                </div>
-
-                <!-- Knotter Section for Reassign -->
-                <div id="reassignKnotterSection" class="space-y-2 hidden">
-                    <label class="block text-sm font-medium text-gray-700">Knotter</label>
-                    <select name="reassign_knotter_id" class="reassign-knotter-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="">Select Knotter</option>
-                    </select>
-                    <div class="text-sm text-gray-500">
-                        Deadline:
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <div class="mb-4">
+                        <label for="product_name" class="block text-sm font-medium text-gray-700">Product Name</label>
+                        <select id="product_name" name="product_name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">Select a product</option>
+                            <option value="Piña Seda">Piña Seda</option>
+                            <option value="Pure Piña Cloth">Pure Piña Cloth</option>
+                            <option value="Knotted Liniwan">Knotted Liniwan</option>
+                            <option value="Knotted Bastos">Knotted Bastos</option>
+                            <option value="Warped Silk">Warped Silk</option>
+                        </select>
                     </div>
-                    <input type="datetime-local" name="reassign_knotter_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    
+                    <!-- Length and Width fields -->
+                    <div id="dimensionFields" class="mb-4 hidden">
+                        <div class="mb-4">
+                            <label for="length" class="block text-sm font-medium text-gray-700">Length (m)</label>
+                            <input type="number" id="length" name="length" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div class="mb-4">
+                            <label for="width" class="block text-sm font-medium text-gray-700">Width (in)</label>
+                            <input type="number" id="width" name="width" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
+                    <!-- Weight field -->
+                    <div id="weightField" class="mb-4 hidden">
+                        <label for="weight" class="block text-sm font-medium text-gray-700">Weight (g)</label>
+                        <input type="number" id="weight" name="weight" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+
+                    <!-- Quantity field -->
+                    <div id="quantityField" class="mb-4 hidden">
+                        <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
+                        <input type="number" id="quantity" name="quantity" min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+
+                    <!-- Knotter Section -->
+                    <div id="knotterSection" class="space-y-2 hidden">
+                        <label class="block text-sm font-medium text-gray-700">Knotter</label>
+                        <select name="knotter_id[]" class="knotter-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <option value="">Select Knotter</option>
+                        </select>
+                        <div class="text-sm text-gray-500">
+                            Deadline:
+                        </div>
+                        <input type="datetime-local" name="deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    </div>
+
+                    <!-- Warper Section -->
+                    <div id="warperSection" class="space-y-2 hidden">
+                        <label class="block text-sm font-medium text-gray-700">Warper</label>
+                        <select name="warper_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <option value="">Select Warper</option>
+                        </select>
+                        <div class="text-sm text-gray-500">
+                            Deadline:
+                        </div>
+                        <input type="datetime-local" name="warper_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    </div>
+
+                    <!-- Weaver Section -->
+                    <div id="weaverSection" class="space-y-2 hidden">
+                        <label class="block text-sm font-medium text-gray-700">Weaver</label>
+                        <select name="weaver_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <option value="">Select Weaver</option>
+                        </select>
+                        <div class="text-sm text-gray-500">
+                            Deadline:
+                        </div>
+                        <input type="datetime-local" name="weaver_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    </div>
                 </div>
 
-                <!-- Warper Section for Reassign -->
-                <div id="reassignWarperSection" class="space-y-2 hidden">
-                    <label class="block text-sm font-medium text-gray-700">Warper</label>
-                    <select name="reassign_warper_id" class="reassign-warper-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="">Select Warper</option>
-                    </select>
-                    <div class="text-sm text-gray-500">
-                        Deadline:
+                <div>
+                    <h4 class="text-md font-semibold mb-2">Available Materials</h4>
+                    <div id="availableMaterials" class="max-h-64 overflow-y-auto p-2 border rounded-md">
+                        <!-- Materials will be loaded here -->
                     </div>
-                    <input type="datetime-local" name="reassign_warper_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-
-                <!-- Weaver Section for Reassign -->
-                <div id="reassignWeaverSection" class="space-y-2 hidden">
-                    <label class="block text-sm font-medium text-gray-700">Weaver</label>
-                    <select name="reassign_weaver_id" class="reassign-weaver-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="">Select Weaver</option>
-                    </select>
-                    <div class="text-sm text-gray-500">
-                        Deadline:
-                    </div>
-                    <input type="datetime-local" name="reassign_weaver_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
             </div>
 
-            <div class="flex justify-end space-x-2">
+            <div class="flex justify-end space-x-2 mt-4">
                 <button type="button" id="cancelCreateProduct" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Create Product</button>
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Create a Task</button>
             </div>
         </form>
     </div>
@@ -1412,7 +1478,7 @@ function getStatusClass(status) {
                         <span id="warperActive">0</span> Available
                     </div>
                     <div class="text-red-600">
-                        <span id="warperUnavailable">0</span> Unavailable
+                        <span id="warperInactive">0</span> Unavailable
                     </div>
                 </div>
             </div>
@@ -1426,7 +1492,7 @@ function getStatusClass(status) {
                         <span id="weaverActive">0</span> Available
                     </div>
                     <div class="text-red-600">
-                        <span id="weaverUnavailable">0</span> Unavailable
+                        <span id="weaverInactive">0</span> Unavailable
                     </div>
                 </div>
             </div>
@@ -1476,7 +1542,7 @@ function getStatusClass(status) {
                     <th class="py-3 px-4 text-left min-w-[80px]">Wt(g)</th>
                     <th class="py-3 px-4 text-left min-w-[150px]">Created</th>
                     <th class="py-3 px-4 text-left min-w-[120px]">Status</th>
-                    <th class="py-3 px-4 text-left min-w-[180px]">Actions</th>
+                    <th class="py-3 px-4 text-left min-w-[100px]">Actions</th>
                 </tr>
             </thead>
             <tbody class="text-gray-800 text-sm">
@@ -1516,7 +1582,7 @@ function getStatusClass(status) {
 </div>
 
 <!-- Task Assignment Modal -->
-<div id="taskAssignmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+<div id="taskAssignmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3">
             <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Assign Tasks</h3>
