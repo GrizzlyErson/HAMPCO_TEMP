@@ -72,12 +72,40 @@ while ($row = mysqli_fetch_assoc($production_result)) {
 </div>
 
 <script>
+// New function to close all dropdowns
+function closeAllDropdowns() {
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        if (!menu.classList.contains('hidden')) {
+            menu.classList.add('hidden');
+        }
+    });
+}
+
+// Modified toggleDropdown function
 function toggleDropdown(element) {
     const dropdownMenu = element.nextElementSibling;
+    
+    // Close all other dropdowns first
+    closeAllDropdowns();
+
     if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
         dropdownMenu.classList.toggle('hidden');
     }
 }
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function (event) {
+    let isClickInsideDropdown = false;
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        if (menu.parentElement.contains(event.target)) {
+            isClickInsideDropdown = true;
+        }
+    });
+
+    if (!isClickInsideDropdown) {
+        closeAllDropdowns();
+    }
+});
 
 function updateSummaryPanels() {
     fetch('backend/end-points/list_member.php')
