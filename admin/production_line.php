@@ -72,6 +72,13 @@ while ($row = mysqli_fetch_assoc($production_result)) {
 </div>
 
 <script>
+function toggleDropdown(element) {
+    const dropdownMenu = element.nextElementSibling;
+    if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
+        dropdownMenu.classList.toggle('hidden');
+    }
+}
+
 function updateSummaryPanels() {
     fetch('backend/end-points/list_member.php')
         .then(function(response) { return response.text(); })
@@ -1111,17 +1118,20 @@ function getStatusClass(status) {
                                 </button>
                             </td>
                             <td class="px-4 py-2 text-center"><?php echo $item['date_created']; ?></td>
-                            <td class="px-4 py-2 text-center">
-                                <div class="flex flex-col items-center gap-2">
-                                    <button onclick="assignTask('<?php echo $item['raw_id']; ?>', '<?php echo htmlspecialchars($item['product_name'], ENT_QUOTES); ?>', <?php echo $item['quantity']; ?>)"
-                                        class="<?php echo $item['has_assignments'] ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-500 hover:bg-indigo-600'; ?> text-white px-4 py-2 rounded"
-                                        <?php echo $item['has_assignments'] ? 'disabled' : ''; ?>>
-                                        Assign Tasks
-                                    </button>
-                                    <button onclick="editProduct('<?php echo $item['raw_id']; ?>')"
-                                        class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded">Edit</button>
-                                    <button onclick="deleteProduct('<?php echo $item['raw_id']; ?>')"
-                                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Delete</button>
+                            <td class="px-4 py-2 text-center relative">
+                                <button type="button" class="inline-flex items-center p-2 text-sm font-medium text-gray-500 bg-white rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="options-menu-<?php echo $item['raw_id']; ?>" aria-haspopup="true" aria-expanded="true" onclick="toggleDropdown(this)">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+                                </button>
+                                <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none hidden dropdown-menu" role="menu" aria-orientation="vertical" aria-labelledby="options-menu-<?php echo $item['raw_id']; ?>">
+                                    <div class="py-1">
+                                        <a href="#" onclick="assignTask('<?php echo $item['raw_id']; ?>', '<?php echo htmlspecialchars($item['product_name'], ENT_QUOTES); ?>', <?php echo $item['quantity']; ?>); return false;" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 <?php echo $item['has_assignments'] ? 'opacity-50 cursor-not-allowed' : ''; ?>" <?php echo $item['has_assignments'] ? 'disabled' : ''; ?> role="menuitem">Assign Tasks</a>
+                                    </div>
+                                    <div class="py-1">
+                                        <a href="#" onclick="editProduct('<?php echo $item['raw_id']; ?>'); return false;" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Edit</a>
+                                    </div>
+                                    <div class="py-1">
+                                        <a href="#" onclick="deleteProduct('<?php echo $item['raw_id']; ?>'); return false;" class="block px-4 py-2 text-sm text-red-700 hover:bg-red-100" role="menuitem">Delete</a>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
