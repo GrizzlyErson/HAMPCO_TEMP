@@ -57,6 +57,11 @@
         </a>
       </li>
       <li>
+        <a href="customer_overview.php">
+          <i class="fas fa-solid fa-user"></i>
+          <span>Customer Overview</span>
+        </a>
+      </li>
       <li>
         <a href="orders.php">
           <i class="fas fa-solid fa-shopping-cart"></i>

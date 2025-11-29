@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 31, 2025 at 02:25 PM
+-- Generation Time: Nov 29, 2025 at 09:31 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -45,6 +45,31 @@ INSERT INTO `cart` (`cart_id`, `cart_user_id`, `cart_prod_id`, `cart_Qty`) VALUE
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `customer_messages`
+--
+
+CREATE TABLE `customer_messages` (
+  `message_id` int(11) NOT NULL,
+  `customer_id` int(11) NOT NULL,
+  `subject` varchar(255) DEFAULT NULL,
+  `message` text NOT NULL,
+  `sender_type` varchar(20) NOT NULL DEFAULT 'customer',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_read` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `customer_messages`
+--
+
+INSERT INTO `customer_messages` (`message_id`, `customer_id`, `subject`, `message`, `sender_type`, `created_at`, `is_read`) VALUES
+(1, 7, 'DAMIT KO MADUMi', 'baho amoy putok', 'customer', '2025-11-27 15:29:16', 1),
+(2, 7, NULL, 'OKAY', 'admin', '2025-11-27 15:32:10', 0),
+(3, 7, 'hello', 'hello', 'customer', '2025-11-27 15:32:33', 0);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `finished_products`
 --
 
@@ -64,28 +89,8 @@ CREATE TABLE `finished_products` (
 INSERT INTO `finished_products` (`id`, `product_name`, `length_m`, `width_m`, `quantity`, `updated_at`) VALUES
 (1, 'Knotted Liniwan', 0.000, 0.000, 1, '2025-07-18 08:40:19'),
 (2, 'Piña Seda', 1.000, 30.000, 7, '2025-07-27 14:07:15'),
+(3, 'Piña Seda', 1.000, 30.000, 1, '2025-07-18 09:18:59'),
 (4, 'Pure Piña Cloth', 1.000, 30.000, 2, '2025-07-18 10:10:07');
-
--- --------------------------------------------------------
-
---
--- Stand-in structure for view `member_balance_summary`
--- (See below for the actual view)
---
-CREATE TABLE `member_balance_summary` (
-`id` int(11)
-,`member_id` int(11)
-,`product_name` varchar(255)
-,`weight_g` decimal(10,3)
-,`measurement` varchar(29)
-,`quantity` int(11)
-,`unit_rate` decimal(10,2)
-,`total` decimal(10,2)
-,`payment_status` enum('Pending','Paid','Adjusted')
-,`date_paid` datetime
-,`date_created` timestamp
-,`member_role` varchar(20)
-);
 
 -- --------------------------------------------------------
 
@@ -98,8 +103,8 @@ CREATE TABLE `member_balance_view` (
 ,`member_id` int(11)
 ,`product_name` varchar(255)
 ,`weight_g` decimal(10,3)
-,`measurements` varchar(30)
-,`quantity` varchar(11)
+,`measurements` varchar(29)
+,`quantity` int(11)
 ,`unit_rate` decimal(10,2)
 ,`total_amount` decimal(10,2)
 ,`payment_status` enum('Pending','Paid','Adjusted')
@@ -162,10 +167,15 @@ INSERT INTO `member_self_tasks` (`id`, `production_id`, `member_id`, `product_na
 (47, 'PL0016', 1, 'Knotted Bastos', 1.00, 'completed', 'pending', NULL, '2025-07-31 02:58:15', '2025-07-31 02:58:28'),
 (48, 'PL0017', 1, 'Knotted Bastos', 4.00, 'completed', 'pending', NULL, '2025-07-31 03:02:27', '2025-07-31 03:02:37'),
 (49, 'PL0018', 2, 'Warped Silk', 12.00, 'completed', 'pending', NULL, '2025-07-31 03:27:52', '2025-07-31 03:28:12'),
-(50, 'PL0019', 1, 'Knotted Liniwan', 12.00, 'completed', 'pending', NULL, '2025-07-31 11:14:43', '2025-07-31 11:15:19'),
-(51, 'PL0020', 2, 'Warped Silk', 12.00, 'completed', 'pending', NULL, '2025-07-31 11:20:46', '2025-07-31 11:20:55'),
-(52, 'PL0021', 2, 'Warped Silk', 12.00, 'completed', 'pending', NULL, '2025-07-31 11:25:13', '2025-07-31 11:25:29'),
-(53, 'PL0022', 1, 'Knotted Bastos', 4.00, 'completed', 'pending', NULL, '2025-07-31 12:23:52', '2025-07-31 12:24:07');
+(50, 'PL0019', 1, 'Knotted Bastos', 15.00, 'completed', 'pending', NULL, '2025-07-31 12:39:41', '2025-07-31 12:40:02'),
+(51, 'PL0020', 1, 'Knotted Liniwan', 15.00, 'completed', 'pending', NULL, '2025-07-31 13:37:00', '2025-07-31 13:37:24'),
+(52, 'PL0021', 1, 'Knotted Bastos', 15.00, 'completed', 'pending', NULL, '2025-07-31 14:30:36', '2025-07-31 14:31:34'),
+(53, 'PL0022', 2, 'Warped Silk', 20.00, 'completed', 'pending', NULL, '2025-07-31 14:33:29', '2025-07-31 14:33:55'),
+(54, 'PL0023', 1, 'Knotted Bastos', 10.00, 'completed', 'pending', NULL, '2025-07-31 21:28:48', '2025-07-31 21:29:28'),
+(70, 'PL0029', 5, 'Knotted Bastos', 123.00, 'submitted', 'pending', NULL, '2025-11-27 19:29:32', '2025-11-29 19:25:54'),
+(71, 'PL0030', 5, 'Knotted Liniwan', 321.00, 'submitted', 'pending', NULL, '2025-11-27 19:40:11', '2025-11-27 19:50:40'),
+(72, 'PL0031', 5, 'Knotted Liniwan', 123.00, 'submitted', 'pending', NULL, '2025-11-27 21:36:06', '2025-11-27 21:40:14'),
+(73, 'PL0032', 5, 'Knotted Liniwan', 12.00, 'pending', 'pending', NULL, '2025-11-27 21:40:31', NULL);
 
 --
 -- Triggers `member_self_tasks`
@@ -215,14 +225,15 @@ CREATE TRIGGER `after_self_task_completion` AFTER UPDATE ON `member_self_tasks` 
             1,
             CASE 
                 WHEN NEW.product_name = 'Knotted Liniwan' THEN 50.00
-                WHEN NEW.product_name = 'Knotted Bastos' THEN 45.00
-                WHEN NEW.product_name = 'Warped Silk' THEN 60.00
+                WHEN NEW.product_name = 'Knotted Bastos' THEN 50.00
+                WHEN NEW.product_name = 'Warped Silk' THEN 19.00
                 ELSE 0.00
             END,
-            NEW.weight_g * CASE 
+            NEW.weight_g * 
+            CASE 
                 WHEN NEW.product_name = 'Knotted Liniwan' THEN 50.00
-                WHEN NEW.product_name = 'Knotted Bastos' THEN 45.00
-                WHEN NEW.product_name = 'Warped Silk' THEN 60.00
+                WHEN NEW.product_name = 'Knotted Bastos' THEN 50.00
+                WHEN NEW.product_name = 'Warped Silk' THEN 19.00
                 ELSE 0.00
             END,
             1,
@@ -295,6 +306,75 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `orders`
+--
+
+CREATE TABLE `orders` (
+  `order_id` int(11) NOT NULL,
+  `order_user_id` int(11) NOT NULL,
+  `full_name` varchar(255) NOT NULL,
+  `contact_number` varchar(20) NOT NULL,
+  `delivery_address` text NOT NULL,
+  `payment_method` varchar(50) NOT NULL DEFAULT 'COD',
+  `payment_proof` varchar(255) DEFAULT NULL,
+  `order_notes` longtext DEFAULT NULL,
+  `total_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `order_status` varchar(50) NOT NULL DEFAULT 'Pending',
+  `date_created` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`order_id`, `order_user_id`, `full_name`, `contact_number`, `delivery_address`, `payment_method`, `payment_proof`, `order_notes`, `total_amount`, `order_status`, `date_created`, `updated_at`) VALUES
+(4, 7, 'john b', '09475633165', '123123123', 'COD', NULL, NULL, 123.00, 'Cancelled', '2025-11-24 07:53:06', '2025-11-25 02:41:02'),
+(8, 7, 'john b', '09475633165', '123123123', 'GCash', 'checkout_proof_7_1763978020.png', NULL, 1123122.00, 'Delivered', '2025-11-24 09:53:40', '2025-11-26 05:20:22'),
+(13, 7, 'Sample', '09475316387', '123', 'COD', NULL, NULL, 246.00, 'Accepted', '2025-11-25 05:26:27', '2025-11-26 14:38:18'),
+(19, 7, 'Erson Hayes', '09475633165', '123123', 'COD', NULL, NULL, 599.00, 'Pending', '2025-11-29 19:43:54', '2025-11-29 19:43:54'),
+(21, 7, 'Erson Hayes', '09475633165', '123123', 'COD', NULL, NULL, 599.00, 'Pending', '2025-11-29 19:47:18', '2025-11-29 19:47:18'),
+(25, 7, 'Erson Hayes', '09475633165', '123', 'COD', NULL, NULL, 1721.00, 'Pending', '2025-11-29 19:53:05', '2025-11-29 19:53:05'),
+(26, 7, 'Erson Hayes', '09475633165', '123', 'COD', NULL, NULL, 3594.00, 'Delivered', '2025-11-29 19:55:59', '2025-11-29 19:56:11'),
+(27, 7, 'Erson Hayes', '09475633165', '123123', 'COD', NULL, NULL, 1797.00, 'Pending', '2025-11-29 19:59:33', '2025-11-29 19:59:33');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `order_items`
+--
+
+CREATE TABLE `order_items` (
+  `order_item_id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `prod_id` int(11) NOT NULL,
+  `product_name` varchar(255) DEFAULT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `unit_price` decimal(10,2) NOT NULL,
+  `subtotal` decimal(10,2) NOT NULL,
+  `date_created` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `order_items`
+--
+
+INSERT INTO `order_items` (`order_item_id`, `order_id`, `prod_id`, `product_name`, `quantity`, `unit_price`, `subtotal`, `date_created`) VALUES
+(4, 4, 9, NULL, 1, 123.00, 123.00, '2025-11-24 07:53:06'),
+(9, 8, 12, NULL, 1, 123123.00, 123123.00, '2025-11-24 09:53:40'),
+(10, 8, 14, NULL, 1, 999999.00, 999999.00, '2025-11-24 09:53:40'),
+(15, 13, 16, NULL, 2, 123.00, 246.00, '2025-11-25 05:26:27'),
+(21, 19, 17, NULL, 1, 599.00, 599.00, '2025-11-29 19:43:54'),
+(23, 21, 17, NULL, 1, 599.00, 599.00, '2025-11-29 19:47:18'),
+(27, 25, 18, NULL, 1, 999.00, 999.00, '2025-11-29 19:53:05'),
+(28, 25, 19, NULL, 1, 123.00, 123.00, '2025-11-29 19:53:05'),
+(29, 25, 17, NULL, 1, 599.00, 599.00, '2025-11-29 19:53:05'),
+(30, 26, 17, NULL, 6, 599.00, 3594.00, '2025-11-29 19:55:59'),
+(31, 27, 17, NULL, 3, 599.00, 1797.00, '2025-11-29 19:59:33');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `payment_records`
 --
 
@@ -320,27 +400,28 @@ CREATE TABLE `payment_records` (
 --
 
 INSERT INTO `payment_records` (`id`, `member_id`, `product_id`, `production_id`, `length_m`, `width_m`, `weight_g`, `quantity`, `unit_rate`, `total_amount`, `payment_status`, `date_paid`, `date_created`, `is_self_assigned`) VALUES
-(27, 1, NULL, '81', NULL, NULL, 1.000, 1, 45.00, 45.00, 'Pending', NULL, '2025-07-31 02:55:35', 0),
-(28, 1, NULL, '81', NULL, NULL, 1.000, 1, 45.00, 45.00, 'Pending', NULL, '2025-07-31 02:55:35', 0),
-(29, 1, NULL, '82', NULL, NULL, 2.000, 1, 45.00, 90.00, 'Pending', NULL, '2025-07-31 02:57:48', 0),
-(30, 1, NULL, 'PL0016', NULL, NULL, 1.000, 1, 45.00, 45.00, 'Pending', NULL, '2025-07-31 02:58:28', 1),
-(31, 1, NULL, 'PL0017', NULL, NULL, 4.000, 1, 45.00, 180.00, 'Pending', NULL, '2025-07-31 03:02:37', 1),
-(32, 2, NULL, '83', NULL, NULL, 12.000, 1, 60.00, 720.00, 'Pending', NULL, '2025-07-31 03:27:15', 0),
-(33, 2, NULL, 'PL0018', NULL, NULL, 12.000, 1, 60.00, 720.00, 'Paid', '2025-07-31 11:29:20', '2025-07-31 03:28:12', 1),
-(34, 4, NULL, '84', NULL, NULL, 0.000, 1, 0.00, 0.00, 'Pending', NULL, '2025-07-31 10:12:38', 0),
-(35, 4, NULL, '85', NULL, NULL, 0.000, 1, 0.00, 0.00, 'Pending', NULL, '2025-07-31 10:13:23', 0),
-(36, 4, NULL, '85', NULL, NULL, 0.000, 1, 0.00, 0.00, 'Pending', NULL, '2025-07-31 10:13:23', 0),
-(37, 4, NULL, '86', NULL, NULL, 0.000, 1, 0.00, 0.00, 'Pending', NULL, '2025-07-31 10:15:31', 0),
-(38, 4, NULL, '87', NULL, NULL, 0.000, 1, 0.00, 0.00, 'Pending', NULL, '2025-07-31 11:09:47', 0),
-(39, 4, NULL, '88', NULL, NULL, 0.000, 1, 0.00, 0.00, 'Paid', '2025-07-31 20:21:39', '2025-07-31 11:11:02', 0),
-(40, 4, NULL, '88', NULL, NULL, 0.000, 1, 0.00, 0.00, 'Pending', NULL, '2025-07-31 11:11:02', 0),
-(41, 1, NULL, '89', NULL, NULL, 12.000, 1, 50.00, 600.00, 'Pending', NULL, '2025-07-31 11:12:47', 0),
-(42, 1, NULL, '90', NULL, NULL, 12.000, 1, 45.00, 540.00, 'Pending', NULL, '2025-07-31 11:13:22', 0),
-(43, 1, NULL, 'PL0019', NULL, NULL, 12.000, 1, 50.00, 600.00, 'Pending', NULL, '2025-07-31 11:15:19', 1),
-(44, 2, NULL, 'PL0020', NULL, NULL, 12.000, 1, 60.00, 720.00, 'Pending', NULL, '2025-07-31 11:20:55', 1),
-(45, 2, NULL, 'PL0021', NULL, NULL, 12.000, 1, 60.00, 720.00, 'Paid', '2025-07-31 20:21:25', '2025-07-31 11:25:29', 1),
-(46, 4, NULL, '92', NULL, NULL, 0.000, 1, 0.00, 0.00, 'Paid', '2025-07-31 20:23:09', '2025-07-31 12:22:52', 0),
-(47, 1, NULL, 'PL0022', NULL, NULL, 4.000, 1, 45.00, 180.00, 'Pending', NULL, '2025-07-31 12:24:07', 1);
+(27, 1, NULL, '81', NULL, NULL, 1.000, 1, 50.00, 50.00, 'Pending', NULL, '2025-07-31 02:55:35', 0),
+(28, 1, NULL, '81', NULL, NULL, 1.000, 1, 50.00, 50.00, 'Paid', '2025-11-26 16:22:42', '2025-07-31 02:55:35', 0),
+(29, 1, NULL, '82', NULL, NULL, 2.000, 1, 50.00, 100.00, 'Pending', NULL, '2025-07-31 02:57:48', 0),
+(30, 1, NULL, 'PL0016', NULL, NULL, 1.000, 1, 50.00, 50.00, 'Pending', NULL, '2025-07-31 02:58:28', 1),
+(31, 1, NULL, 'PL0017', NULL, NULL, 4.000, 1, 50.00, 200.00, 'Pending', NULL, '2025-07-31 03:02:37', 1),
+(32, 2, NULL, '83', NULL, NULL, 12.000, 1, 19.00, 228.00, 'Pending', NULL, '2025-07-31 03:27:15', 0),
+(33, 2, NULL, 'PL0018', NULL, NULL, 12.000, 1, 19.00, 228.00, 'Paid', '2025-07-31 11:29:20', '2025-07-31 03:28:12', 1),
+(34, 4, NULL, '84', NULL, NULL, 0.000, 1, 550.00, 550.00, 'Paid', '2025-07-31 16:09:41', '2025-07-31 08:09:23', 0),
+(35, 4, NULL, '85', 1.000, 30.000, 0.000, 1, 550.00, 550.00, 'Paid', '2025-07-31 20:40:38', '2025-07-31 12:38:32', 0),
+(36, 1, NULL, '86', 0.000, 0.000, 15.000, 1, 50.00, 750.00, 'Pending', NULL, '2025-07-31 13:29:03', 0),
+(37, 1, NULL, 'PL0020', NULL, NULL, 15.000, 1, 50.00, 750.00, 'Paid', '2025-07-31 21:45:14', '2025-07-31 13:37:24', 1),
+(38, 1, NULL, '87', 0.000, 0.000, 15.000, 1, 50.00, 750.00, 'Pending', NULL, '2025-07-31 14:28:54', 0),
+(39, 1, NULL, 'PL0021', NULL, NULL, 15.000, 1, 50.00, 750.00, 'Paid', '2025-07-31 22:32:25', '2025-07-31 14:31:34', 1),
+(40, 2, NULL, 'PL0022', NULL, NULL, 20.000, 1, 19.00, 380.00, 'Pending', NULL, '2025-07-31 14:33:55', 1),
+(41, 2, NULL, '91', 0.000, 0.000, 16.000, 1, 19.00, 304.00, 'Pending', NULL, '2025-07-31 14:57:21', 0),
+(42, 2, NULL, '91', 0.000, 0.000, 16.000, 1, 19.00, 304.00, 'Pending', NULL, '2025-07-31 14:57:21', 0),
+(43, 2, NULL, '90', 0.000, 0.000, 16.000, 1, 19.00, 304.00, 'Pending', NULL, '2025-07-31 21:27:51', 0),
+(44, 1, NULL, 'PL0023', NULL, NULL, 10.000, 1, 50.00, 500.00, 'Pending', NULL, '2025-07-31 21:29:28', 1),
+(45, 5, NULL, '93', 0.000, 0.000, 12.000, 1, 50.00, 600.00, 'Paid', '2025-08-01 12:01:23', '2025-08-01 03:51:09', 0),
+(46, 2, NULL, '88', 0.000, 0.000, 11.000, 1, 19.00, 209.00, 'Pending', NULL, '2025-11-24 12:44:56', 0),
+(47, 5, NULL, '100', 0.000, 0.000, 12.000, 1, 50.00, 600.00, 'Paid', '2025-11-26 14:32:00', '2025-11-25 03:59:45', 0),
+(48, 5, NULL, 'PL0025', NULL, NULL, 1234.000, 1, 50.00, 61700.00, 'Paid', '2025-11-30 04:00:12', '2025-11-24 15:08:21', 1);
 
 -- --------------------------------------------------------
 
@@ -388,7 +469,7 @@ CREATE TABLE `payment_records_view` (
 ,`member_name` varchar(60)
 ,`product_name` varchar(255)
 ,`measurements` varchar(29)
-,`weight_g` decimal(10,3)
+,`weight_g` decimal(11,3)
 ,`quantity` int(11)
 ,`unit_rate` decimal(10,2)
 ,`total_amount` decimal(10,2)
@@ -416,11 +497,10 @@ CREATE TABLE `processed_materials` (
 --
 
 INSERT INTO `processed_materials` (`id`, `processed_materials_name`, `weight`, `status`, `updated_at`) VALUES
-(1, 'Knotted Bastos', 948.000, 'Available', '2025-07-31 12:24:11'),
-(2, 'Knotted Liniwan', 1134.000, 'Available', '2025-07-31 12:22:43'),
-(3, 'Warped Silk', 1036.000, 'Available', '2025-07-31 11:25:33'),
-(4, 'Piña Seda', 0.000, 'Available', '2025-07-31 11:09:47'),
-(5, 'Pure Piña Cloth', 0.000, 'Available', '2025-07-31 12:22:52');
+(1, 'Knotted Bastos', 987.000, 'Available', '2025-07-31 21:29:41'),
+(2, 'Knotted Liniwan', 2464.000, 'Available', '2025-11-25 05:00:36'),
+(3, 'Warped Silk', 1075.000, 'Available', '2025-11-24 12:44:56'),
+(4, 'Piña Seda', 0.000, 'Available', '2025-07-31 12:38:32');
 
 -- --------------------------------------------------------
 
@@ -444,8 +524,19 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`prod_id`, `prod_category_id`, `prod_name`, `prod_image`, `prod_stocks`, `prod_price`, `prod_description`, `prod_status`) VALUES
-(7, 1, 'Plain and design', 'product_683851b61f1762.82027357.jpg', 5, 4680.00, 'Piña Seda Dyed 36\"W', 1),
-(8, 2, 'Barong tagalog', 'product_6838526ad1dff7.75750727.jpg', 12, 999.00, '', 1);
+(7, 1, 'Plain and design', '0', 17, 4680.00, 'Piña Seda Dyed 36\"W', 0),
+(8, 2, 'Barong tagalog', '0', 135, 999.00, 'size 3', 0),
+(9, 3, 'Banana Outfit', '0', 122, 123.00, 'Para sa Bading na sinaing sa suka', 0),
+(10, 1, 'Banana Outfit', 'prod_69230642e3a5a.jpg', 0, 999999.00, 'Para sa Bading na sinaing sa suka', 0),
+(11, 2, 'Banana Outfit2', 'prod_69241626474fe.png', 0, 123.00, '123', 0),
+(12, 3, 'Banana Outfit123', 'prod_6924171b330c1.jpg', 21, 123123.00, '123', 0),
+(13, 1, 'TEST', '0', 2, 123.00, '123', 0),
+(14, 3, 'TEST', 'prod_69241972ebdfa.png', 7, 999999.00, 'TESTING', 0),
+(15, 2, 'BARONG GEISLER', 'prod_692455a2a2bea.jpg', 0, 123.00, 'SABAW', 0),
+(16, 3, 'TEST', 'prod_692458c655dfd.jpg', 22, 123.00, 'TESTING', 0),
+(17, 3, 'Bastos', 'prod_69257970d9854.png', 0, 599.00, 'Bastos', 1),
+(18, 1, 'Banana Outfit', 'prod_692b4ed1382f0.jpg', 11, 999.00, '123', 1),
+(19, 2, 'TEST', 'prod_692b4ee95a1eb.jpg', 122, 123.00, '123', 1);
 
 -- --------------------------------------------------------
 
@@ -520,14 +611,24 @@ INSERT INTO `production_line` (`prod_line_id`, `product_name`, `length_m`, `widt
 (81, 'Knotted Bastos', 0.000, 0.000, 1.000, 1, '2025-07-31 02:55:16', 'in_progress'),
 (82, 'Knotted Bastos', 0.000, 0.000, 2.000, 1, '2025-07-31 02:57:31', ''),
 (83, 'Warped Silk', 0.000, 0.000, 12.000, 1, '2025-07-31 03:26:58', ''),
-(84, 'Piña Seda', 1.000, 30.000, 0.000, 1, '2025-07-31 10:12:16', ''),
-(85, 'Pure Piña Cloth', 1.000, 30.000, 0.000, 1, '2025-07-31 10:13:00', 'in_progress'),
-(86, 'Pure Piña Cloth', 1.000, 30.000, 0.000, 1, '2025-07-31 10:15:11', ''),
-(87, 'Piña Seda', 1.000, 30.000, 0.000, 1, '2025-07-31 11:07:34', ''),
-(88, 'Pure Piña Cloth', 1.000, 30.000, 0.000, 1, '2025-07-31 11:10:29', 'in_progress'),
-(89, 'Knotted Liniwan', 0.000, 0.000, 12.000, 1, '2025-07-31 11:11:32', ''),
-(90, 'Knotted Bastos', 0.000, 0.000, 12.000, 1, '2025-07-31 11:12:58', ''),
-(92, 'Pure Piña Cloth', 1.000, 30.000, 0.000, 1, '2025-07-31 12:22:33', '');
+(84, 'Piña Seda', 1.000, 30.000, 0.000, 1, '2025-07-31 08:08:19', ''),
+(85, 'Piña Seda', 1.000, 30.000, 0.000, 1, '2025-07-31 12:37:53', ''),
+(86, 'Knotted Bastos', 0.000, 0.000, 15.000, 1, '2025-07-31 13:28:34', ''),
+(87, 'Knotted Liniwan', 0.000, 0.000, 15.000, 1, '2025-07-31 14:27:41', ''),
+(88, 'Warped Silk', 0.000, 0.000, 11.000, 1, '2025-07-31 14:49:03', ''),
+(89, 'Warped Silk', 0.000, 0.000, 14.000, 1, '2025-07-31 14:50:37', 'in_progress'),
+(90, 'Warped Silk', 0.000, 0.000, 16.000, 1, '2025-07-31 14:52:52', ''),
+(91, 'Warped Silk', 0.000, 0.000, 16.000, 1, '2025-07-31 14:56:37', 'in_progress'),
+(93, 'Knotted Liniwan', 0.000, 0.000, 12.000, 1, '2025-08-01 03:49:04', ''),
+(94, 'Piña Seda', 1.000, 30.000, 0.000, 1, '2025-08-01 04:10:45', 'in_progress'),
+(95, 'Pure Piña Cloth', 1.000, 30.000, 0.000, 1, '2025-08-01 04:11:22', 'in_progress'),
+(99, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 123, '2025-11-24 13:01:06', 'in_progress'),
+(100, 'Knotted Liniwan', 0.000, 0.000, 12.000, 1, '2025-11-24 13:38:13', ''),
+(101, 'Pure Piña Cloth', 30.000, 30.000, 0.000, 3, '2025-11-25 04:15:15', 'pending'),
+(102, 'Warped Silk', 0.000, 0.000, 123.000, 1, '2025-11-26 05:21:21', 'in_progress'),
+(103, 'Piña Seda', 123.000, 123.000, 0.000, 123, '2025-11-26 05:21:29', 'in_progress'),
+(106, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-11-27 21:39:33', 'pending'),
+(107, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-11-27 21:39:33', 'pending');
 
 -- --------------------------------------------------------
 
@@ -549,6 +650,29 @@ INSERT INTO `product_category` (`category_id`, `category_name`, `category_descri
 (1, 'Linawan', NULL),
 (2, 'Pina fiber', NULL),
 (3, 'Bastos', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `product_materials`
+--
+
+CREATE TABLE `product_materials` (
+  `id` int(11) NOT NULL,
+  `product_name` varchar(255) NOT NULL,
+  `material_type` varchar(50) NOT NULL COMMENT 'raw, finished, etc',
+  `material_name` varchar(255) NOT NULL,
+  `material_qty` decimal(10,3) NOT NULL DEFAULT 1.000 COMMENT 'quantity of material per unit product',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `product_materials`
+--
+
+INSERT INTO `product_materials` (`id`, `product_name`, `material_type`, `material_name`, `material_qty`, `created_at`) VALUES
+(1, 'Plain and design', 'raw', 'Piña Cloth', 1.500, '2025-11-23 16:27:30'),
+(2, 'Barong tagalog', 'raw', 'Piña Cloth', 2.000, '2025-11-23 16:27:30');
 
 -- --------------------------------------------------------
 
@@ -598,7 +722,18 @@ CREATE TABLE `product_stock` (
 
 INSERT INTO `product_stock` (`pstock_id`, `pstock_user_id`, `pstock_prod_id`, `pstock_stock_type`, `pstock_stock_outQty`, `pstock_stock_changes`, `pstock_stock_date`) VALUES
 (3, 1, '7', 'Stock In', 100, '0 -> 100', '2025-05-29 12:57:07'),
-(4, 1, '8', 'Stock In', 100, '0 -> 100', '2025-05-29 12:57:17');
+(4, 1, '8', 'Stock In', 100, '0 -> 100', '2025-05-29 12:57:17'),
+(14, 7, '9', 'Stock Out', 1, '123 -> 122', '2025-11-24 07:53:06'),
+(16, 7, '12', 'Stock Out', 1, '22 -> 21', '2025-11-24 09:53:40'),
+(17, 7, '14', 'Stock Out', 1, '8 -> 7', '2025-11-24 09:53:40'),
+(21, 7, '16', 'Stock Out', 2, '24 -> 22', '2025-11-25 05:26:27'),
+(27, 7, '17', 'Stock Out', 1, '12 -> 11', '2025-11-29 19:43:54'),
+(29, 7, '17', 'Stock Out', 1, '11 -> 10', '2025-11-29 19:47:18'),
+(32, 7, '18', 'Stock Out', 1, '12 -> 11', '2025-11-29 19:53:05'),
+(33, 7, '19', 'Stock Out', 1, '123 -> 122', '2025-11-29 19:53:05'),
+(34, 7, '17', 'Stock Out', 1, '10 -> 9', '2025-11-29 19:53:05'),
+(35, 7, '17', 'Stock Out', 6, '9 -> 3', '2025-11-29 19:55:59'),
+(36, 7, '17', 'Stock Out', 3, '3 -> 0', '2025-11-29 19:59:33');
 
 -- --------------------------------------------------------
 
@@ -613,17 +748,20 @@ CREATE TABLE `raw_materials` (
   `rm_quantity` decimal(10,3) NOT NULL,
   `rm_unit` varchar(20) NOT NULL,
   `rm_status` varchar(60) NOT NULL,
-  `supplier_name` varchar(255) DEFAULT NULL
+  `supplier_name` varchar(255) DEFAULT NULL,
+  `unit_cost` decimal(10,2) DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `raw_materials`
 --
 
-INSERT INTO `raw_materials` (`id`, `raw_materials_name`, `category`, `rm_quantity`, `rm_unit`, `rm_status`, `supplier_name`) VALUES
-(14, 'Piña Loose', 'Bastos', 98590.900, 'gram', 'Available', 'Ryan'),
-(15, 'Piña Loose', 'Liniwan/Washout', 98038.240, 'gram', 'Available', 'Ryan'),
-(16, 'Silk', '', 99812.800, 'gram', 'Available', 'Ryan');
+INSERT INTO `raw_materials` (`id`, `raw_materials_name`, `category`, `rm_quantity`, `rm_unit`, `rm_status`, `supplier_name`, `unit_cost`) VALUES
+(14, 'Piña Loose', 'Bastos', 98393.260, 'gram', 'Available', 'Ryan', 0.00),
+(15, 'Piña Loose', 'Liniwan/Washout', 95954.480, 'gram', 'Available', 'Ryan', 0.00),
+(16, 'Silk', '', 99749.200, 'gram', 'Available', 'Ryan', 0.00),
+(17, 'Silk', '', 123.000, 'gram', 'Available', 'mang berting', 0.00),
+(19, 'Silk', '', 123.000, 'gram', 'Available', '123123', 123.00);
 
 -- --------------------------------------------------------
 
@@ -758,20 +896,28 @@ INSERT INTO `stock_history` (`stock_id`, `stock_user_type`, `stock_raw_id`, `sto
 (138, 'member', 14, 1, 'Stock Out', 4.88, '98615.3 -> 98610.420', '2025-07-31 03:02:34', 0),
 (139, 'member', 16, 2, 'Stock Out', 14.40, '99870.400 -> 99856.000', '2025-07-31 03:27:08', 0),
 (140, 'member', 16, 2, 'Stock Out', 14.40, '99856 -> 99841.600', '2025-07-31 03:28:04', 0),
-(141, 'member', 1, 4, 'Stock Out', 15.00, '962.000 -> 947.000', '2025-07-31 10:12:29', 1),
-(142, 'member', 3, 4, 'Stock Out', 7.00, '1026.000 -> 1019.000', '2025-07-31 10:12:29', 1),
-(143, 'member', 2, 4, 'Stock Out', 22.00, '1198.000 -> 1176.000', '2025-07-31 10:13:15', 1),
-(144, 'member', 2, 4, 'Stock Out', 22.00, '1176.000 -> 1154.000', '2025-07-31 10:15:24', 1),
-(145, 'member', 1, 4, 'Stock Out', 15.00, '947.000 -> 932.000', '2025-07-31 11:09:39', 1),
-(146, 'member', 3, 4, 'Stock Out', 7.00, '1019.000 -> 1012.000', '2025-07-31 11:09:39', 1),
-(147, 'member', 2, 4, 'Stock Out', 22.00, '1154.000 -> 1132.000', '2025-07-31 11:10:56', 1),
-(148, 'member', 15, 1, 'Stock Out', 14.64, '98067.520 -> 98052.880', '2025-07-31 11:12:12', 0),
-(149, 'member', 14, 1, 'Stock Out', 14.64, '98610.420 -> 98595.780', '2025-07-31 11:13:09', 0),
-(150, 'member', 15, 1, 'Stock Out', 14.64, '98052.88 -> 98038.240', '2025-07-31 11:15:14', 0),
-(151, 'member', 16, 2, 'Stock Out', 14.40, '99841.59999999999 -> 99827.200', '2025-07-31 11:20:53', 0),
-(152, 'member', 16, 2, 'Stock Out', 14.40, '99827.2 -> 99812.800', '2025-07-31 11:25:24', 0),
-(153, 'member', 2, 4, 'Stock Out', 22.00, '1156.000 -> 1134.000', '2025-07-31 12:22:43', 1),
-(154, 'member', 14, 1, 'Stock Out', 4.88, '98595.78 -> 98590.900', '2025-07-31 12:24:02', 0);
+(141, 'member', 1, 4, 'Stock Out', 15.00, '962.000 -> 947.000', '2025-07-31 08:09:09', 1),
+(142, 'member', 3, 4, 'Stock Out', 7.00, '1026.000 -> 1019.000', '2025-07-31 08:09:09', 1),
+(143, 'member', 1, 4, 'Stock Out', 15.00, '947.000 -> 932.000', '2025-07-31 12:38:18', 1),
+(144, 'member', 3, 4, 'Stock Out', 7.00, '1019.000 -> 1012.000', '2025-07-31 12:38:18', 1),
+(145, 'member', 14, 1, 'Stock Out', 18.30, '98610.42 -> 98592.120', '2025-07-31 12:39:57', 0),
+(146, 'member', 14, 1, 'Stock Out', 18.30, '98592.120 -> 98573.820', '2025-07-31 13:28:50', 0),
+(147, 'member', 15, 1, 'Stock Out', 18.30, '98067.52 -> 98049.220', '2025-07-31 13:37:17', 0),
+(148, 'member', 15, 1, 'Stock Out', 18.30, '98049.220 -> 98030.920', '2025-07-31 14:28:35', 0),
+(149, 'member', 14, 1, 'Stock Out', 18.30, '98573.82 -> 98555.520', '2025-07-31 14:31:17', 0),
+(150, 'member', 16, 2, 'Stock Out', 24.00, '99841.6 -> 99817.600', '2025-07-31 14:33:45', 0),
+(151, 'member', 16, 2, 'Stock Out', 13.20, '99817.600 -> 99804.400', '2025-07-31 14:49:34', 0),
+(152, 'member', 16, 2, 'Stock Out', 16.80, '99804.400 -> 99787.600', '2025-07-31 14:50:50', 0),
+(153, 'member', 16, 2, 'Stock Out', 19.20, '99787.600 -> 99768.400', '2025-07-31 14:53:08', 0),
+(154, 'member', 16, 2, 'Stock Out', 19.20, '99768.400 -> 99749.200', '2025-07-31 14:56:55', 0),
+(155, 'member', 14, 1, 'Stock Out', 12.20, '98555.52 -> 98543.320', '2025-07-31 21:29:08', 0),
+(156, 'member', 15, 5, 'Stock Out', 14.64, '98030.920 -> 98016.280', '2025-08-01 03:49:29', 0),
+(157, 'member', 2, 4, 'Stock Out', 22.00, '1240.000 -> 1218.000', '2025-08-01 04:12:31', 1),
+(158, 'member', 15, 5, 'Stock Out', 1505.48, '98016.28 -> 96510.800', '2025-11-24 13:42:25', 0),
+(159, 'member', 15, 5, 'Stock Out', 14.64, '96510.800 -> 96496.160', '2025-11-24 14:48:18', 0),
+(160, 'member', 15, 5, 'Stock Out', 391.62, '96496.15999999999 -> 96104.540', '2025-11-27 19:40:42', 0),
+(161, 'member', 15, 5, 'Stock Out', 150.06, '96104.54 -> 95954.480', '2025-11-27 21:38:28', 0),
+(162, 'member', 14, 5, 'Stock Out', 150.06, '98543.31999999999 -> 98393.260', '2025-11-27 21:40:24', 0);
 
 -- --------------------------------------------------------
 
@@ -831,10 +977,15 @@ INSERT INTO `task_approval_requests` (`id`, `production_id`, `member_id`, `membe
 (40, 'PL0016', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 1.00, 1, '2025-07-31 02:58:15', NULL, 'approved'),
 (41, 'PL0017', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 4.00, 1, '2025-07-31 03:02:27', NULL, 'approved'),
 (42, 'PL0018', 2, 'thea 213', 'warper', 'Warped Silk', 12.00, 1, '2025-07-31 03:27:52', NULL, 'approved'),
-(43, 'PL0019', 1, 'jenny rose montille', 'knotter', 'Knotted Liniwan', 12.00, 1, '2025-07-31 11:14:43', NULL, 'approved'),
-(44, 'PL0020', 2, 'thea 213', 'warper', 'Warped Silk', 12.00, 1, '2025-07-31 11:20:46', NULL, 'approved'),
-(45, 'PL0021', 2, 'thea 213', 'warper', 'Warped Silk', 12.00, 1, '2025-07-31 11:25:13', NULL, 'approved'),
-(46, 'PL0022', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 4.00, 1, '2025-07-31 12:23:52', NULL, 'approved');
+(43, 'PL0019', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 15.00, 1, '2025-07-31 12:39:41', NULL, 'approved'),
+(44, 'PL0020', 1, 'jenny rose montille', 'knotter', 'Knotted Liniwan', 15.00, 1, '2025-07-31 13:37:00', NULL, 'approved'),
+(45, 'PL0021', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 15.00, 1, '2025-07-31 14:30:36', NULL, 'approved'),
+(46, 'PL0022', 2, 'thea 213', 'warper', 'Warped Silk', 20.00, 1, '2025-07-31 14:33:29', NULL, 'approved'),
+(47, 'PL0023', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 10.00, 1, '2025-07-31 21:28:48', NULL, 'approved'),
+(63, 'PL0029', 5, 'jenrose  mon', 'knotter', 'Knotted Bastos', 123.00, 1, '2025-11-27 19:29:32', NULL, 'approved'),
+(64, 'PL0030', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 321.00, 1, '2025-11-27 19:40:11', NULL, 'approved'),
+(65, 'PL0031', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 123.00, 1, '2025-11-27 21:36:06', NULL, 'approved'),
+(66, 'PL0032', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 12.00, 1, '2025-11-27 21:40:31', NULL, 'approved');
 
 --
 -- Triggers `task_approval_requests`
@@ -925,16 +1076,22 @@ INSERT INTO `task_assignments` (`id`, `prod_line_id`, `member_id`, `role`, `stat
 (105, 81, 1, 'knotter', 'completed', 0, '2025-08-01', '2025-07-31 02:55:21', '2025-07-31 02:55:35'),
 (106, 82, 1, 'knotter', 'completed', 0, '2025-08-01', '2025-07-31 02:57:36', '2025-07-31 02:57:48'),
 (107, 83, 2, 'warper', 'completed', 0, '2025-08-01', '2025-07-31 03:27:03', '2025-07-31 03:27:15'),
-(108, 84, 4, 'weaver', 'completed', 0, '2025-08-01', '2025-07-31 10:12:24', '2025-07-31 10:12:38'),
-(109, 85, 4, 'weaver', 'completed', 0, '2025-08-01', '2025-07-31 10:13:12', '2025-07-31 10:13:23'),
-(110, 85, 4, 'weaver', 'completed', 0, '2025-08-01', '2025-07-31 10:13:12', '2025-07-31 10:13:23'),
-(111, 86, 4, 'weaver', 'completed', 0, '2025-08-01', '2025-07-31 10:15:16', '2025-07-31 10:15:31'),
-(112, 87, 4, 'weaver', 'completed', 0, '2025-08-01', '2025-07-31 11:09:33', '2025-07-31 11:09:47'),
-(113, 88, 4, 'weaver', 'completed', 0, '2025-08-01', '2025-07-31 11:10:53', '2025-07-31 11:11:02'),
-(114, 88, 4, 'weaver', 'completed', 0, '2025-08-01', '2025-07-31 11:10:53', '2025-07-31 11:11:02'),
-(115, 89, 1, 'knotter', 'completed', 0, '2025-08-01', '2025-07-31 11:12:02', '2025-07-31 11:12:47'),
-(116, 90, 1, 'knotter', 'completed', 0, '2025-08-01', '2025-07-31 11:13:04', '2025-07-31 11:13:22'),
-(119, 92, 4, 'weaver', 'completed', 0, '2025-08-01', '2025-07-31 12:22:37', '2025-07-31 12:22:52');
+(108, 84, 4, 'weaver', 'completed', 0, '2025-07-28', '2025-07-31 08:08:27', '2025-07-31 08:09:23'),
+(109, 85, 4, 'weaver', 'completed', 0, '2025-07-29', '2025-07-31 12:38:12', '2025-07-31 12:38:32'),
+(110, 86, 1, 'knotter', 'completed', 0, '2025-07-29', '2025-07-31 13:28:40', '2025-07-31 13:29:03'),
+(112, 87, 1, 'knotter', 'completed', 0, '2025-07-29', '2025-07-31 14:27:49', '2025-07-31 14:28:54'),
+(113, 88, 2, 'warper', 'completed', 0, '2025-08-06', '2025-07-31 14:49:12', '2025-11-24 12:44:56'),
+(114, 89, 2, 'warper', 'in_progress', 0, '2025-08-05', '2025-07-31 14:50:44', '2025-07-31 14:50:50'),
+(115, 90, 2, 'warper', 'completed', 0, '2025-08-08', '2025-07-31 14:53:01', '2025-07-31 21:27:51'),
+(116, 91, 2, 'warper', 'completed', 0, '2025-08-09', '2025-07-31 14:56:47', '2025-07-31 14:57:21'),
+(117, 91, 2, 'warper', 'completed', 0, '2025-08-09', '2025-07-31 14:56:47', '2025-07-31 14:57:21'),
+(120, 93, 5, 'knotter', 'completed', 0, '2025-08-03', '2025-08-01 03:49:15', '2025-08-01 03:51:09'),
+(121, 95, 4, 'weaver', 'in_progress', 0, '2025-08-03', '2025-08-01 04:12:03', '2025-08-01 04:12:31'),
+(125, 94, 4, 'weaver', 'pending', 0, '2025-11-28', '2025-11-24 12:44:18', '2025-11-24 12:44:18'),
+(127, 99, 4, 'weaver', 'pending', 0, '2025-11-29', '2025-11-24 13:01:49', '2025-11-24 13:01:49'),
+(128, 100, 5, 'knotter', 'completed', 0, '2025-12-03', '2025-11-24 13:39:18', '2025-11-25 03:59:45'),
+(129, 103, 4, 'weaver', 'pending', 0, '2025-11-28', '2025-11-27 20:21:54', '2025-11-27 20:21:54'),
+(130, 102, 2, 'warper', 'pending', 0, '2025-12-04', '2025-11-27 21:33:44', '2025-11-27 21:33:44');
 
 --
 -- Triggers `task_assignments`
@@ -945,6 +1102,8 @@ CREATE TRIGGER `after_task_completion` AFTER UPDATE ON `task_assignments` FOR EA
         INSERT INTO payment_records (
             member_id,
             production_id,
+            length_m,
+            width_m,
             weight_g,
             quantity,
             unit_rate,
@@ -956,19 +1115,31 @@ CREATE TRIGGER `after_task_completion` AFTER UPDATE ON `task_assignments` FOR EA
         SELECT 
             NEW.member_id,
             CAST(NEW.prod_line_id AS CHAR),
+            pl.length_m,
+            pl.width_m,
             pl.weight_g,
-            1,
+            CASE 
+                WHEN pl.product_name IN ('Piña Seda', 'Pure Piña Cloth') THEN pl.quantity
+                ELSE 1
+            END,
             CASE 
                 WHEN pl.product_name = 'Knotted Liniwan' THEN 50.00
-                WHEN pl.product_name = 'Knotted Bastos' THEN 45.00
-                WHEN pl.product_name = 'Warped Silk' THEN 60.00
+                WHEN pl.product_name = 'Knotted Bastos' THEN 50.00
+                WHEN pl.product_name = 'Warped Silk' THEN 19.00
+                WHEN pl.product_name IN ('Piña Seda', 'Pure Piña Cloth') THEN 550.00
                 ELSE 0.00
             END,
-            pl.weight_g * CASE 
-                WHEN pl.product_name = 'Knotted Liniwan' THEN 50.00
-                WHEN pl.product_name = 'Knotted Bastos' THEN 45.00
-                WHEN pl.product_name = 'Warped Silk' THEN 60.00
-                ELSE 0.00
+            CASE 
+                WHEN pl.product_name IN ('Piña Seda', 'Pure Piña Cloth') THEN
+                    pl.length_m * 550.00 * pl.quantity
+                ELSE
+                    pl.weight_g * 
+                    CASE 
+                        WHEN pl.product_name = 'Knotted Liniwan' THEN 50.00
+                        WHEN pl.product_name = 'Knotted Bastos' THEN 50.00
+                        WHEN pl.product_name = 'Warped Silk' THEN 19.00
+                        ELSE 0.00
+                    END
             END,
             0,
             'Pending',
@@ -1008,14 +1179,44 @@ CREATE TABLE `task_completion_confirmations` (
 INSERT INTO `task_completion_confirmations` (`id`, `production_id`, `member_id`, `member_name`, `role`, `product_name`, `weight`, `date_started`, `date_submitted`, `status`, `created_at`, `updated_at`) VALUES
 (56, 'PL0018', 2, 'thea 213', 'warper', 'Warped Silk', 12.00, '2025-07-31 11:28:00', '2025-07-31 11:28:12', 'completed', '2025-07-31 03:28:00', '2025-07-31 03:28:16'),
 (57, 'PL0018', 2, 'thea 213', 'warper', 'Warped Silk', 12.00, '2025-07-31 11:28:04', '2025-07-31 11:28:12', 'completed', '2025-07-31 03:28:04', '2025-07-31 03:28:16'),
-(58, 'PL0019', 1, 'jenny rose montille', 'knotter', 'Knotted Liniwan', 12.00, '2025-07-31 19:15:11', '2025-07-31 19:15:19', 'completed', '2025-07-31 11:15:11', '2025-07-31 11:15:24'),
-(59, 'PL0019', 1, 'jenny rose montille', 'knotter', 'Knotted Liniwan', 12.00, '2025-07-31 19:15:14', '2025-07-31 19:15:19', 'completed', '2025-07-31 11:15:14', '2025-07-31 11:15:24'),
-(60, 'PL0020', 2, 'thea 213', 'warper', 'Warped Silk', 12.00, '2025-07-31 19:20:50', '2025-07-31 19:20:55', 'completed', '2025-07-31 11:20:50', '2025-07-31 11:20:58'),
-(61, 'PL0020', 2, 'thea 213', 'warper', 'Warped Silk', 12.00, '2025-07-31 19:20:53', '2025-07-31 19:20:55', 'completed', '2025-07-31 11:20:53', '2025-07-31 11:20:58'),
-(62, 'PL0021', 2, 'thea 213', 'warper', 'Warped Silk', 12.00, '2025-07-31 19:25:21', '2025-07-31 19:25:29', 'completed', '2025-07-31 11:25:21', '2025-07-31 11:25:33'),
-(63, 'PL0021', 2, 'thea 213', 'warper', 'Warped Silk', 12.00, '2025-07-31 19:25:24', '2025-07-31 19:25:29', 'completed', '2025-07-31 11:25:24', '2025-07-31 11:25:33'),
-(64, 'PL0022', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 4.00, '2025-07-31 20:23:59', '2025-07-31 20:24:07', 'completed', '2025-07-31 12:23:59', '2025-07-31 12:24:11'),
-(65, 'PL0022', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 4.00, '2025-07-31 20:24:02', '2025-07-31 20:24:07', 'completed', '2025-07-31 12:24:02', '2025-07-31 12:24:11');
+(58, 'PL0019', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 15.00, '2025-07-31 20:39:49', '2025-07-31 20:40:02', 'completed', '2025-07-31 12:39:49', '2025-07-31 12:40:09'),
+(59, 'PL0019', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 15.00, '2025-07-31 20:39:57', '2025-07-31 20:40:02', 'completed', '2025-07-31 12:39:57', '2025-07-31 12:40:09'),
+(60, 'PL0020', 1, 'jenny rose montille', 'knotter', 'Knotted Liniwan', 15.00, '2025-07-31 21:37:09', '2025-07-31 21:37:24', 'completed', '2025-07-31 13:37:09', '2025-07-31 13:37:31'),
+(61, 'PL0020', 1, 'jenny rose montille', 'knotter', 'Knotted Liniwan', 15.00, '2025-07-31 21:37:17', '2025-07-31 21:37:24', 'completed', '2025-07-31 13:37:17', '2025-07-31 13:37:31'),
+(62, 'PL0021', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 15.00, '2025-07-31 22:30:49', '2025-07-31 22:31:34', 'completed', '2025-07-31 14:30:49', '2025-07-31 14:31:54'),
+(63, 'PL0021', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 15.00, '2025-07-31 22:31:17', '2025-07-31 22:31:34', 'completed', '2025-07-31 14:31:17', '2025-07-31 14:31:54'),
+(64, 'PL0022', 2, 'thea 213', 'warper', 'Warped Silk', 20.00, '2025-07-31 22:33:38', '2025-07-31 22:33:55', 'completed', '2025-07-31 14:33:38', '2025-07-31 14:34:00'),
+(65, 'PL0022', 2, 'thea 213', 'warper', 'Warped Silk', 20.00, '2025-07-31 22:33:45', '2025-07-31 22:33:55', 'completed', '2025-07-31 14:33:45', '2025-07-31 14:34:00'),
+(66, 'PL0023', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 10.00, '2025-08-01 05:28:59', '2025-08-01 05:29:28', 'completed', '2025-07-31 21:28:59', '2025-07-31 21:29:41'),
+(67, 'PL0023', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 10.00, '2025-08-01 05:29:08', '2025-08-01 05:29:28', 'completed', '2025-07-31 21:29:08', '2025-07-31 21:29:41'),
+(76, 'PL0030', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 321.00, '2025-11-28 03:40:25', '2025-11-28 03:50:40', 'submitted', '2025-11-27 19:40:25', '2025-11-27 19:50:40'),
+(77, 'PL0030', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 321.00, '2025-11-28 03:40:42', '2025-11-28 03:50:40', 'submitted', '2025-11-27 19:40:42', '2025-11-27 19:50:40'),
+(78, 'PL0029', 5, 'jenrose  mon', 'knotter', 'Knotted Bastos', 123.00, '2025-11-28 03:59:56', '2025-11-30 03:25:54', 'submitted', '2025-11-27 19:59:56', '2025-11-29 19:25:54'),
+(79, 'PL0031', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 123.00, '2025-11-28 05:38:00', '2025-11-28 05:40:14', 'submitted', '2025-11-27 21:38:00', '2025-11-27 21:40:14'),
+(80, 'PL0031', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 123.00, '2025-11-28 05:38:28', '2025-11-28 05:40:14', 'submitted', '2025-11-27 21:38:28', '2025-11-27 21:40:14'),
+(81, 'PL0029', 5, 'jenrose  mon', 'knotter', 'Knotted Bastos', 123.00, '2025-11-28 05:40:24', '2025-11-30 03:25:54', 'submitted', '2025-11-27 21:40:24', '2025-11-29 19:25:54'),
+(82, 'PL0032', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 12.00, '2025-11-28 05:41:08', NULL, 'in_progress', '2025-11-27 21:41:08', '2025-11-27 21:41:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `task_decline_notifications`
+--
+
+CREATE TABLE `task_decline_notifications` (
+  `id` int(11) NOT NULL,
+  `task_assignment_id` int(11) NOT NULL,
+  `prod_line_id` int(11) NOT NULL,
+  `member_id` int(11) NOT NULL,
+  `member_reason` text DEFAULT NULL,
+  `admin_message` text DEFAULT NULL,
+  `status` enum('pending','responded','acknowledged') NOT NULL DEFAULT 'pending',
+  `declined_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `admin_message_at` timestamp NULL DEFAULT NULL,
+  `member_ack_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1050,15 +1251,19 @@ CREATE TABLE `user_customer` (
   `customer_email` varchar(60) NOT NULL,
   `customer_phone` varchar(50) NOT NULL,
   `customer_password` varchar(255) NOT NULL,
-  `customer_status` int(11) NOT NULL DEFAULT 1 COMMENT '0=restricted,1=active'
+  `customer_status` int(11) NOT NULL DEFAULT 1 COMMENT '0=restricted,1=active',
+  `customer_address` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_customer`
 --
 
-INSERT INTO `user_customer` (`customer_id`, `customer_fullname`, `customer_email`, `customer_phone`, `customer_password`, `customer_status`) VALUES
-(6, 'Joshua Anderson Padilla', 'jcustom@gmail.com', '09454454741', '$2y$10$Ehvc1AwmVnjhfMT.arbdEuseTS2l9bR9P0eQRjpDOXHHh7eZ9Shx6', 1);
+INSERT INTO `user_customer` (`customer_id`, `customer_fullname`, `customer_email`, `customer_phone`, `customer_password`, `customer_status`, `customer_address`) VALUES
+(6, 'Joshua Anderson Padilla', 'jcustom@gmail.com', '09454454741', '$2y$10$Ehvc1AwmVnjhfMT.arbdEuseTS2l9bR9P0eQRjpDOXHHh7eZ9Shx6', 1, NULL),
+(7, 'johnny bravo', 'asejo.32@gmail.com', '09475316387', '$2y$10$X4aw./fN6jeUgY96ekA3GuG5u0QWLztn6CmGhcET/pbLutYL.tQyy', 1, 'bahay'),
+(8, 'johnny sins', 'asejo.32@gmail.comp', '2345346356534', '$2y$10$by5dyptWPzIL5wOzrXxjWOoKnmQZjXE1SrSZ55QI/xS70G7CCZA8.', 1, NULL),
+(9, 'johnny sins', 'asejojeff975@gmail.com', '12312312312312', '$2y$10$VwVepjPdAIT0F5ij0rYthu3Ah4CyuzL.t8134NTprc9UicBnPDGm6', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -1087,7 +1292,9 @@ CREATE TABLE `user_member` (
 INSERT INTO `user_member` (`id`, `id_number`, `fullname`, `email`, `phone`, `role`, `sex`, `password`, `status`, `availability_status`, `date_created`) VALUES
 (1, 'KNO-2025-001', 'jenny rose montille', 'jenny@gmail.com', '123456789', 'knotter', 'female', '$2y$10$lmMac2q73h6u0Eg5DT5ktOOe2r48L3pYo/xmQJmRKhoZlC6CgsQM2', 1, 'available', '2025-07-02 05:54:12'),
 (2, 'WAR-2025-001', 'thea 213', '213@gmail.com', '123456789', 'warper', 'female', '$2y$10$IIAht6dF37swUgccBmDEmuTxAMSTFR69L14m7CgsskgAlE7s0fune', 1, 'available', '2025-07-02 05:55:48'),
-(4, 'WEA-2025-001', 'bem nov pornel', '1234@gmail.com', '123456789', 'weaver', 'female', '$2y$10$.sGlAXAGBCdzVccPHFezIOQAodpEHxvJPtRjjBEqrLwGzXdjADzz2', 1, 'available', '2025-07-17 07:33:30');
+(4, 'WEA-2025-001', 'bem nov pornel', '1234@gmail.com', '123456789', 'weaver', 'female', '$2y$10$.sGlAXAGBCdzVccPHFezIOQAodpEHxvJPtRjjBEqrLwGzXdjADzz2', 1, 'available', '2025-07-17 07:33:30'),
+(5, 'KNO-2025-002', 'jenrose  mon', 'jen123@gmail.com', '12345678', 'knotter', 'female', '$2y$10$PGlUQf.FC9MaLDDrRRTy2uYHTeBmhtAJDnUWn55A.3h./eOGTlW4q', 1, 'available', '2025-08-01 03:42:50'),
+(9, 'KNO-2025-004', 'asdasdasd asdasdas', 'dasdasdasd@gmail.copm234', '123123123123123', 'knotter', 'female', '$2y$10$ZjL06EOXw2/ok4TSlkD4ZOUuCqqs98L/TTQemr2lrvsXT6W/y382y', 1, 'available', '2025-11-23 06:47:15');
 
 -- --------------------------------------------------------
 
@@ -1106,20 +1313,11 @@ CREATE TABLE `weaver` (
 -- --------------------------------------------------------
 
 --
--- Structure for view `member_balance_summary`
---
-DROP TABLE IF EXISTS `member_balance_summary`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `member_balance_summary`  AS SELECT `pr`.`id` AS `id`, `pr`.`member_id` AS `member_id`, CASE WHEN `pr`.`is_self_assigned` = 1 THEN `mst`.`product_name` ELSE `pl`.`product_name` END AS `product_name`, CASE WHEN `pl`.`product_name` in ('Piña Seda','Pure Piña Cloth') THEN NULL ELSE `pl`.`weight_g` END AS `weight_g`, CASE WHEN `pl`.`product_name` in ('Piña Seda','Pure Piña Cloth') THEN concat(`pl`.`length_m`,'m x ',`pl`.`width_m`,'m') ELSE NULL END AS `measurement`, CASE WHEN `pl`.`product_name` in ('Piña Seda','Pure Piña Cloth') THEN `pl`.`quantity` ELSE NULL END AS `quantity`, `pr`.`unit_rate` AS `unit_rate`, `pr`.`total_amount` AS `total`, `pr`.`payment_status` AS `payment_status`, `pr`.`date_paid` AS `date_paid`, `pr`.`date_created` AS `date_created`, `um`.`role` AS `member_role` FROM (((`payment_records` `pr` join `user_member` `um` on(`pr`.`member_id` = `um`.`id`)) left join `member_self_tasks` `mst` on(`pr`.`production_id` = `mst`.`production_id` and `pr`.`is_self_assigned` = 1)) left join `production_line` `pl` on(case when `pr`.`is_self_assigned` = 0 then `pl`.`prod_line_id` = cast(`pr`.`production_id` as unsigned) else `pl`.`prod_line_id` = cast(substr(`pr`.`production_id`,3) as unsigned) end = `pl`.`prod_line_id`)) ORDER BY `pr`.`date_created` DESC ;
-
--- --------------------------------------------------------
-
---
 -- Structure for view `member_balance_view`
 --
 DROP TABLE IF EXISTS `member_balance_view`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `member_balance_view`  AS SELECT `pr`.`id` AS `id`, `pr`.`member_id` AS `member_id`, CASE WHEN `pr`.`is_self_assigned` = 1 THEN `mst`.`product_name` ELSE `pl`.`product_name` END AS `product_name`, `pr`.`weight_g` AS `weight_g`, CASE WHEN `pr`.`is_self_assigned` = 1 AND `mst`.`product_name` in ('Piña Seda','Pure Piña Cloth') OR `pr`.`is_self_assigned` = 0 AND `pl`.`product_name` in ('Piña Seda','Pure Piña Cloth') THEN concat(`pl`.`length_m`,'m x ',`pl`.`width_m`,'in') ELSE '-' END AS `measurements`, CASE WHEN `pr`.`is_self_assigned` = 1 AND `mst`.`product_name` in ('Piña Seda','Pure Piña Cloth') OR `pr`.`is_self_assigned` = 0 AND `pl`.`product_name` in ('Piña Seda','Pure Piña Cloth') THEN `pl`.`quantity` ELSE '-' END AS `quantity`, `pr`.`unit_rate` AS `unit_rate`, `pr`.`total_amount` AS `total_amount`, `pr`.`payment_status` AS `payment_status`, `pr`.`date_paid` AS `date_paid`, `pr`.`date_created` AS `date_created`, `um`.`role` AS `member_role` FROM (((`payment_records` `pr` join `user_member` `um` on(`pr`.`member_id` = `um`.`id`)) left join `production_line` `pl` on(case when `pr`.`is_self_assigned` = 0 then `pl`.`prod_line_id` = cast(`pr`.`production_id` as unsigned) else `pl`.`prod_line_id` = cast(substr(`pr`.`production_id`,1,locate('_',`pr`.`production_id`) - 1) as unsigned) end)) left join `member_self_tasks` `mst` on(`pr`.`production_id` = `mst`.`production_id` and `pr`.`is_self_assigned` = 1)) WHERE `pr`.`payment_status` in ('Pending','Paid','Adjusted') ORDER BY `pr`.`date_created` DESC ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `member_balance_view`  AS SELECT `pr`.`id` AS `id`, `pr`.`member_id` AS `member_id`, CASE WHEN `pr`.`is_self_assigned` = 1 THEN `mst`.`product_name` ELSE `pl`.`product_name` END AS `product_name`, `pr`.`weight_g` AS `weight_g`, CASE WHEN `pl`.`product_name` in ('Piña Seda','Pure Piña Cloth') THEN concat(coalesce(`pl`.`length_m`,0),'m x ',coalesce(`pl`.`width_m`,0),'m') ELSE '-' END AS `measurements`, CASE WHEN `pl`.`product_name` in ('Piña Seda','Pure Piña Cloth') THEN `pr`.`quantity` ELSE 1 END AS `quantity`, `pr`.`unit_rate` AS `unit_rate`, `pr`.`total_amount` AS `total_amount`, `pr`.`payment_status` AS `payment_status`, `pr`.`date_paid` AS `date_paid`, `pr`.`date_created` AS `date_created`, `um`.`role` AS `member_role` FROM (((`payment_records` `pr` join `user_member` `um` on(`pr`.`member_id` = `um`.`id`)) left join `member_self_tasks` `mst` on(`pr`.`production_id` = `mst`.`production_id` and `pr`.`is_self_assigned` = 1)) left join `production_line` `pl` on(`pr`.`is_self_assigned` = 0 and `pl`.`prod_line_id` = cast(`pr`.`production_id` as unsigned) or `pr`.`is_self_assigned` = 1 and `pl`.`prod_line_id` = cast(substr(`pr`.`production_id`,3) as unsigned))) WHERE `pr`.`payment_status` in ('Pending','Paid','Adjusted') ORDER BY `pr`.`date_created` DESC ;
 
 -- --------------------------------------------------------
 
@@ -1137,7 +1335,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `payment_records_view`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `payment_records_view`  AS SELECT `pr`.`id` AS `id`, `pr`.`production_id` AS `production_id`, `um`.`fullname` AS `member_name`, `pl`.`product_name` AS `product_name`, CASE WHEN `pl`.`product_name` in ('Piña Seda','Pure Piña Cloth') THEN concat(coalesce(`pr`.`length_m`,0),'m x ',coalesce(`pr`.`width_m`,0),'m') ELSE '' END AS `measurements`, `pr`.`weight_g` AS `weight_g`, CASE WHEN `pl`.`product_name` in ('Piña Seda','Pure Piña Cloth') THEN `pr`.`quantity` ELSE NULL END AS `quantity`, `pr`.`unit_rate` AS `unit_rate`, `pr`.`total_amount` AS `total_amount`, `pr`.`payment_status` AS `payment_status`, `pr`.`date_paid` AS `date_paid`, `pr`.`is_self_assigned` AS `is_self_assigned` FROM ((`payment_records` `pr` join `user_member` `um` on(`pr`.`member_id` = `um`.`id`)) join `production_line` `pl` on(`pr`.`production_id` = `pl`.`prod_line_id`)) ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `payment_records_view`  AS SELECT `pr`.`id` AS `id`, `pr`.`production_id` AS `production_id`, `um`.`fullname` AS `member_name`, CASE WHEN `pr`.`is_self_assigned` = 1 THEN `mst`.`product_name` ELSE `pl`.`product_name` END AS `product_name`, CASE WHEN `pr`.`is_self_assigned` = 0 AND `pl`.`product_name` in ('Piña Seda','Pure Piña Cloth') THEN concat(coalesce(`pl`.`length_m`,0),'m x ',coalesce(`pl`.`width_m`,0),'m') ELSE '-' END AS `measurements`, CASE WHEN `pr`.`is_self_assigned` = 1 THEN `mst`.`weight_g` ELSE `pl`.`weight_g` END AS `weight_g`, CASE WHEN `pr`.`is_self_assigned` = 0 AND `pl`.`product_name` in ('Piña Seda','Pure Piña Cloth') OR `pr`.`is_self_assigned` = 1 AND `mst`.`product_name` in ('Piña Seda','Pure Piña Cloth') THEN `pr`.`quantity` ELSE NULL END AS `quantity`, `pr`.`unit_rate` AS `unit_rate`, `pr`.`total_amount` AS `total_amount`, `pr`.`payment_status` AS `payment_status`, `pr`.`date_paid` AS `date_paid`, `pr`.`is_self_assigned` AS `is_self_assigned` FROM (((`payment_records` `pr` join `user_member` `um` on(`pr`.`member_id` = `um`.`id`)) left join `member_self_tasks` `mst` on(`pr`.`production_id` = `mst`.`production_id` and `pr`.`is_self_assigned` = 1)) left join `production_line` `pl` on(`pr`.`is_self_assigned` = 0 and `pl`.`prod_line_id` = cast(`pr`.`production_id` as unsigned) or `pr`.`is_self_assigned` = 1 and `pl`.`prod_line_id` = cast(substr(`pr`.`production_id`,3) as unsigned))) ;
 
 --
 -- Indexes for dumped tables
@@ -1148,6 +1346,13 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 ALTER TABLE `cart`
   ADD PRIMARY KEY (`cart_id`);
+
+--
+-- Indexes for table `customer_messages`
+--
+ALTER TABLE `customer_messages`
+  ADD PRIMARY KEY (`message_id`),
+  ADD KEY `customer_id` (`customer_id`);
 
 --
 -- Indexes for table `finished_products`
@@ -1165,6 +1370,22 @@ ALTER TABLE `member_self_tasks`
   ADD KEY `idx_production_id` (`production_id`);
 
 --
+-- Indexes for table `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`order_id`),
+  ADD KEY `idx_order_user_id` (`order_user_id`),
+  ADD KEY `idx_order_status` (`order_status`);
+
+--
+-- Indexes for table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD PRIMARY KEY (`order_item_id`),
+  ADD KEY `prod_id` (`prod_id`),
+  ADD KEY `idx_order_id` (`order_id`);
+
+--
 -- Indexes for table `payment_records`
 --
 ALTER TABLE `payment_records`
@@ -1173,8 +1394,7 @@ ALTER TABLE `payment_records`
   ADD KEY `idx_payment_status` (`payment_status`),
   ADD KEY `idx_member_id` (`member_id`),
   ADD KEY `idx_product_id` (`product_id`),
-  ADD KEY `idx_date_paid` (`date_paid`),
-  ADD KEY `idx_payment_records_member_id` (`member_id`);
+  ADD KEY `idx_date_paid` (`date_paid`);
 
 --
 -- Indexes for table `processed_materials`
@@ -1199,6 +1419,13 @@ ALTER TABLE `production_line`
 --
 ALTER TABLE `product_category`
   ADD PRIMARY KEY (`category_id`);
+
+--
+-- Indexes for table `product_materials`
+--
+ALTER TABLE `product_materials`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_product_name` (`product_name`);
 
 --
 -- Indexes for table `product_raw_materials`
@@ -1258,6 +1485,15 @@ ALTER TABLE `task_completion_confirmations`
   ADD KEY `member_id` (`member_id`);
 
 --
+-- Indexes for table `task_decline_notifications`
+--
+ALTER TABLE `task_decline_notifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_decline_task` (`task_assignment_id`),
+  ADD KEY `fk_decline_prod` (`prod_line_id`),
+  ADD KEY `fk_decline_member` (`member_id`);
+
+--
 -- Indexes for table `user_admin`
 --
 ALTER TABLE `user_admin`
@@ -1289,7 +1525,13 @@ ALTER TABLE `weaver`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+
+--
+-- AUTO_INCREMENT for table `customer_messages`
+--
+ALTER TABLE `customer_messages`
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `finished_products`
@@ -1301,37 +1543,55 @@ ALTER TABLE `finished_products`
 -- AUTO_INCREMENT for table `member_self_tasks`
 --
 ALTER TABLE `member_self_tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
+
+--
+-- AUTO_INCREMENT for table `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+
+--
+-- AUTO_INCREMENT for table `order_items`
+--
+ALTER TABLE `order_items`
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `payment_records`
 --
 ALTER TABLE `payment_records`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT for table `processed_materials`
 --
 ALTER TABLE `processed_materials`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `prod_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `prod_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `production_line`
 --
 ALTER TABLE `production_line`
-  MODIFY `prod_line_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
+  MODIFY `prod_line_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=108;
 
 --
 -- AUTO_INCREMENT for table `product_category`
 --
 ALTER TABLE `product_category`
   MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `product_materials`
+--
+ALTER TABLE `product_materials`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `product_raw_materials`
@@ -1343,19 +1603,19 @@ ALTER TABLE `product_raw_materials`
 -- AUTO_INCREMENT for table `product_stock`
 --
 ALTER TABLE `product_stock`
-  MODIFY `pstock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `pstock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `raw_materials`
 --
 ALTER TABLE `raw_materials`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `stock_history`
 --
 ALTER TABLE `stock_history`
-  MODIFY `stock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=155;
+  MODIFY `stock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=163;
 
 --
 -- AUTO_INCREMENT for table `task`
@@ -1367,19 +1627,25 @@ ALTER TABLE `task`
 -- AUTO_INCREMENT for table `task_approval_requests`
 --
 ALTER TABLE `task_approval_requests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
 
 --
 -- AUTO_INCREMENT for table `task_assignments`
 --
 ALTER TABLE `task_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=132;
 
 --
 -- AUTO_INCREMENT for table `task_completion_confirmations`
 --
 ALTER TABLE `task_completion_confirmations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
+
+--
+-- AUTO_INCREMENT for table `task_decline_notifications`
+--
+ALTER TABLE `task_decline_notifications`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `user_admin`
@@ -1391,13 +1657,13 @@ ALTER TABLE `user_admin`
 -- AUTO_INCREMENT for table `user_customer`
 --
 ALTER TABLE `user_customer`
-  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `user_member`
 --
 ALTER TABLE `user_member`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `weaver`
@@ -1410,10 +1676,29 @@ ALTER TABLE `weaver`
 --
 
 --
+-- Constraints for table `customer_messages`
+--
+ALTER TABLE `customer_messages`
+  ADD CONSTRAINT `customer_messages_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `user_customer` (`customer_id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `member_self_tasks`
 --
 ALTER TABLE `member_self_tasks`
   ADD CONSTRAINT `member_self_tasks_ibfk_1` FOREIGN KEY (`member_id`) REFERENCES `user_member` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `orders`
+--
+ALTER TABLE `orders`
+  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`order_user_id`) REFERENCES `user_customer` (`customer_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`prod_id`) REFERENCES `product` (`prod_id`);
 
 --
 -- Constraints for table `payment_records`
@@ -1441,6 +1726,14 @@ ALTER TABLE `task_assignments`
 ALTER TABLE `task_completion_confirmations`
   ADD CONSTRAINT `task_completion_confirmations_ibfk_1` FOREIGN KEY (`production_id`) REFERENCES `member_self_tasks` (`production_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `task_completion_confirmations_ibfk_2` FOREIGN KEY (`member_id`) REFERENCES `user_member` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `task_decline_notifications`
+--
+ALTER TABLE `task_decline_notifications`
+  ADD CONSTRAINT `fk_decline_member` FOREIGN KEY (`member_id`) REFERENCES `user_member` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_decline_prod` FOREIGN KEY (`prod_line_id`) REFERENCES `production_line` (`prod_line_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_decline_task` FOREIGN KEY (`task_assignment_id`) REFERENCES `task_assignments` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -3,10 +3,8 @@
 </div>
 
 
-
-
-
-
+<!-- Chart.js -->
+<script src="vendor/chart.js/Chart.min.js"></script>
 
 <!-- Include SweetAlert CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
