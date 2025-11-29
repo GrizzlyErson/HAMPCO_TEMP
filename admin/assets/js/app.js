@@ -29,9 +29,11 @@ async function assignTask(prodLineId, productName, quantity) { // Made async
     const identifierInput = document.getElementById('identifier');
     const prodLineIdInput = document.getElementById('prod_line_id');
     const isReassignmentInput = document.getElementById('is_reassignment'); // New hidden input
+    const productDetailsInput = document.getElementById('product_details'); // Get the product_details input
 
     if (identifierInput) identifierInput.value = prodLineId;
     if (prodLineIdInput) prodLineIdInput.value = prodLineId;
+    if (productDetailsInput) productDetailsInput.value = productName; // Set product_details
 
     // Reset form fields and hidden inputs
     if (form) form.reset();
@@ -74,8 +76,9 @@ async function assignTask(prodLineId, productName, quantity) { // Made async
     // Fetch existing assignments for pre-population
     let existingAssignments = [];
     try {
-        const response = await fetch(`backend/end-points/get_assignments.php?prod_line_id=${prodLineId}`);
+        const response = await fetch(`backend/end-points/get_task_assignments.php?prod_line_id=${prodLineId}`);
         const data = await response.json();
+        console.log('Data from get_task_assignments.php:', data); // Log the data
         if (data.success && data.assignments.length > 0) {
             existingAssignments = data.assignments;
         }
@@ -215,13 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (submitBtn) submitBtn.disabled = true;
 
             const formData = new FormData(taskForm);
-            // Append product_details to formData if not already present
-            if (!formData.has('product_details')) {
-                const prodId = formData.get('prod_line_id');
-                const productSelect = document.getElementById('product_name'); // Assuming this exists for context
-                const productName = productSelect ? productSelect.options[productSelect.selectedIndex].text : 'Unknown Product';
-                formData.append('product_details', productName);
-            }
+            
 
             // Hide all error messages first
             const errorMessages = taskForm.querySelectorAll('.text-red-500');
@@ -266,11 +263,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            // Log formData content for debugging
+            for (let pair of formData.entries()) {
+                console.log(pair[0]+ ': ' + pair[1]); 
+            }
+
             fetch('backend/end-points/assign_tasks.php', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire({
@@ -293,11 +300,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Error during fetch or JSON parsing:', error);
+                let userMessage = 'An error occurred while assigning tasks. ';
+                if (error.message.includes('HTTP error!')) {
+                    userMessage += `Server responded with ${error.message.split('status: ')[1]}. Please check server logs.`;
+                } else if (error instanceof SyntaxError) {
+                    userMessage += 'Received malformed response from server. Check server output.';
+                } else {
+                    userMessage += `Details: ${error.message}`;
+                }
                 Swal.fire({
                     icon: 'error',
                     title: 'Error!',
-                    text: 'An error occurred while assigning tasks'
+                    text: userMessage
                 });
             })
             .finally(() => {

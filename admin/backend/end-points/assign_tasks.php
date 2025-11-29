@@ -1,5 +1,5 @@
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'] . "/HAMPCOV2/admin/backend/class.php";
+require_once __DIR__ . "/../class.php";
 
 $db = new global_class();
 $response = array();
@@ -19,6 +19,10 @@ try {
     $knotter_deadline = !empty($_POST['deadline']) ? $_POST['deadline'] : null;
     $warper_deadline = !empty($_POST['warper_deadline']) ? $_POST['warper_deadline'] : null;
     $weaver_deadline = !empty($_POST['weaver_deadline']) ? $_POST['weaver_deadline'] : null;
+
+    // Define weight and quantity, as they might be used by included scripts
+    $weight = isset($_POST['weight']) ? $_POST['weight'] : null;
+    $quantity = isset($_POST['quantity']) ? $_POST['quantity'] : null;
 
     // Log received data for debugging
     error_log("Received data for task assignment:");
@@ -96,12 +100,19 @@ try {
     else {
         // Check if there's enough knotted material in inventory
         $check_inventory_url = __DIR__ . "/check_knotted_inventory.php";
-        $_POST = [
-            'product_name' => $product_name,
-            'weight' => $weight,
-            'quantity' => $quantity
-        ];
+
+        // Temporarily store original $_POST
+        $original_post = $_POST;
+
+        // Set $_POST for the required script
+        $_POST['product_name'] = $product_name;
+        $_POST['weight'] = $weight;
+        $_POST['quantity'] = $quantity;
+        
         require $check_inventory_url;
+
+        // Restore original $_POST
+        $_POST = $original_post;
     }
 
     // Check if tasks are already assigned

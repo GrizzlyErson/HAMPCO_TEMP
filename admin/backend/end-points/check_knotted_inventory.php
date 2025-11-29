@@ -1,15 +1,15 @@
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'] . "/hampco_memberFix/admin/backend/class.php";
+require_once __DIR__ . "/../class.php";
 
 header('Content-Type: application/json');
 $response = array();
 
 try {
-    $product_name = isset($_GET['product_name']) ? $_GET['product_name'] : null;
-    $required_qty = isset($_GET['required_qty']) ? floatval($_GET['required_qty']) : 0;
+    $product_name = isset($_POST['product_name']) ? $_POST['product_name'] : null;
+    $quantity = isset($_POST['quantity']) ? floatval($_POST['quantity']) : 0;
 
-    if (!$product_name || $required_qty <= 0) {
-        throw new Exception('Missing or invalid parameters');
+    if (!$product_name || $quantity <= 0) {
+        throw new Exception('Missing or invalid parameters for inventory check.');
     }
 
     $db = new global_class();
