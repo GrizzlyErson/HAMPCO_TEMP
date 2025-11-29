@@ -1165,7 +1165,7 @@ function getStatusClass(status) {
                             </td>
                             <td class="px-4 py-2 text-center"><?php echo $item['date_created']; ?></td>
                             <td class="px-4 py-2 text-center relative">
-                                <div class="relative inline-block text-left z-10">
+                                <div class="relative inline-block text-left">
                                     <button type="button" class="inline-flex justify-center w-full rounded-md px-4 py-2 bg-indigo-500 text-sm font-semibold text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200" id="options-menu-<?php echo $item['raw_id']; ?>" aria-haspopup="true" aria-expanded="true">
                                         Actions
                                         <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
