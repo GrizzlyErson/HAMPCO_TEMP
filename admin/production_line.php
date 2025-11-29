@@ -1768,9 +1768,15 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 // Show success message
-                alert('Task created successfully!');
-                // Reload the page or update the UI as needed
-                window.location.reload();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Task created successfully!',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    window.location.reload();
+                });
             } else {
                 alert('Error: ' + (data.message || 'Failed to create task'));
             }
