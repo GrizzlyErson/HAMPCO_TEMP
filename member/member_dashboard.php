@@ -32,6 +32,15 @@ try {
                     <div class="d-sm-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
                         <h1 class="h3 mb-0 text-gray-800">DASHBOARD  </h1>
                         <div class="flex items-center space-x-3">
+                            <!-- Notification Bell Icon -->
+                            <button class="relative focus:outline-none" title="Notifications">
+                                <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                <!-- Example: Notification dot -->
+                                <span class="absolute top-0 right-0 block h-2 w-2 rounded-full ring-2 ring-white bg-red-500"></span>
+                            </button>
                             <i class="fa-solid fa-cart-plus"></i>
                             <div class="bg-white rounded-lg shadow-sm p-2 flex space-x-2">
                                 <button id="availableBtn" class="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 <?php echo $current_status === 'available' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'; ?>">
@@ -39,6 +48,77 @@ try {
                                 </button>
                                 <button id="unavailableBtn" class="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 <?php echo $current_status === 'unavailable' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'; ?>">
                                     Unavailable
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Modal -->
+                    <div id="notificationModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 9999; display: flex; justify-content: center; align-items: center;">
+                        <div style="width: 100%; max-width: 500px; background-color: white; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; max-height: 600px; margin: 20px;">
+                            <!-- Modal Header -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #e5e7eb;">
+                                <h3 style="font-size: 18px; font-weight: 600; color: #1f2937;">Notifications</h3>
+                                <button id="closeNotificationModal" style="background: none; border: none; cursor: pointer; color: #6b7280; padding: 0; font-size: 20px;">
+                                    ✕
+                                </button>
+                            </div>
+
+                            <!-- Modal Body -->
+                            <div style="flex: 1; overflow-y: auto; padding: 20px;">
+                                <!-- Assigned Tasks Section -->
+                                <div style="margin-bottom: 24px;">
+                                    <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">New Task Assignments</h4>
+                                    <ul id="assignedTasksList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                                        <li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Task Approval Notifications Section -->
+                                <div style="margin-bottom: 24px;">
+                                    <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Task Approval Status</h4>
+                                    <ul id="taskApprovalList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                                        <li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Admin Messages Section -->
+                                <div>
+                                    <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Admin Messages</h4>
+                                    <ul id="adminMessagesList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                                        <li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new messages</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Modal Footer -->
+                            <div style="padding: 16px; border-top: 1px solid #e5e7eb; display: flex; gap: 8px;">
+                                <button id="markAllRead" style="flex: 1; background-color: #2563eb; color: white; font-weight: 600; padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; transition: background-color 0.3s;">
+                                    Mark All as Read
+                                </button>
+                                <button id="closeNotificationBtn" style="flex: 1; background-color: #e5e7eb; color: #374151; font-weight: 600; padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; transition: background-color 0.3s;">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task Decline Reason Modal -->
+                    <div id="declineResponseModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 10000; justify-content: center; align-items: center;">
+                        <div style="width: 100%; max-width: 480px; background-color: white; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; max-height: 420px; margin: 20px;">
+                            <div style="padding: 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h3 style="font-size: 18px; font-weight: 600; color: #1f2937; margin: 0;">Task Decline Reason</h3>
+                                    <p id="declineResponseTaskInfo" style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;"></p>
+                                </div>
+                                <button id="closeDeclineResponseModal" style="background: none; border: none; cursor: pointer; color: #6b7280; font-size: 20px; line-height: 1;">✕</button>
+                            </div>
+                            <div style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
+                                <p id="declineReasonContent" style="font-size: 14px; color: #111827; margin-bottom: 16px;">Loading reason...</p>
+                            </div>
+                            <div style="padding: 16px; border-top: 1px solid #e5e7eb; display: flex; gap: 8px;">
+                                <button id="closeDeclineReasonBtn" style="flex: 1; background-color: #e5e7eb; color: #374151; font-weight: 600; padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; transition: background-color 0.3s;">
+                                    Close
                                 </button>
                             </div>
                         </div>
@@ -506,6 +586,375 @@ document.addEventListener('DOMContentLoaded', function() {
     loadTasksCreated();
     setInterval(fetchRecentTasks, 60000);
     setInterval(loadTasksCreated, 60000);
+
+    const escapeHtml = (value = '') => {
+        if (value === null || value === undefined) {
+            return '';
+        }
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    };
+
+    const declineResponseModal = document.getElementById('declineResponseModal');
+    const declineReasonContent = document.getElementById('declineReasonContent');
+    const declineResponseTaskInfo = document.getElementById('declineResponseTaskInfo');
+    const closeDeclineResponseModalBtn = document.getElementById('closeDeclineResponseModal');
+    const closeDeclineReasonBtn = document.getElementById('closeDeclineReasonBtn');
+    let activeDeclineId = null;
+
+    function showDeclineReasonModal(details) {
+        if (!declineResponseModal || !declineReasonContent) return;
+        activeDeclineId = details.id; // Store for potential future use if needed
+        if (declineResponseTaskInfo) {
+            declineResponseTaskInfo.textContent = `${details.production} • ${details.productName} (${details.memberName})`;
+        }
+        declineReasonContent.innerHTML = escapeHtml(details.reason || 'No reason provided.');
+        declineResponseModal.style.display = 'flex';
+    }
+
+    function hideDeclineReasonModal() {
+        if (declineResponseModal) {
+            declineResponseModal.style.display = 'none';
+        }
+        activeDeclineId = null;
+        if (declineReasonContent) {
+            declineReasonContent.innerHTML = 'Loading reason...';
+        }
+    }
+
+    if (closeDeclineResponseModalBtn) {
+        closeDeclineResponseModalBtn.addEventListener('click', hideDeclineReasonModal);
+    }
+    if (closeDeclineReasonBtn) {
+        closeDeclineReasonBtn.addEventListener('click', hideDeclineReasonModal);
+    }
+    if (declineResponseModal) {
+        declineResponseModal.addEventListener('click', function(e) {
+            if (e.target === declineResponseModal) {
+                hideDeclineReasonModal();
+            }
+        });
+    }
+
+    function updateNotifications() {
+        console.log('Updating member notifications...');
+        
+        const assignedTasksList = document.getElementById('assignedTasksList');
+        const taskApprovalList = document.getElementById('taskApprovalList');
+        const adminMessagesList = document.getElementById('adminMessagesList');
+
+        // Show loading states
+        if (assignedTasksList) assignedTasksList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>';
+        if (taskApprovalList) taskApprovalList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>';
+        if (adminMessagesList) adminMessagesList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>';
+
+        Promise.all([
+            // Fetch new task assignments
+            fetch('backend/end-points/get_assignments.php?status=pending')
+                .then(r => r.json())
+                .catch(e => {
+                    console.error('Error fetching new task assignments:', e);
+                    return { success: false, assignments: [] };
+                }),
+            // Fetch task approval status updates (assuming a new endpoint `get_task_approval_notifications.php`)
+            fetch('backend/end-points/get_task_approval_notifications.php')
+                .then(r => r.json())
+                .catch(e => {
+                    console.error('Error fetching task approval notifications:', e);
+                    return { success: false, notifications: [] };
+                }),
+            // Fetch admin messages (assuming a new endpoint `get_admin_messages_for_member.php`)
+            fetch('backend/end-points/get_admin_messages_for_member.php')
+                .then(r => r.json())
+                .catch(e => {
+                    console.error('Error fetching admin messages:', e);
+                    return { success: false, messages: [] };
+                })
+        ])
+        .then(([assignedTasksData, taskApprovalData, adminMessagesData]) => {
+            console.log('Member Notification data:', assignedTasksData, taskApprovalData, adminMessagesData);
+
+            const notificationBell = document.querySelector('button[title="Notifications"]');
+            if (!notificationBell) {
+                console.error('Notification bell button not found!');
+                return;
+            }
+            const notificationDot = notificationBell.querySelector('span');
+            
+            const assignedCount = (assignedTasksData && assignedTasksData.success && Array.isArray(assignedTasksData.assignments)) ? assignedTasksData.assignments.length : 0;
+            const approvalCount = (taskApprovalData && taskApprovalData.success && Array.isArray(taskApprovalData.notifications)) ? taskApprovalData.notifications.length : 0;
+            const messagesCount = (adminMessagesData && adminMessagesData.success && Array.isArray(adminMessagesData.messages)) ? adminMessagesData.messages.length : 0;
+
+            const hasNotifications = assignedCount > 0 || approvalCount > 0 || messagesCount > 0;
+            
+            if (notificationDot) {
+                notificationDot.style.display = hasNotifications ? 'block' : 'none';
+            }
+
+            // Render Assigned Tasks
+            if (assignedTasksList) {
+                if (assignedCount > 0) {
+                    assignedTasksList.innerHTML = assignedTasksData.assignments.map(task => `
+                        <li style="padding: 12px; background-color: #e8f5e9; border-radius: 6px; border: 1px solid #c8e6c9; margin-bottom: 8px; cursor: pointer; transition: all 0.3s ease;" 
+                            class="notification-item assigned-task-notification" 
+                            data-task-id="${task.id}" 
+                            data-prod-id="${task.prod_line_id}"
+                            onmouseover="this.style.backgroundColor='#a5d6a7'" 
+                            onmouseout="this.style.backgroundColor='#e8f5e9'">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div style="flex: 1;">
+                                    <h4 style="font-weight: 600; color: #1b5e20; margin: 0; font-size: 14px;">New Assignment: ${escapeHtml(task.product_name)}</h4>
+                                    <p style="font-size: 12px; color: #388e3c; margin: 4px 0 0 0;">Production ID: ${escapeHtml(task.prod_line_id)}</p>
+                                    <p style="font-size: 12px; color: #388e3c; margin: 4px 0 0 0;">Role: ${escapeHtml(task.role)}</p>
+                                    <p style="font-size: 12px; color: #388e3c; margin: 4px 0 0 0;">Deadline: ${new Date(task.deadline).toLocaleDateString()}</p>
+                                </div>
+                                <span style="padding: 4px 8px; background-color: #66bb6a; color: white; border-radius: 9999px; font-size: 12px; white-space: nowrap; margin-left: 8px;">New</span>
+                            </div>
+                        </li>
+                    `).join('');
+
+                    assignedTasksList.querySelectorAll('.assigned-task-notification').forEach(item => {
+                        item.addEventListener('click', function() {
+                            const taskId = this.dataset.taskId;
+                            const prodId = this.dataset.prodId;
+                            // Mark as read and redirect to production page for this task
+                            markNotificationRead(taskId, 'assigned_task'); // Assuming notification_id is task.id and type
+                            window.location.href = `production.php?tab=assigned&prod_id=${prodId}`;
+                        });
+                    });
+
+                } else {
+                    assignedTasksList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new task assignments</li>';
+                }
+            }
+
+            // Render Task Approval Status Updates
+            if (taskApprovalList) {
+                if (approvalCount > 0) {
+                    taskApprovalList.innerHTML = taskApprovalData.notifications.map(notif => {
+                        const isApproved = notif.status === 'approved';
+                        const bgColor = isApproved ? '#e0f2f7' : '#ffebee';
+                        const borderColor = isApproved ? '#b2ebf2' : '#ffcdd2';
+                        const textColor = isApproved ? '#006064' : '#c62828';
+                        const badgeBg = isApproved ? '#4dd0e1' : '#ef5350';
+                        const badgeText = isApproved ? 'Approved' : 'Rejected';
+
+                        let declineReasonHtml = '';
+                        if (notif.reason && !isApproved) {
+                             declineReasonHtml = `
+                                <button class="view-decline-reason-btn" 
+                                    data-id="${notif.id}" 
+                                    data-prod="${encodeURIComponent(notif.production_id || '')}" 
+                                    data-product="${encodeURIComponent(notif.product_name || '')}" 
+                                    data-member="${encodeURIComponent(notif.member_name || '')}"
+                                    data-reason="${encodeURIComponent(notif.reason || '')}"
+                                    style="align-self: flex-start; margin-top: 8px; padding: 6px 10px; background-color: #dc2626; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                    View Reason
+                                </button>`;
+                        }
+
+                        return `
+                            <li style="padding: 12px; background-color: ${bgColor}; border-radius: 6px; border: 1px solid ${borderColor}; margin-bottom: 8px; cursor: pointer; transition: all 0.3s ease;" 
+                                class="notification-item approval-notification" 
+                                data-notification-id="${notif.id}"
+                                onmouseover="this.style.backgroundColor='${isApproved ? '#80deea' : '#ef9a9a'}'" 
+                                onmouseout="this.style.backgroundColor='${bgColor}'">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div style="flex: 1;">
+                                        <h4 style="font-weight: 600; color: ${textColor}; margin: 0; font-size: 14px;">Task ${badgeText}: ${escapeHtml(notif.product_name)}</h4>
+                                        <p style="font-size: 12px; color: ${textColor}; margin: 4px 0 0 0;">Production ID: ${escapeHtml(notif.production_id)}</p>
+                                        <p style="font-size: 12px; color: ${textColor}; margin: 4px 0 0 0;">Submitted: ${new Date(notif.submitted_at).toLocaleDateString()}</p>
+                                    </div>
+                                    <span style="padding: 4px 8px; background-color: ${badgeBg}; color: white; border-radius: 9999px; font-size: 12px; white-space: nowrap; margin-left: 8px;">${badgeText}</span>
+                                </div>
+                                ${declineReasonHtml}
+                            </li>
+                        `;
+                    }).join('');
+
+                    taskApprovalList.querySelectorAll('.approval-notification').forEach(item => {
+                        item.addEventListener('click', function() {
+                            const notificationId = this.dataset.notificationId;
+                            markNotificationRead(notificationId, 'task_approval');
+                        });
+                    });
+
+                    taskApprovalList.querySelectorAll('.view-decline-reason-btn').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation(); // Prevent parent li click
+                            const declineId = this.dataset.id;
+                            const production = decodeURIComponent(this.dataset.prod || '');
+                            const productName = decodeURIComponent(this.dataset.product || '');
+                            const memberName = decodeURIComponent(this.dataset.member || '');
+                            const reason = decodeURIComponent(this.dataset.reason || '');
+                            showDeclineReasonModal({
+                                id: declineId,
+                                production,
+                                productName,
+                                memberName,
+                                reason
+                            });
+                        });
+                    });
+
+                } else {
+                    taskApprovalList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new task approval updates</li>';
+                }
+            }
+
+            // Render Admin Messages
+            if (adminMessagesList) {
+                if (messagesCount > 0) {
+                    adminMessagesList.innerHTML = adminMessagesData.messages.map(message => `
+                        <li style="padding: 12px; background-color: #e3f2fd; border-radius: 6px; border: 1px solid #90caf9; margin-bottom: 8px; cursor: pointer; transition: all 0.3s ease;" 
+                            class="notification-item admin-message-notification" 
+                            data-message-id="${message.id}"
+                            onmouseover="this.style.backgroundColor='#64b5f6'" 
+                            onmouseout="this.style.backgroundColor='#e3f2fd'">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div style="flex: 1;">
+                                    <h4 style="font-weight: 600; color: #1976d2; margin: 0; font-size: 14px;">Admin Message: ${escapeHtml(message.title)}</h4>
+                                    <p style="font-size: 12px; color: #2196f3; margin: 4px 0 0 0;">${escapeHtml(message.content)}</p>
+                                    <p style="font-size: 11px; color: #2196f3; margin: 4px 0 0 0;">Sent: ${new Date(message.sent_at).toLocaleString()}</p>
+                                </div>
+                                <span style="padding: 4px 8px; background-color: #42a5f5; color: white; border-radius: 9999px; font-size: 12px; white-space: nowrap; margin-left: 8px;">Message</span>
+                            </div>
+                        </li>
+                    `).join('');
+
+                    adminMessagesList.querySelectorAll('.admin-message-notification').forEach(item => {
+                        item.addEventListener('click', function() {
+                            const messageId = this.dataset.messageId;
+                            markNotificationRead(messageId, 'admin_message');
+                            // Optionally, display full message in a modal
+                        });
+                    });
+
+                } else {
+                    adminMessagesList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new admin messages</li>';
+                }
+            }
+
+        })
+        .catch(error => {
+            console.error('Error updating notifications:', error);
+            if (assignedTasksList) assignedTasksList.innerHTML = '<li style="padding: 12px; color: #dc2626; text-align: center; font-size: 14px;">Error loading new task assignments</li>';
+            if (taskApprovalList) taskApprovalList.innerHTML = '<li style="padding: 12px; color: #dc2626; text-align: center; font-size: 14px;">Error loading task approval notifications</li>';
+            if (adminMessagesList) adminMessagesList.innerHTML = '<li style="padding: 12px; color: #dc2626; text-align: center; font-size: 14px;">Error loading admin messages</li>';
+        });
+    }
+
+    // Initial check for notifications
+    setTimeout(() => {
+        updateNotifications();
+    }, 500);
+
+    // Check for new notifications every 30 seconds
+    setInterval(updateNotifications, 30000);
+
+    const notificationBell = document.querySelector('button[title="Notifications"]');
+    if (notificationBell) {
+        notificationBell.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const modal = document.getElementById('notificationModal');
+            if (modal) {
+                const currentDisplay = modal.style.display;
+                const isHidden = currentDisplay === 'none' || currentDisplay === '';
+                modal.style.display = isHidden ? 'flex' : 'none';
+                if (isHidden) {
+                    updateNotifications(); // Refresh notifications when opening modal
+                }
+            }
+        });
+    } else {
+        console.error('Notification bell button not found!');
+    }
+
+    const closeBtn = document.getElementById('closeNotificationModal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const modal = document.getElementById('notificationModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+
+    const closeNotificationBtn = document.getElementById('closeNotificationBtn');
+    if (closeNotificationBtn) {
+        closeNotificationBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const modal = document.getElementById('notificationModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+
+    // Prevent modal from showing on page load by ensuring display is none
+    const modal = document.getElementById('notificationModal');
+    if (modal && modal.style.display !== 'none') {
+        modal.style.display = 'none';
+    }
+
+    // Close modal when clicking outside of it
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+            }
+        });
+    }
+
+    // Function to mark a single notification as read
+    window.markNotificationRead = function(notificationId, type) {
+        console.log('Marking notification as read:', notificationId, type);
+        fetch('backend/end-points/member_notifications.php?action=mark-read', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ notification_id: notificationId, type: type })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Mark read response:', data);
+            if (data.success) {
+                updateNotifications();
+            }
+        })
+        .catch(error => console.error('Error marking notification as read:', error));
+    };
+
+    // Handle mark all as read button
+    const markAllReadBtn = document.getElementById('markAllRead');
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', function() {
+            console.log('Marking all member notifications as read');
+            fetch('backend/end-points/member_notifications.php?action=mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Mark all read response:', data);
+                if (data.success) {
+                    updateNotifications();
+                    if (typeof alertify !== 'undefined') {
+                        alertify.success('All notifications marked as read');
+                    }
+                }
+            })
+            .catch(error => console.error('Error marking all notifications as read:', error));
+        });
+    }
 });
 
 // Load tasks created by the member
