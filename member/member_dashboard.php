@@ -82,14 +82,6 @@ try {
                                         <li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>
                                     </ul>
                                 </div>
-
-                                <!-- Admin Messages Section -->
-                                <div style="margin-bottom: 24px;">
-                                    <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Admin Messages</h4>
-                                    <ul id="adminMessagesList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
-                                        <li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>
-                                    </ul>
-                                </div>
                             </div>
 
                             <!-- Modal Footer -->
@@ -644,12 +636,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const assignedTasksList = document.getElementById('assignedTasksList');
         const taskApprovalList = document.getElementById('taskApprovalList');
-        const adminMessagesList = document.getElementById('adminMessagesList');
 
         // Show loading states
         if (assignedTasksList) assignedTasksList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>';
         if (taskApprovalList) taskApprovalList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>';
-        if (adminMessagesList) adminMessagesList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>';
 
         Promise.all([
             // Fetch new task assignments
@@ -665,17 +655,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 .catch(e => {
                     console.error('Error fetching task approval notifications:', e);
                     return { success: false, notifications: [] };
-                }),
-            // Fetch admin messages for the member
-            fetch('backend/end-points/get_admin_messages_for_member.php')
-                .then(r => r.json())
-                .catch(e => {
-                    console.error('Error fetching admin messages:', e);
-                    return { success: false, messages: [] };
                 })
         ])
-        .then(([assignedTasksData, taskApprovalData, adminMessagesData]) => {
-            console.log('Member Notification data:', assignedTasksData, taskApprovalData, adminMessagesData);
+        .then(([assignedTasksData, taskApprovalData]) => {
+            console.log('Member Notification data:', assignedTasksData, taskApprovalData);
 
             const notificationBell = document.querySelector('button[title="Notifications"]');
             if (!notificationBell) {
@@ -686,9 +669,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const assignedCount = (assignedTasksData && assignedTasksData.success && Array.isArray(assignedTasksData.assignments)) ? assignedTasksData.assignments.length : 0;
             const approvalCount = (taskApprovalData && taskApprovalData.success && Array.isArray(taskApprovalData.notifications)) ? taskApprovalData.notifications.length : 0;
-            const messagesCount = (adminMessagesData && adminMessagesData.success && Array.isArray(adminMessagesData.messages)) ? adminMessagesData.messages.length : 0;
 
-            const hasNotifications = assignedCount > 0 || approvalCount > 0 || messagesCount > 0;
+            const hasNotifications = assignedCount > 0 || approvalCount > 0;
             
             if (notificationDot) {
                 notificationDot.style.display = hasNotifications ? 'block' : 'none';
@@ -804,46 +786,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     taskApprovalList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new task approval updates</li>';
                 }
             }
-
-            // Render Admin Messages
-            if (adminMessagesList) {
-                if (messagesCount > 0) {
-                    adminMessagesList.innerHTML = adminMessagesData.messages.map(message => `
-                        <li style="padding: 12px; background-color: #e3f2fd; border-radius: 6px; border: 1px solid #90caf9; margin-bottom: 8px; cursor: pointer; transition: all 0.3s ease;" 
-                            class="notification-item admin-message-notification" 
-                            data-message-id="${message.id}"
-                            onmouseover="this.style.backgroundColor='#64b5f6'" 
-                            onmouseout="this.style.backgroundColor='#e3f2fd'">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <div style="flex: 1;">
-                                    <h4 style="font-weight: 600; color: #1976d2; margin: 0; font-size: 14px;">Admin Message: ${escapeHtml(message.title)}</h4>
-                                    <p style="font-size: 12px; color: #2196f3; margin: 4px 0 0 0;">${escapeHtml(message.content)}</p>
-                                    <p style="font-size: 11px; color: #2196f3; margin: 4px 0 0 0;">Sent: ${new Date(message.sent_at).toLocaleString()}</p>
-                                </div>
-                                <span style="padding: 4px 8px; background-color: #42a5f5; color: white; border-radius: 9999px; font-size: 12px; white-space: nowrap; margin-left: 8px;">Message</span>
-                            </div>
-                        </li>
-                    `).join('');
-
-                    adminMessagesList.querySelectorAll('.admin-message-notification').forEach(item => {
-                        item.addEventListener('click', function() {
-                            const messageId = this.dataset.messageId;
-                            markNotificationRead(messageId, 'admin_message');
-                            // Optionally, display full message in a modal
-                        });
-                    });
-
-                } else {
-                    adminMessagesList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new admin messages</li>';
-                }
-            }
-
         })
         .catch(error => {
             console.error('Error updating notifications:', error);
             if (assignedTasksList) assignedTasksList.innerHTML = '<li style="padding: 12px; color: #dc2626; text-align: center; font-size: 14px;">Error loading new task assignments</li>';
             if (taskApprovalList) taskApprovalList.innerHTML = '<li style="padding: 12px; color: #dc2626; text-align: center; font-size: 14px;">Error loading task approval notifications</li>';
-            if (adminMessagesList) adminMessagesList.innerHTML = '<li style="padding: 12px; color: #dc2626; text-align: center; font-size: 14px;">Error loading admin messages</li>';
         });
     }
 
