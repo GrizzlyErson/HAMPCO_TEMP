@@ -139,7 +139,6 @@ try {
                                     <h6 class="m-0 font-weight-bold text-light">Recent Tasks</h6>
                                     <div class="btn-group" role="group" aria-label="Recent task filters">
                                         <button type="button" class="btn btn-light btn-sm recent-task-tab active" data-task-tab="assigned">Assigned Tasks</button>
-                                        <button type="button" class="btn btn-outline-light btn-sm recent-task-tab" data-task-tab="created">Task Created</button>
                                     </div>
                                 </div>
                                 <div>
