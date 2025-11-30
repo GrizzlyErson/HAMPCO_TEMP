@@ -200,7 +200,8 @@ try {
                                     <div class="chart-pie pt-4 pb-2">
                                         <canvas id="taskProgressChart"></canvas>
                                     </div>
-                                    
+                                    <!-- Custom HTML Legend -->
+                                    <div id="taskProgressLegend" class="flex justify-center flex-wrap gap-x-4 gap-y-2 mt-4"></div>
                                 </div>
                             </div>
                         </div>
