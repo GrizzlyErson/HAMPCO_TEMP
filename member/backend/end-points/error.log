@@ -1,0 +1,8 @@
+[01-Dec-2025 05:25:44 Asia/Manila] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in C:\Users\Jefferson\xampp\htdocs\HAMPCO_TEMP\member\backend\end-points\update_profile.php:38
+Stack trace:
+#0 {main}
+  thrown in C:\Users\Jefferson\xampp\htdocs\HAMPCO_TEMP\member\backend\end-points\update_profile.php on line 38
+[01-Dec-2025 05:42:02 Asia/Manila] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in C:\Users\Jefferson\xampp\htdocs\HAMPCO_TEMP\member\backend\end-points\update_profile.php:38
+Stack trace:
+#0 {main}
+  thrown in C:\Users\Jefferson\xampp\htdocs\HAMPCO_TEMP\member\backend\end-points\update_profile.php on line 38
