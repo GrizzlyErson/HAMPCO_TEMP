@@ -47,7 +47,7 @@ if (strlen($new_password) < 6) {
 
 try {
     // Fetch current hashed password from the database
-    $stmt = $db->conn->prepare("SELECT customer_password FROM customer WHERE customer_id = ?");
+    $stmt = $db->conn->prepare("SELECT customer_password FROM user_customer WHERE customer_id = ?");
     $stmt->bind_param("i", $customer_id);
     $stmt->execute();
     $result = $stmt->get_result();
