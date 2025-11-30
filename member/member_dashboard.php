@@ -82,14 +82,6 @@ try {
                                         <li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>
                                     </ul>
                                 </div>
-
-                                <!-- Admin Messages Section -->
-                                <div>
-                                    <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Admin Messages</h4>
-                                    <ul id="adminMessagesList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
-                                        <li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new messages</li>
-                                    </ul>
-                                </div>
                             </div>
 
                             <!-- Modal Footer -->
