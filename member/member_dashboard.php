@@ -473,6 +473,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             yPadding: 15,
                             displayColors: false,
                             caretPadding: 10,
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    const dataset = data.datasets[tooltipItem.datasetIndex];
+                                    const currentValue = dataset.data[tooltipItem.index];
+                                    const label = data.labels[tooltipItem.index];
+                                    return label + ': ' + currentValue;
+                                }
+                            }
                         },
                         legend: {
                             display: true,
