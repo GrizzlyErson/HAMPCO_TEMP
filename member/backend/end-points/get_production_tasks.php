@@ -44,7 +44,7 @@ try {
         )
         ORDER BY pl.date_created DESC";
 
-    $stmt = $db->conn->prepare($new_tasks_query);
+    $stmt = $db->conn->prepare($pending_tasks_query);
     if (!$stmt) {
         throw new Exception("Prepare failed for new tasks: " . $db->conn->error);
     }
