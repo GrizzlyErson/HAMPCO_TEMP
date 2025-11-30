@@ -15,7 +15,7 @@ class global_class extends db_connect
 
 public function updateCustomerPassword($customer_id, $hashedPassword)
 {
-    $stmt = $this->conn->prepare("UPDATE customer SET customer_password = ? WHERE customer_id = ?");
+    $stmt = $this->conn->prepare("UPDATE user_customer SET customer_password = ? WHERE customer_id = ?");
     if ($stmt === false) {
         error_log("Prepare failed: " . $this->conn->error);
         return false;
