@@ -10,7 +10,7 @@ if (!isset($_GET['role'])) {
 }
 
 $role = $_GET['role'];
-$valid_roles = ['knotter', 'warper', 'weaver'];
+$valid_roles = ['knotter', 'warper', 'weaver', 'all'];
 
 if (!in_array($role, $valid_roles)) {
     echo json_encode(['error' => 'Invalid role']);
@@ -21,6 +21,7 @@ if (!in_array($role, $valid_roles)) {
 $query = "SELECT 
     um.id, 
     um.fullname,
+    um.role, 
     CASE 
         WHEN ta.status = 'in_progress' THEN 'Work In Progress'
         WHEN ta.status = 'pending' THEN 'Available'
@@ -33,11 +34,18 @@ LEFT JOIN (
     WHERE status = 'in_progress' OR status = 'pending'
     GROUP BY member_id
 ) ta ON um.id = ta.member_id
-WHERE um.role = ? AND um.status = 1 
-ORDER BY um.fullname ASC";
+WHERE um.status = 1";
+
+if ($role !== 'all') {
+    $query .= " AND um.role = ?";
+}
+
+$query .= " ORDER BY um.fullname ASC";
 
 $stmt = $db->conn->prepare($query);
-$stmt->bind_param("s", $role);
+if ($role !== 'all') {
+    $stmt->bind_param("s", $role);
+}
 $stmt->execute();
 $result = $stmt->get_result();
 

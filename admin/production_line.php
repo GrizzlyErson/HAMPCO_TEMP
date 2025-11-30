@@ -1633,7 +1633,7 @@ function loadModalData() {
                 members.forEach(member => {
                     const option = document.createElement('option');
                     option.value = member.id;
-                    option.textContent = `${member.first_name} ${member.last_name} (${member.role})`;
+                    option.textContent = `${member.fullname} (${member.role})`;
                     assignedToSelect.appendChild(option);
                 });
             } else {
