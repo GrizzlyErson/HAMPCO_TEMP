@@ -342,42 +342,58 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Created tasks data:', createdData);
 
             const assigned = [];
-            if (assignedData && assignedData.success) {
-                // Update card counts
-                document.getElementById('pendingTasksCount').innerHTML = assignedData.pending_tasks ? assignedData.pending_tasks.length : 0;
-                document.getElementById('inProgressTasksCount').innerHTML = assignedData.in_progress_tasks ? assignedData.in_progress_tasks.length : 0;
-                document.getElementById('completedTasksCount').innerHTML = assignedData.completed_tasks ? assignedData.completed_tasks.length : 0;
+            if (assignedData) {
+                if (assignedData.success === false) {
+                    console.error('Backend reported error for assigned tasks:', assignedData.message);
+                } else {
+                    // Update card counts (these elements are removed, but the code still exists)
+                    // They were commented out in the previous revert.
+                    // This is to avoid errors if these elements are expected.
+                    const pendingCountElement = document.getElementById('pendingTasksCount');
+                    if (pendingCountElement) pendingCountElement.innerHTML = assignedData.pending_tasks ? assignedData.pending_tasks.length : 0;
+                    
+                    const inProgressCountElement = document.getElementById('inProgressTasksCount');
+                    if (inProgressCountElement) inProgressCountElement.innerHTML = assignedData.in_progress_tasks ? assignedData.in_progress_tasks.length : 0;
+                    
+                    const completedCountElement = document.getElementById('completedTasksCount');
+                    if (completedCountElement) completedCountElement.innerHTML = assignedData.completed_tasks ? assignedData.completed_tasks.length : 0;
+                    
 
-                // Populate assigned tasks for the table (combining pending, in-progress, completed for display)
-                const allAssignedTasks = [
-                    ...(assignedData.pending_tasks || []),
-                    ...(assignedData.in_progress_tasks || []),
-                    ...(assignedData.completed_tasks || [])
-                ];
+                    // Populate assigned tasks for the table (combining pending, in-progress, completed for display)
+                    const allAssignedTasks = [
+                        ...(assignedData.pending_tasks || []),
+                        ...(assignedData.in_progress_tasks || []),
+                        ...(assignedData.completed_tasks || [])
+                    ];
 
-                allAssignedTasks.forEach(task => {
-                    assigned.push({
-                        display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
-                        product_name: task.product_name,
-                        status: task.status || task.task_status || 'pending',
-                        date: task.deadline || task.date_started,
-                        type: 'Assigned Task'
+                    allAssignedTasks.forEach(task => {
+                        assigned.push({
+                            display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
+                            product_name: task.product_name,
+                            status: task.status || task.task_status || 'pending',
+                            date: task.deadline || task.date_started,
+                            type: 'Assigned Task'
+                        });
                     });
-                });
+                }
             }
             recentTasksState.assigned = assigned.slice(0, 8);
 
             const created = [];
-            if (createdData && createdData.success && Array.isArray(createdData.tasks)) {
-                createdData.tasks.forEach(task => {
-                    created.push({
-                        display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
-                        product_name: task.product_name,
-                        status: task.status || 'Created',
-                        date: task.date_added || task.date_submitted,
-                        type: 'Created'
+            if (createdData) {
+                if (createdData.success === false) {
+                    console.error('Backend reported error for created tasks:', createdData.message);
+                } else if (createdData.success && Array.isArray(createdData.tasks)) {
+                    createdData.tasks.forEach(task => {
+                        created.push({
+                            display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
+                            product_name: task.product_name,
+                            status: task.status || 'Created',
+                            date: task.date_added || task.date_submitted,
+                            type: 'Created'
+                        });
                     });
-                });
+                }
             }
             recentTasksState.created = created.slice(0, 8);
 
