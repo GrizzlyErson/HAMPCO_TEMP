@@ -49,56 +49,56 @@ try {
 
                         <!-- Earnings (Monthly) Card Example -->
                         <div class="col-xl-4 col-md-6 mb-4">
-                            <div class="card border-left-success shadow h-100 py-2">
+                            <a href="production.php?tab=assigned&status=pending" class="card border-left-warning shadow h-100 py-2">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-uppercase mb-1">
                                                 Pending Tasks</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="pendingTasksCount">0</div>
                                         </div>
                                         <div class="col-auto">
-                                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                            <i class="fas fa-clock fa-2x text-gray-300"></i>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
 
                         <!-- Earnings (Monthly) Card Example -->
                         <div class="col-xl-4 col-md-6 mb-4">
-                            <div class="card border-left-success shadow h-100 py-2">
+                            <a href="production.php?tab=assigned&status=in_progress" class="card border-left-info shadow h-100 py-2">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-uppercase mb-1">
                                                 In Progress</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="inProgressTasksCount">0</div>
                                         </div>
                                         <div class="col-auto">
-                                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                            <i class="fas fa-spinner fa-2x text-gray-300"></i>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
 
                         <!-- Pending Requests Card Example -->
                         <div class="col-xl-4 col-md-12 mb-4">
-                            <div class="card border-left-success shadow h-100 py-2">
+                            <a href="production.php?tab=assigned&status=completed" class="card border-left-success shadow h-100 py-2">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-uppercase mb-1">
                                                 Completed Tasks</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="completedTasksCount">0</div>
                                         </div>
                                         <div class="col-auto">
-                                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                                            <i class="fas fa-check fa-2x text-gray-300"></i>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
                     </div>
                     
@@ -173,8 +173,10 @@ try {
                                     </div>
                                 </div>
                                 <!-- Card Body -->
-                                <div class="card-body" style="max-height: 415px;">
-                                    <h1>NO TASK PROGRESS</h1>
+                                <div class="card-body">
+                                    <div class="chart-pie pt-4 pb-2">
+                                        <canvas id="taskProgressChart"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -397,28 +399,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const assigned = [];
             if (assignedData && assignedData.success) {
-                if (assignedData.new_tasks && Array.isArray(assignedData.new_tasks)) {
-                    assignedData.new_tasks.forEach(task => {
-                        assigned.push({
-                            display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
-                            product_name: task.product_name,
-                            status: task.status || task.task_status || 'pending',
-                            date: task.deadline,
-                            type: 'New Assignment'
-                        });
+                // Update card counts
+                document.getElementById('pendingTasksCount').innerHTML = assignedData.pending_tasks ? assignedData.pending_tasks.length : 0;
+                document.getElementById('inProgressTasksCount').innerHTML = assignedData.in_progress_tasks ? assignedData.in_progress_tasks.length : 0;
+                document.getElementById('completedTasksCount').innerHTML = assignedData.completed_tasks ? assignedData.completed_tasks.length : 0;
+
+                // Populate assigned tasks for the table (combining pending, in-progress, completed for display)
+                const allAssignedTasks = [
+                    ...(assignedData.pending_tasks || []),
+                    ...(assignedData.in_progress_tasks || []),
+                    ...(assignedData.completed_tasks || [])
+                ];
+
+                allAssignedTasks.forEach(task => {
+                    assigned.push({
+                        display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
+                        product_name: task.product_name,
+                        status: task.status || task.task_status || 'pending',
+                        date: task.deadline || task.date_started,
+                        type: 'Assigned Task'
                     });
-                }
-                if (assignedData.assigned_tasks && Array.isArray(assignedData.assigned_tasks)) {
-                    assignedData.assigned_tasks.forEach(task => {
-                        assigned.push({
-                            display_id: task.display_id || `PL${String(task.prod_line_id).padStart(4, '0')}`,
-                            product_name: task.product_name,
-                            status: task.status || 'in_progress',
-                            date: task.date_started,
-                            type: 'In Progress'
-                        });
-                    });
-                }
+                });
             }
             recentTasksState.assigned = assigned.slice(0, 8);
 
@@ -437,7 +438,55 @@ document.addEventListener('DOMContentLoaded', function() {
             recentTasksState.created = created.slice(0, 8);
 
             console.log('State assigned:', recentTasksState.assigned);
-            console.log('State created:', recentTasksState.created);
+            // --- Chart.js Task Progress Chart ---
+            const ctx = document.getElementById('taskProgressChart');
+            if (ctx) {
+                // Destroy existing chart if it exists
+                if (window.taskProgressDoughnutChart) {
+                    window.taskProgressDoughnutChart.destroy();
+                }
+
+                const pendingCount = assignedData.pending_tasks ? assignedData.pending_tasks.length : 0;
+                const completedCount = assignedData.completed_tasks ? assignedData.completed_tasks.length : 0;
+                const inProgressCount = assignedData.in_progress_tasks ? assignedData.in_progress_tasks.length : 0;
+
+                window.taskProgressDoughnutChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Pending', 'In Progress', 'Completed'],
+                        datasets: [{
+                            data: [pendingCount, inProgressCount, completedCount],
+                            backgroundColor: ['#fd7e14', '#17a2b8', '#28a745'], // Orange for pending, Blue for in-progress, Green for completed
+                            hoverBackgroundColor: ['#e66b00', '#138496', '#218838'],
+                            hoverBorderColor: "rgba(234, 236, 244, 1)",
+                        }],
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        tooltips: {
+                            backgroundColor: "rgb(255,255,255)",
+                            bodyFontColor: "#858796",
+                            borderColor: '#dddfeb',
+                            borderWidth: 1,
+                            xPadding: 15,
+                            yPadding: 15,
+                            displayColors: false,
+                            caretPadding: 10,
+                        },
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                fontColor: "#343a40",
+                                boxWidth: 12,
+                                padding: 20
+                            }
+                        },
+                        cutoutPercentage: 80,
+                    },
+                });
+            }
 
             renderRecentTasks(activeTaskTab);
         })
