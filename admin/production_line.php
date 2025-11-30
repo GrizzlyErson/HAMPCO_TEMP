@@ -1612,31 +1612,82 @@ function updateMaterialsList(productName, role) {
             materialsListDiv.innerHTML = ''; // Clear previous content
 
             if (data.success && data.materials && data.materials.length > 0) {
+                materialsListDiv.innerHTML = `<div class="mb-2 text-sm text-gray-600">Select materials to deduct:</div>`;
                 data.materials.forEach(material => {
                     const materialItem = document.createElement('div');
-                    materialItem.className = 'flex items-center justify-between py-1';
+                    materialItem.className = 'flex items-center justify-between py-1 border-b border-gray-200 last:border-b-0';
                     
                     const isAvailable = material.available_quantity > 0;
-                    const textColorClass = isAvailable ? 'text-green-600' : 'text-red-600';
+                    const textColorClass = isAvailable ? 'text-green-700' : 'text-red-600';
                     const availabilityText = isAvailable ? 
-                        `${material.available_quantity} ${material.unit} available` : 
-                        `0 ${material.unit} available (Required)`;
-
+                        `(${material.available_quantity} ${material.unit} available)` : 
+                        '(Out of Stock)';
+                    
                     let materialNameDisplay = material.name;
-                    if (material.category) {
+                    if (material.sub_category && material.sub_category !== 'null') {
+                        materialNameDisplay += ` (${material.sub_category})`;
+                    } else if (material.category && material.category !== 'null') {
                         materialNameDisplay += ` (${material.category})`;
                     }
 
+                    const materialId = material.id;
+                    const materialType = material.category; // 'raw' or 'processed'
+                    const materialSubCategory = material.sub_category || '';
+
                     materialItem.innerHTML = `
-                        <span class="text-sm text-gray-700">${materialNameDisplay}</span>
-                        <span class="text-sm font-medium ${textColorClass}">
-                            ${availabilityText}
-                        </span>
+                        <label class="flex items-center space-x-2 flex-grow cursor-pointer">
+                            <input type="checkbox" 
+                                class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out material-checkbox" 
+                                id="material_checkbox_${materialId}_${materialType}_${materialSubCategory.replace(/\s/g, '_')}"
+                                data-material-id="${materialId}" 
+                                data-material-name="${material.name}"
+                                data-material-type="${materialType}"
+                                data-material-subcategory="${materialSubCategory}"
+                                data-available-quantity="${material.available_quantity}"
+                                data-unit="${material.unit}"
+                                ${!isAvailable ? 'disabled' : ''}>
+                            <span class="text-sm font-medium text-gray-700">
+                                ${materialNameDisplay} <span class="${textColorClass}">${availabilityText}</span>
+                            </span>
+                        </label>
+                        <div class="ml-4 flex items-center">
+                            <input type="number" 
+                                class="w-24 px-2 py-1 border border-gray-300 rounded-md text-sm text-center material-quantity-input" 
+                                min="1" 
+                                max="${material.available_quantity}" 
+                                value="1" 
+                                data-material-id="${materialId}"
+                                data-material-type="${materialType}"
+                                data-material-subcategory="${materialSubCategory}"
+                                ${!isAvailable ? 'disabled' : 'enabled'}>
+                            <span class="text-sm text-gray-600 ml-1">${material.unit}</span>
+                        </div>
                     `;
                     materialsListDiv.appendChild(materialItem);
                 });
+                // Add event listeners for checkboxes and quantity inputs
+                materialsListDiv.querySelectorAll('.material-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        const quantityInput = this.closest('.flex-grow').nextElementSibling.querySelector('.material-quantity-input');
+                        if (quantityInput) {
+                            quantityInput.disabled = !this.checked;
+                            if (this.checked) {
+                                quantityInput.value = Math.min(quantityInput.value, parseInt(quantityInput.max));
+                            } else {
+                                quantityInput.value = 1; // Reset value when unchecked
+                            }
+                        }
+                    });
+                });
+
+                // Initialize quantity inputs based on checkbox state (for first load)
+                materialsListDiv.querySelectorAll('.material-quantity-input').forEach(input => {
+                    const checkbox = input.closest('div').previousElementSibling.querySelector('.material-checkbox');
+                    input.disabled = !checkbox.checked;
+                });
+
             } else {
-                materialsListDiv.innerHTML = `<div class="text-sm text-gray-500">${data.message || 'No materials information available for this product.'}</div>`;
+                materialsListDiv.innerHTML = `<div class="text-sm text-gray-500">${data.message || 'No materials information available for this product or role.'}</div>`;
             }
         })
         .catch(error => {
@@ -1698,15 +1749,34 @@ function loadModalData() {
 }
 
 
-// Function to set minimum date for deadline (today)
-function setMinDeadlineDate() {
+// Function to set minimum date for deadline (today) and default date
+function setMinDeadlineDate(productName = '') {
     const now = new Date();
+    const deadlineInput = document.getElementById('deadline');
+    
     // Format: YYYY-MM-DDTHH:MM
     const minDate = now.toISOString().slice(0, 16);
-    document.getElementById('deadline').min = minDate;
-    // Set default deadline to 7 days from now
-    const defaultDeadline = new Date(now.setDate(now.getDate() + 7)).toISOString().slice(0, 16);
-    document.getElementById('deadline').value = defaultDeadline;
+    deadlineInput.min = minDate;
+
+    let defaultDaysOffset = 7; // Default to 7 days
+
+    switch (productName) {
+        case 'Warped Silk':
+            defaultDaysOffset = 3; // Shorter for warper task
+            break;
+        case 'Knotted Liniwan':
+        case 'Knotted Bastos':
+            defaultDaysOffset = 5; // Medium for knotter task
+            break;
+        case 'Piña Seda':
+        case 'Pure Piña Cloth':
+            defaultDaysOffset = 10; // Longer for weaver task
+            break;
+        // Default remains 7 days for other products or no selection
+    }
+
+    const defaultDeadline = new Date(now.setDate(now.getDate() + defaultDaysOffset)).toISOString().slice(0, 16);
+    deadlineInput.value = defaultDeadline;
 }
 
 // Initialize the create task form
@@ -1753,7 +1823,8 @@ document.addEventListener('DOMContentLoaded', function() {
     createTaskBtn.addEventListener('click', function() {
         createTaskModal.classList.remove('hidden');
         loadModalData();
-        setMinDeadlineDate();
+        const initialSelectedProduct = document.getElementById('product_name').value;
+        setMinDeadlineDate(initialSelectedProduct);
     });
 
     // Hide modal
@@ -1787,6 +1858,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Update materials list based on selected product and role
         updateMaterialsList(selectedProduct, selectedRole);
+
+        // Update deadline based on selected product
+        setMinDeadlineDate(selectedProduct);
     });
 
     // Add event listener for assigned_to select
@@ -1809,16 +1883,66 @@ document.addEventListener('DOMContentLoaded', function() {
         const productName = formData.get('product_name');
         const quantity = formData.get('quantity');
         const deadline = formData.get('deadline');
-        
+        const assignedTo = formData.get('assigned_to'); // Get the assigned member ID
+        const selectedMember = availableMembers.find(member => member.id == assignedTo);
+        const assignedRole = selectedMember ? selectedMember.role : '';
+
         if (!productName) {
-            alert('Please select a product');
+            Swal.fire('Error', 'Please select a product', 'error');
             return;
         }
         
-        if (!quantity || quantity < 1) {
-            alert('Please enter a valid quantity');
+        // For products that don't have a quantity field (Knotted Liniwan, Knotted Bastos, Warped Silk)
+        // the quantity should not be validated as 1 (it's implicitly 1 for task creation)
+        if (!['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'].includes(productName) && (!quantity || quantity < 1)) {
+            Swal.fire('Error', 'Please enter a valid quantity for the product', 'error');
             return;
         }
+
+        if (!assignedTo) {
+            Swal.fire('Error', 'Please select a member to assign the task to', 'error');
+            return;
+        }
+
+        formData.append('assigned_member_id', assignedTo);
+        formData.append('assigned_member_role', assignedRole);
+
+
+        // Collect selected materials for deduction
+        const selectedMaterials = [];
+        let isValid = true; // Flag to track overall form validity
+
+        document.querySelectorAll('.material-checkbox:checked').forEach(checkbox => {
+            if (!isValid) return; // Skip if already invalid
+
+            const materialId = checkbox.dataset.materialId;
+            const materialType = checkbox.dataset.materialType;
+            const materialName = checkbox.dataset.materialName;
+            const materialSubCategory = checkbox.dataset.materialSubcategory;
+            const quantityInput = checkbox.closest('.flex-grow').nextElementSibling.querySelector('.material-quantity-input');
+            const quantityToDeduct = parseFloat(quantityInput.value);
+            const availableQuantity = parseFloat(checkbox.dataset.availableQuantity);
+
+            if (isNaN(quantityToDeduct) || quantityToDeduct <= 0 || quantityToDeduct > availableQuantity) {
+                Swal.fire('Error', `Invalid quantity for ${materialName}. Available: ${availableQuantity}, Requested: ${quantityToDeduct}`, 'error');
+                isValid = false; // Set flag to false
+                return; // Exit forEach callback, but not the main function
+            }
+            selectedMaterials.push({
+                id: materialId,
+                name: materialName,
+                type: materialType,
+                sub_category: materialSubCategory,
+                deduct_quantity: quantityToDeduct
+            });
+        });
+
+        if (!isValid) {
+            return; // Stop form submission if any material validation failed
+        }
+
+        // Add selected materials to formData
+        formData.append('selected_materials', JSON.stringify(selectedMaterials));
         
         // Submit the form
         fetch('backend/end-points/create_task.php', {
@@ -1839,12 +1963,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.reload();
                 });
             } else {
-                alert('Error: ' + (data.message || 'Failed to create task'));
+                Swal.fire('Error', data.message || 'Failed to create task', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while creating the task');
+            Swal.fire('Error', 'An error occurred while creating the task. Please check the console for details.', 'error');
         });
     });
 
