@@ -173,7 +173,7 @@ try {
                                     </div>
                                 </div>
                                 <!-- Card Body -->
-                                <div class="card-body" style="height: 415px;">
+                                <div class="card-body" style="height: 350px;">
                                     <div class="chart-pie pt-4 pb-2">
                                         <canvas id="taskProgressChart"></canvas>
                                     </div>
@@ -490,7 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             labels: {
                                 fontColor: "#343a40",
                                 boxWidth: 12,
-                                padding: 20
+                                padding: 10 // Reduced padding for compactness
                             }
                         },
                         cutoutPercentage: 80,
