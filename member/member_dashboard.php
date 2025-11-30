@@ -493,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 padding: 10 // Reduced padding for compactness
                             }
                         },
-                        cutoutPercentage: 80,
+                        cutoutPercentage: 70,
                     },
                 });
             }
