@@ -315,7 +315,7 @@ require_once "components/header.php";
                                     <h6 class="m-0 font-weight-bold text-light">⏰ Upcoming Deadlines & Overdue Tasks</h6>
                                 </div>
                                 <div class="card-body">
-                                    <div class="table-responsive">
+                                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
                                         <table class="table table-bordered" id="taskDeadlinesTable" width="100%" cellspacing="0">
                                             <thead>
                                                 <tr>
