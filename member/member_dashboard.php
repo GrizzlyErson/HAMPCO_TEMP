@@ -177,6 +177,8 @@ try {
                                     <div class="chart-pie pt-4 pb-2">
                                         <canvas id="taskProgressChart"></canvas>
                                     </div>
+                                    <!-- Custom HTML Legend -->
+                                    <div id="taskProgressLegend" class="flex justify-center flex-wrap gap-x-4 gap-y-2 mt-4"></div>
                                 </div>
                             </div>
                         </div>
@@ -485,17 +487,32 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         },
                         legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                fontColor: "#343a40",
-                                boxWidth: 12,
-                                padding: 10 // Reduced padding for compactness
-                            }
+                            display: false, // Disable Chart.js's internal legend
                         },
                         cutoutPercentage: 70,
                     },
                 });
+                // --- Custom HTML Legend Generation ---
+                const taskProgressLegendContainer = document.getElementById('taskProgressLegend');
+                if (taskProgressLegendContainer) {
+                    taskProgressLegendContainer.innerHTML = ''; // Clear previous legend items
+                    const chartData = window.taskProgressDoughnutChart.data;
+                    const total = chartData.datasets[0].data.reduce((sum, val) => sum + val, 0);
+
+                    chartData.labels.forEach((label, index) => {
+                        const color = chartData.datasets[0].backgroundColor[index];
+                        const value = chartData.datasets[0].data[index];
+                        const percentage = total > 0 ? parseFloat(((value / total) * 100).toFixed(1)) : 0;
+
+                        const legendItem = document.createElement('div');
+                        legendItem.className = 'flex items-center space-x-2 text-sm text-gray-700';
+                        legendItem.innerHTML = `
+                            <span class="w-3 h-3 rounded-full" style="background-color: ${color};"></span>
+                            <span>${label}: ${value} (${percentage}%)</span>
+                        `;
+                        taskProgressLegendContainer.appendChild(legendItem);
+                    });
+                }
             }
 
             renderRecentTasks(activeTaskTab);
