@@ -88,6 +88,8 @@ while ($row = $assigned_tasks_result->fetch_assoc()) {
 }
 ?>
 
+<body class="hampco-admin-sidebar-layout">
+
 <div class="container mx-auto px-4">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">Production</h2>
@@ -162,15 +164,23 @@ while ($row = $assigned_tasks_result->fetch_assoc()) {
                                 <?php endif; ?>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo ucfirst($task['status']); ?></td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo $task['deadline'] ? date('Y-m-d', strtotime($task['deadline'])) : '-'; ?></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                                    <button onclick="acceptTask(<?php echo $task['task_id']; ?>)" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md">Accept</button>
-                                    <button onclick="declineTask(<?php echo $task['task_id']; ?>)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md ml-2">Decline</button>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div class="flex flex-col space-y-2">
+                                        <button onclick="acceptTask(<?php echo $task['task_id']; ?>)" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md">Accept</button>
+                                        <button onclick="declineTask(<?php echo $task['task_id']; ?>)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md">Decline</button>
+                                    </div>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
                             <?php if (empty($new_tasks)): ?>
                             <tr>
-                                <td colspan="<?php echo $member_role === 'knotter' ? '7' : ($member_role === 'weaver' ? '7' : '8'); ?>" class="px-6 py-4 text-center text-gray-500">No new tasks available</td>
+                                <td colspan="<?php 
+                                    $colspan = 5;
+                                    if ($member_role === 'knotter') $colspan = 6;
+                                    elseif ($member_role === 'weaver') $colspan = 8;
+                                    elseif ($member_role !== 'warper') $colspan = 7;
+                                    echo $colspan;
+                                ?>" class="px-6 py-4 text-center text-gray-500">No new tasks available</td>
                             </tr>
                             <?php endif; ?>
                         </tbody>
@@ -232,7 +242,12 @@ while ($row = $assigned_tasks_result->fetch_assoc()) {
                             <?php endforeach; ?>
                             <?php if (empty($assigned_tasks)): ?>
                             <tr>
-                                <td colspan="<?php echo $member_role === 'knotter' ? '7' : ($member_role === 'weaver' ? '8' : '9'); ?>" class="px-6 py-4 text-center text-gray-500">No assigned tasks</td>
+                                <td colspan="<?php
+                                    $colspan = 6;
+                                    if ($member_role === 'knotter') $colspan = 7;
+                                    elseif ($member_role !== 'warper') $colspan = 9;
+                                    echo $colspan;
+                                ?>" class="px-6 py-4 text-center text-gray-500">No assigned tasks</td>
                             </tr>
                             <?php endif; ?>
                         </tbody>
@@ -461,11 +476,7 @@ while ($row = $assigned_tasks_result->fetch_assoc()) {
     </div>
 </div>
 
-<!-- Include scripts -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-<script src="assets/js/self-tasks.js"></script>
+<script src="js/self-tasks.js"></script>
 <script>
 $(document).ready(function() {
     // Handle tab switching
@@ -495,13 +506,11 @@ $(document).ready(function() {
     });
 
     // On page load, check for saved tab state
-    $(document).ready(function() {
-        const savedTab = localStorage.getItem('activeProductionTab');
-        if (savedTab) {
-            // Trigger click on the saved tab
-            $(`#${savedTab}-tab`).click();
-        }
-    });
+    const savedTab = localStorage.getItem('activeProductionTab');
+    if (savedTab) {
+        // Trigger click on the saved tab
+        $(`#${savedTab}-tab`).click();
+    }
 
     // Create Task Modal Functionality
     const createTaskBtn = document.getElementById('createTaskBtn');
@@ -1492,5 +1501,6 @@ function viewMaterials(productName, weight) {
         });
 }
 </script>
+</body>
 
 <?php include "components/footer.php"; ?>

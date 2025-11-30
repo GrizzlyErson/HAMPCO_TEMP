@@ -24,7 +24,7 @@ $sql = "SELECT
         JOIN
             production_line pl ON tar.production_id = pl.prod_line_id
         WHERE
-            tar.member_id = ? AND tar.read_status = 0
+            tar.member_id = ? AND tar.is_read_by_member = 0
         ORDER BY
             tar.submitted_at DESC";
 

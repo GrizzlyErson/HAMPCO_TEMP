@@ -36,8 +36,8 @@ try {
     $tasks = [];
     while ($row = $result->fetch_assoc()) {
         // Format dates
-        $row['date_created'] = date('Y-m-d H:i:s', strtotime($row['date_created']));
-        $row['date_submitted'] = $row['date_submitted'] ? date('Y-m-d H:i:s', strtotime($row['date_submitted'])) : null;
+        $row['date_created'] = date('Y-m-d', strtotime($row['date_created']));
+        $row['date_submitted'] = $row['date_submitted'] ? date('Y-m-d', strtotime($row['date_submitted'])) : null;
         
         $tasks[] = $row;
     }

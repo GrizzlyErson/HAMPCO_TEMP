@@ -1,46 +1,64 @@
 <?php
-session_start();
-header('Content-Type: application/json');
+// backend/end-points/get_admin_messages_for_member.php
 require_once '../../function/database.php';
-require_once '../../backend/class.php';
+session_start();
 
-$db = new Database();
-$member_id = $_SESSION['id'] ?? 0;
+header('Content-Type: application/json');
 
-if ($member_id === 0) {
-    echo json_encode(['success' => false, 'message' => 'Member not logged in.']);
-    exit();
+if (!isset($_SESSION['id'])) {
+    echo json_encode(['success' => false, 'message' => 'User not logged in']);
+    exit;
 }
 
-$sql = "SELECT
-            id,
-            title,
-            content,
-            sent_at
-        FROM
-            admin_messages
-        WHERE
-            recipient_member_id = ? AND read_status = 0
-        ORDER BY
-            sent_at DESC";
+$memberId = $_SESSION['id'];
+$db = new Database();
 
 try {
-    $stmt = $db->conn->prepare($sql);
+    // Fetch unread messages for the specific member
+    // Assumes there's a table `admin_messages` with a `recipient_member_id` and a `is_read` column
+    // The query should join with a linking table if messages are sent to multiple members,
+    // or check a specific column if messages are targeted individually.
+    // This example assumes a simple `admin_messages` table for demonstration.
+    
+    // Let's assume a table structure like:
+    // admin_messages(id, title, content, sent_at, is_read, recipient_member_id)
+    
+    // A more robust approach would use a pivot table like `message_recipients`
+    // message_recipients(message_id, member_id, is_read)
+    
+    $query = "SELECT 
+                m.id, 
+                m.title, 
+                m.content, 
+                m.sent_at 
+              FROM admin_messages m
+              LEFT JOIN admin_message_read_status mrs ON m.id = mrs.message_id AND mrs.member_id = ?
+              WHERE mrs.id IS NULL OR mrs.is_read = 0
+              ORDER BY m.sent_at DESC";
+
+    $stmt = $db->conn->prepare($query);
     if (!$stmt) {
-        throw new Exception("Prepare failed: " . $db->conn->error);
+        throw new Exception("Failed to prepare statement: " . $db->conn->error);
     }
-    $stmt->bind_param("i", $member_id);
+    
+    $stmt->bind_param("i", $memberId);
     $stmt->execute();
     $result = $stmt->get_result();
+
     $messages = [];
-    while ($row = $result->fetch_assoc()) {
-        $messages[] = $row;
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $messages[] = $row;
+        }
     }
     $stmt->close();
+    
     echo json_encode(['success' => true, 'messages' => $messages]);
 
 } catch (Exception $e) {
-    error_log("Error fetching admin messages for member_id $member_id: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Error fetching admin messages: ' . $e->getMessage()]);
+    error_log("Error fetching admin messages for member $memberId: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'An error occurred while fetching messages.']);
 }
+
+$db->conn->close();
 ?>

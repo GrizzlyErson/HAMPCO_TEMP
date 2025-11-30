@@ -82,6 +82,14 @@ try {
                                         <li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>
                                     </ul>
                                 </div>
+
+                                <!-- Admin Messages Section -->
+                                <div style="margin-bottom: 24px;">
+                                    <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Admin Messages</h4>
+                                    <ul id="adminMessagesList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                                        <li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>
+                                    </ul>
+                                </div>
                             </div>
 
                             <!-- Modal Footer -->
@@ -651,14 +659,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error('Error fetching new task assignments:', e);
                     return { success: false, assignments: [] };
                 }),
-            // Fetch task approval status updates (assuming a new endpoint `get_task_approval_notifications.php`)
+            // Fetch task approval status updates
             fetch('backend/end-points/get_task_approval_notifications.php')
                 .then(r => r.json())
                 .catch(e => {
                     console.error('Error fetching task approval notifications:', e);
                     return { success: false, notifications: [] };
                 }),
-            // Fetch admin messages (assuming a new endpoint `get_admin_messages_for_member.php`)
+            // Fetch admin messages for the member
             fetch('backend/end-points/get_admin_messages_for_member.php')
                 .then(r => r.json())
                 .catch(e => {

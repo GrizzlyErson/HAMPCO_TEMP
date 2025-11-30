@@ -28,18 +28,14 @@ try {
         pl.quantity,
         pl.status,
         pl.date_created as date_added,
-        ta.updated_at as date_submitted,
-        GROUP_CONCAT(DISTINCT pm.material_name) as required_materials
+        t.date_submitted
     FROM production_line pl
-    LEFT JOIN task_assignments ta ON pl.prod_line_id = ta.prod_line_id AND ta.member_id = ?
-    LEFT JOIN task t ON pl.prod_line_id = t.prod_line_id
-    LEFT JOIN product_materials pm ON pl.product_name = pm.product_name AND pm.member_role = ?
-    WHERE ta.member_id = ? OR t.created_by = ?
-    GROUP BY pl.prod_line_id, pl.product_name, pl.length_m, pl.width_m, pl.weight_g, pl.quantity, pl.status, pl.date_created, ta.updated_at
+    JOIN task t ON pl.prod_line_id = t.prod_line_id
+    WHERE t.created_by = ?
     ORDER BY pl.date_created DESC";
 
     $stmt = $db->conn->prepare($query);
-    $stmt->bind_param("isii", $member_id, $member_role, $member_id, $member_id);
+    $stmt->bind_param("i", $member_id);
     
     if (!$stmt->execute()) {
         throw new Exception("Failed to execute query: " . $stmt->error);
