@@ -314,47 +314,41 @@ while ($row = $assigned_tasks_result->fetch_assoc()) {
                 <!-- Earnings Statistics -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <!-- Total Earnings -->
-                    <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-                        <div class="flex items-center">
-                            <div class="p-3 bg-green-100 rounded-full">
-                                <span class="material-icons text-green-600">payments</span>
-                            </div>
-                            <div class="ml-4">
-                                <h2 class="text-gray-600 text-sm">Total Earnings</h2>
-                                <p id="totalEarnings" class="text-2xl font-semibold text-gray-800">₱0.00</p>
-                            </div>
+                    <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
+                        <div class="p-3 bg-green-100 rounded-full">
+                            <span class="material-icons text-green-600">payments</span>
+                        </div>
+                        <div class="ml-4">
+                            <h2 class="text-gray-600 text-sm font-medium">Total Earnings</h2>
+                            <p id="totalEarnings" class="text-2xl font-semibold text-gray-800">₱0.00</p>
                         </div>
                     </div>
 
                     <!-- Completed Tasks -->
-                    <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-                        <div class="flex items-center">
-                            <div class="p-3 bg-blue-100 rounded-full">
-                                <span class="material-icons text-blue-600">task_alt</span>
-                            </div>
-                            <div class="ml-4">
-                                <h2 class="text-gray-600 text-sm">Completed Tasks</h2>
-                                <p id="completedTasksCount" class="text-2xl font-semibold text-gray-800">0</p>
-                            </div>
+                    <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
+                        <div class="p-3 bg-blue-100 rounded-full">
+                            <span class="material-icons text-blue-600">task_alt</span>
+                        </div>
+                        <div class="ml-4">
+                            <h2 class="text-gray-600 text-sm font-medium">Completed Tasks</h2>
+                            <p id="completedTasksCount" class="text-2xl font-semibold text-gray-800">0</p>
                         </div>
                     </div>
 
                     <!-- Pending Payments -->
-                    <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-                        <div class="flex items-center">
-                            <div class="p-3 bg-yellow-100 rounded-full">
-                                <span class="material-icons text-yellow-600">pending</span>
-                            </div>
-                            <div class="ml-4">
-                                <h2 class="text-gray-600 text-sm">Pending Payments</h2>
-                                <p id="pendingPayments" class="text-2xl font-semibold text-gray-800">₱0.00</p>
-                            </div>
+                    <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
+                        <div class="p-3 bg-yellow-100 rounded-full">
+                            <span class="material-icons text-yellow-600">pending</span>
+                        </div>
+                        <div class="ml-4">
+                            <h2 class="text-gray-600 text-sm font-medium">Pending Payments</h2>
+                            <p id="pendingPayments" class="text-2xl font-semibold text-gray-800">₱0.00</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Balance Summary Table -->
-                <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div class="bg-white rounded-lg shadow-md p-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Balance Summary</h3>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200" id="balanceSummaryTable">
@@ -382,7 +376,7 @@ while ($row = $assigned_tasks_result->fetch_assoc()) {
                             <tbody class="bg-white divide-y divide-gray-200" id="balanceSummaryTableBody">
                                 <!-- Data will be loaded here -->
                                 <tr>
-                                    <td colspan="<?php echo in_array($member_role, ["knotter", "warper"]) ? "6" : "7"; ?>" class="px-6 py-4 text-center text-gray-500">Loading balance summary...</td>
+                                    <td colspan="<?php echo in_array($member_role, ["knotter", "warper"]) ? "6" : "8"; ?>" class="px-6 py-4 text-center text-gray-500">Loading balance summary...</td>
                                 </tr>
                             </tbody>
                         </table>
