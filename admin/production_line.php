@@ -1590,13 +1590,20 @@ function getStatusClass(status) {
 
 <script>
 // Function to fetch and display available materials
-function updateMaterialsList(productName) {
+function updateMaterialsList(productName, role) {
     const materialsListDiv = document.getElementById('materialsList');
     materialsListDiv.innerHTML = '<div class="text-sm text-gray-500">Loading materials...</div>'; // Loading indicator
 
     let url = 'backend/end-points/get_available_materials.php';
-    if (productName && productName !== '') {
-        url += `?product_name=${encodeURIComponent(productName)}`;
+    const params = new URLSearchParams();
+    if (productName) {
+        params.append('product_name', productName);
+    }
+    if (role) {
+        params.append('role', role);
+    }
+    if (params.toString()) {
+        url += `?${params.toString()}`;
     }
 
     fetch(url)
@@ -1639,6 +1646,9 @@ function updateMaterialsList(productName) {
         });
 }
 
+// Global variable to store member data
+let availableMembers = [];
+
 // Function to fetch and display available materials and members
 function loadModalData() {
     // Load assignable members
@@ -1651,8 +1661,11 @@ function loadModalData() {
                 assignedToSelect.remove(1);
             }
             
-            if (members && members.length > 0) {
-                members.forEach(member => {
+            // Store members globally and populate dropdown
+            availableMembers = members; // Store the fetched members
+            
+            if (availableMembers && availableMembers.length > 0) {
+                availableMembers.forEach(member => {
                     const option = document.createElement('option');
                     option.value = member.id;
                     option.textContent = `${member.fullname} (${member.role})`;
@@ -1678,7 +1691,10 @@ function loadModalData() {
 
     // Load initial materials list (empty or for default selected product)
     const initialSelectedProduct = document.getElementById('product_name').value;
-    updateMaterialsList(initialSelectedProduct);
+    const initialSelectedMemberId = document.getElementById('assigned_to').value;
+    const initialRole = initialSelectedMemberId ? 
+        (availableMembers.find(member => member.id == initialSelectedMemberId)?.role || '') : '';
+    updateMaterialsList(initialSelectedProduct, initialRole);
 }
 
 
@@ -1748,6 +1764,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Toggle fields based on product type
     productNameSelect.addEventListener('change', function() {
         const selectedProduct = this.value;
+        const assignedToSelect = document.getElementById('assigned_to');
+        const selectedMemberId = assignedToSelect.value;
+        const selectedMember = availableMembers.find(member => member.id == selectedMemberId);
+        const selectedRole = selectedMember ? selectedMember.role : '';
         
         // Reset all fields
         dimensionFields.classList.add('hidden');
@@ -1765,8 +1785,19 @@ document.addEventListener('DOMContentLoaded', function() {
             weightField.classList.add('hidden');
         }
 
-        // Update materials list based on selected product
-        updateMaterialsList(selectedProduct);
+        // Update materials list based on selected product and role
+        updateMaterialsList(selectedProduct, selectedRole);
+    });
+
+    // Add event listener for assigned_to select
+    const assignedToSelect = document.getElementById('assigned_to');
+    assignedToSelect.addEventListener('change', function() {
+        const selectedProduct = productNameSelect.value;
+        const selectedMemberId = this.value;
+        const selectedMember = availableMembers.find(member => member.id == selectedMemberId);
+        const selectedRole = selectedMember ? selectedMember.role : '';
+
+        updateMaterialsList(selectedProduct, selectedRole);
     });
 
     // Handle form submission
