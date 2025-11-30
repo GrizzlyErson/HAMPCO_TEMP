@@ -173,7 +173,7 @@ try {
                                     </div>
                                 </div>
                                 <!-- Card Body -->
-                                <div class="card-body">
+                                <div class="card-body" style="height: 415px;">
                                     <div class="chart-pie pt-4 pb-2">
                                         <canvas id="taskProgressChart"></canvas>
                                     </div>
@@ -476,9 +476,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             callbacks: {
                                 label: function(tooltipItem, data) {
                                     const dataset = data.datasets[tooltipItem.datasetIndex];
+                                    const total = dataset.data.reduce((previousValue, currentValue) => previousValue + currentValue);
                                     const currentValue = dataset.data[tooltipItem.index];
+                                    const percentage = parseFloat(((currentValue / total) * 100).toFixed(1));
                                     const label = data.labels[tooltipItem.index];
-                                    return label + ': ' + currentValue;
+                                    return label + ': ' + currentValue + ' (' + percentage + '%)';
                                 }
                             }
                         },
