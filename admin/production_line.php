@@ -1589,36 +1589,58 @@ function getStatusClass(status) {
 <script src="assets/js/task-completions.js"></script>
 
 <script>
-// Function to fetch and display available materials and members
-function loadModalData() {
-    // Load available materials
-    fetch('backend/end-points/get_available_materials.php')
+// Function to fetch and display available materials
+function updateMaterialsList(productName) {
+    const materialsListDiv = document.getElementById('materialsList');
+    materialsListDiv.innerHTML = '<div class="text-sm text-gray-500">Loading materials...</div>'; // Loading indicator
+
+    let url = 'backend/end-points/get_available_materials.php';
+    if (productName && productName !== '') {
+        url += `?product_name=${encodeURIComponent(productName)}`;
+    }
+
+    fetch(url)
         .then(response => response.json())
         .then(data => {
-            const materialsList = document.getElementById('materialsList');
+            materialsListDiv.innerHTML = ''; // Clear previous content
+
             if (data.success && data.materials && data.materials.length > 0) {
-                materialsList.innerHTML = '';
                 data.materials.forEach(material => {
                     const materialItem = document.createElement('div');
                     materialItem.className = 'flex items-center justify-between py-1';
+                    
+                    const isAvailable = material.available_quantity > 0;
+                    const textColorClass = isAvailable ? 'text-green-600' : 'text-red-600';
+                    const availabilityText = isAvailable ? 
+                        `${material.available_quantity} ${material.unit} available` : 
+                        `0 ${material.unit} available (Required)`;
+
+                    let materialNameDisplay = material.name;
+                    if (material.category) {
+                        materialNameDisplay += ` (${material.category})`;
+                    }
+
                     materialItem.innerHTML = `
-                        <span class="text-sm text-gray-700">${material.name}</span>
-                        <span class="text-sm font-medium ${material.quantity_available > 0 ? 'text-green-600' : 'text-red-600'}">
-                            ${material.quantity_available} ${material.unit} available
+                        <span class="text-sm text-gray-700">${materialNameDisplay}</span>
+                        <span class="text-sm font-medium ${textColorClass}">
+                            ${availabilityText}
                         </span>
                     `;
-                    materialsList.appendChild(materialItem);
+                    materialsListDiv.appendChild(materialItem);
                 });
             } else {
-                materialsList.innerHTML = '<div class="text-sm text-gray-500">No materials available</div>';
+                materialsListDiv.innerHTML = `<div class="text-sm text-gray-500">${data.message || 'No materials information available for this product.'}</div>`;
             }
         })
         .catch(error => {
             console.error('Error loading materials:', error);
-            document.getElementById('materialsList').innerHTML = 
+            materialsListDiv.innerHTML = 
                 '<div class="text-sm text-red-600">Error loading materials. Please try again.</div>';
         });
-    
+}
+
+// Function to fetch and display available materials and members
+function loadModalData() {
     // Load assignable members
     fetch('backend/end-points/get_members_by_role.php?role=all')
         .then(response => response.json())
@@ -1653,7 +1675,12 @@ function loadModalData() {
             option.disabled = true;
             assignedToSelect.appendChild(option);
         });
+
+    // Load initial materials list (empty or for default selected product)
+    const initialSelectedProduct = document.getElementById('product_name').value;
+    updateMaterialsList(initialSelectedProduct);
 }
+
 
 // Function to set minimum date for deadline (today)
 function setMinDeadlineDate() {
@@ -1737,6 +1764,9 @@ document.addEventListener('DOMContentLoaded', function() {
             dimensionFields.classList.add('hidden');
             weightField.classList.add('hidden');
         }
+
+        // Update materials list based on selected product
+        updateMaterialsList(selectedProduct);
     });
 
     // Handle form submission
