@@ -25,11 +25,17 @@ $customer_id=$_SESSION['customer_id'];
 
 
 $fetch_user_info = $db->fetch_user_info($customer_id); 
-foreach ($fetch_user_info as $user):
-    $user_fullname=$user['customer_fullname'];
-    $user_email=$user['customer_email'];
-    $user_phone=$user['customer_phone'];
-endforeach;
+if ($fetch_user_info && $fetch_user_info->num_rows > 0) {
+    foreach ($fetch_user_info as $user):
+        $user_fullname=$user['customer_fullname'];
+        $user_email=$user['customer_email'];
+        $user_phone=$user['customer_phone'];
+    endforeach;
+} else {
+    // If user info is not found, redirect to login page
+    header('location: ../login.php');
+    exit();
+}
 
 
 $Fullname =$user_fullname;

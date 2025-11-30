@@ -73,11 +73,13 @@ public function updateCustomerPassword($customer_id, $hashedPassword)
     
 
     public function fetch_user_info($userID){
-        $query = $this->conn->prepare("SELECT * FROM user_customer where customer_id = '$userID'");
+        $query = $this->conn->prepare("SELECT * FROM user_customer where customer_id = ?");
+        $query->bind_param("i", $userID);
         if ($query->execute()) {
             $result = $query->get_result();
             return $result;
         }
+        return false;
     }
     
     
