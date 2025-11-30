@@ -72,21 +72,13 @@ try {
     // Hash the new password
     $hashed_new_password = password_hash($new_password, PASSWORD_DEFAULT);
 
-    // Update password in the database
-    $stmt = $db->conn->prepare("UPDATE customer SET customer_password = ? WHERE customer_id = ?");
-    $stmt->bind_param("si", $hashed_new_password, $customer_id);
-
-    if ($stmt->execute()) {
-        if ($stmt->affected_rows > 0) {
-            $response['success'] = true;
-            $response['message'] = 'Password updated successfully.';
-        } else {
-            $response['message'] = 'Password update failed. No changes made.';
-        }
+    // Update password in the database using the global_class method
+    if ($db->updateCustomerPassword($customer_id, $hashed_new_password)) {
+        $response['success'] = true;
+        $response['message'] = 'Password updated successfully.';
     } else {
-        $response['message'] = 'Database error: ' . $stmt->error;
+        $response['message'] = 'Password update failed. No changes made or an error occurred.';
     }
-    $stmt->close();
 
 } catch (Exception $e) {
     $response['message'] = 'An error occurred: ' . $e->getMessage();

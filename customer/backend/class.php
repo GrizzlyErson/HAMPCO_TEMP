@@ -13,7 +13,18 @@ class global_class extends db_connect
 
 
 
-public function getCartlist($userID)
+public function updateCustomerPassword($customer_id, $hashedPassword)
+    {
+        $stmt = $this->conn->prepare("UPDATE customer SET customer_password = ? WHERE customer_id = ?");
+        $stmt->bind_param("si", $hashedPassword, $customer_id);
+        
+        if ($stmt->execute()) {
+            return $stmt->affected_rows > 0;
+        }
+        return false;
+    }
+
+    public function getCartlist($userID)
     {
         // Directly insert the userID into the query (no prepared statements)
         $query = "SELECT cart.*,product.*
