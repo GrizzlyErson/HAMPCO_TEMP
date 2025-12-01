@@ -7,95 +7,79 @@ $response = ['success' => false, 'message' => '', 'materials' => []];
 $product_name = isset($_GET['product_name']) ? $_GET['product_name'] : null;
 
 try {
-    // 1. Fetch all available raw materials (individual entries)
-    $raw_materials_query = "SELECT id, raw_materials_name as name, 'raw' as type, rm_quantity as available_quantity, category FROM raw_materials WHERE rm_status = 'Available'";
-    $raw_materials_result = $conn->query($raw_materials_query);
-    $all_raw_materials = [];
-    if ($raw_materials_result) {
-        while ($row = $raw_materials_result->fetch_assoc()) {
-            $all_raw_materials[] = $row;
-        }
-    }
-
-    // 2. Fetch all available processed materials (individual entries)
-    $processed_materials_query = "SELECT id, processed_materials_name as name, 'processed' as type, weight as available_quantity FROM processed_materials WHERE status = 'Available'";
-    $processed_materials_result = $conn->query($processed_materials_query);
-    $all_processed_materials = [];
-    if ($processed_materials_result) {
-        while ($row = $processed_materials_result->fetch_assoc()) {
-            $all_processed_materials[] = $row;
-        }
-    }
-
-    // Combine all materials for initial filtering
-    $all_materials = array_merge($all_raw_materials, $all_processed_materials);
-    $filtered_materials = [];
-
     if ($product_name) {
-        // Get materials required for the specific product from product_materials table
+        // Fetch required materials for the given product
         $stmt = $conn->prepare("SELECT material_type, material_name FROM product_materials WHERE product_name = ?");
-        if (!$stmt) {
-            throw new Exception("Prepare failed: (" . $conn->errno . ") " . $conn->error);
-        }
         $stmt->bind_param("s", $product_name);
         $stmt->execute();
         $required_materials_result = $stmt->get_result();
-        $required_materials_for_product = [];
+        $required_materials = [];
         while ($row = $required_materials_result->fetch_assoc()) {
-            $required_materials_for_product[] = $row;
+            $required_materials[] = $row;
         }
         $stmt->close();
 
-        $product_material_names = array_column($required_materials_for_product, 'material_name');
-        
-        foreach ($all_materials as $material) {
-            $include_material = false;
+        if (empty($required_materials)) {
+            $response['message'] = "No material requirements found for this product.";
+            $response['success'] = true;
+            echo json_encode($response);
+            exit;
+        }
 
-            // Check if the material is a required input for the product
-            if (in_array($material['name'], $product_material_names)) {
-                // Further check for matching type if there are same-named raw/processed materials
-                foreach ($required_materials_for_product as $req_mat) {
-                    if ($material['name'] === $req_mat['material_name'] && $material['type'] === $req_mat['material_type']) {
-                        $include_material = true;
-                        break;
-                    }
+        foreach ($required_materials as $req_material) {
+            $material_type = $req_material['material_type'];
+            $material_name = $req_material['material_name'];
+            $available_quantity = 0;
+            $unit = '';
+
+            if ($material_type == 'raw') {
+                $stmt = $conn->prepare("SELECT SUM(rm_quantity) as total_stocks FROM raw_materials WHERE raw_materials_name = ? AND rm_status = 'Available'");
+                $stmt->bind_param("s", $material_name);
+                $stmt->execute();
+                $raw_material_result = $stmt->get_result();
+                if ($raw_material_result && $row = $raw_material_result->fetch_assoc()) {
+                    $available_quantity = $row['total_stocks'] ?? 0;
+                    $unit = 'unit(s)'; // Assuming raw materials are in units
                 }
-            }
-            
-            // Also include the product itself if it's a processed intermediate/final product
-            // This is crucial if we expect to see, for example, "Knotted Liniwan" itself
-            // as an available material *if* it's already processed and in stock.
-            if ($material['name'] === $product_name && $material['type'] === 'processed') {
-                $include_material = true;
+                $stmt->close();
+            } else if ($material_type == 'processed') {
+                $stmt = $conn->prepare("SELECT SUM(weight) as total_weight FROM processed_materials WHERE processed_materials_name = ? AND status = 'Available'");
+                $stmt->bind_param("s", $material_name);
+                $stmt->execute();
+                $processed_material_result = $stmt->get_result();
+                if ($processed_material_result && $row = $processed_material_result->fetch_assoc()) {
+                    $available_quantity = $row['total_weight'] ?? 0;
+                    $unit = 'g'; // Assuming processed materials are in grams
+                }
+                $stmt->close();
             }
 
-            if ($include_material) {
-                $unit = ($material['type'] === 'raw') ? 'unit(s)' : 'g'; // Assuming processed materials are in grams
-                $filtered_materials[] = [
-                    'id' => $material['id'], // Include the material ID
-                    'name' => $material['name'],
-                    'category' => $material['type'], // Using 'type' as 'category' for consistency
-                    'sub_category' => $material['category'] ?? null, // For Piña Loose specific categories
-                    'available_quantity' => $material['available_quantity'],
-                    'unit' => $unit
-                ];
+            $response['materials'][] = [
+                'name' => $material_name,
+                'category' => $material_type,
+                'available_quantity' => $available_quantity,
+                'unit' => $unit,
+                'required' => true // Mark as required for the product
+            ];
+        }
+    } else {
+        // Original behavior: fetch all available raw and processed materials
+        // Get raw materials
+        $raw_sql = "SELECT raw_materials_name as name, SUM(rm_quantity) as available_quantity FROM raw_materials WHERE rm_status = 'Available' GROUP BY raw_materials_name";
+        $raw_result = $conn->query($raw_sql);
+        if ($raw_result) {
+            while ($row = $raw_result->fetch_assoc()) {
+                $response['materials'][] = ['name' => $row['name'], 'category' => 'raw', 'available_quantity' => $row['available_quantity'], 'unit' => 'unit(s)'];
             }
         }
-        // Remove duplicates and re-index
-        $response['materials'] = array_values(array_map("unserialize", array_unique(array_map("serialize", $filtered_materials))));
 
-    } else {
-        // If no product name, return all available raw and processed materials
-        foreach ($all_materials as $material) {
-            $unit = ($material['type'] === 'raw') ? 'unit(s)' : 'g';
-            $response['materials'][] = [
-                'id' => $material['id'],
-                'name' => $material['name'],
-                'category' => $material['type'],
-                'sub_category' => $material['category'] ?? null,
-                'available_quantity' => $material['available_quantity'],
-                'unit' => $unit
-            ];
+        // Get processed materials
+        $processed_sql = "SELECT processed_materials_name as name, SUM(weight) as available_quantity FROM processed_materials WHERE status = 'Available' GROUP BY processed_materials_name";
+        $processed_result = $conn->query($processed_sql);
+        if ($processed_result) {
+            while ($row = $processed_result->fetch_assoc()) {
+                $response['materials'][] = ['name' => $row['name'], 'category' => 'processed', 'available_quantity' => $row['available_quantity'], 'unit' => 'g'];
+            }
         }
     }
 

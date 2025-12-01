@@ -1009,36 +1009,18 @@ function getStatusClass(status) {
                     </div>
                 </div>
 
-                <!-- Row 3: Role-based Assignments -->
-                <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
-                    <!-- Knotter Section -->
-                    <div id="knotterAssignmentSection" class="space-y-2 hidden">
-                        <label for="knotter_id" class="block text-sm font-medium text-gray-700">Assign Knotter(s)</label>
-                        <select name="knotter_id[]" id="knotter_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">Select Knotter</option>
-                        </select>
-                        <label for="knotter_deadline" class="block text-xs font-medium text-gray-700 mb-1">Deadline for Knotter</label>
-                        <input type="datetime-local" id="knotter_deadline" name="knotter_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <!-- Row 3: Deadline and Assign To -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="deadline" class="block text-xs font-medium text-gray-700 mb-1">Deadline</label>
+                        <input type="datetime-local" id="deadline" name="deadline" min="" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
                     </div>
-
-                    <!-- Warper Section -->
-                    <div id="warperAssignmentSection" class="space-y-2 hidden">
-                        <label for="warper_id" class="block text-sm font-medium text-gray-700">Assign Warper</label>
-                        <select name="warper_id" id="warper_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">Select Warper</option>
+                    <div>
+                        <label for="assigned_to" class="block text-xs font-medium text-gray-700 mb-1">Assign To</label>
+                        <select id="assigned_to" name="assigned_to" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                            <option value="">Select a member</option>
+                            <!-- Will be populated by JavaScript -->
                         </select>
-                        <label for="warper_deadline" class="block text-xs font-medium text-gray-700 mb-1">Deadline for Warper</label>
-                        <input type="datetime-local" id="warper_deadline" name="warper_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-
-                    <!-- Weaver Section -->
-                    <div id="weaverAssignmentSection" class="space-y-2 hidden">
-                        <label for="weaver_id" class="block text-sm font-medium text-gray-700">Assign Weaver</label>
-                        <select name="weaver_id" id="weaver_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">Select Weaver</option>
-                        </select>
-                        <label for="weaver_deadline" class="block text-xs font-medium text-gray-700 mb-1">Deadline for Weaver</label>
-                        <input type="datetime-local" id="weaver_deadline" name="weaver_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                 </div>
 
@@ -1608,20 +1590,13 @@ function getStatusClass(status) {
 
 <script>
 // Function to fetch and display available materials
-function updateMaterialsList(productName, role) {
+function updateMaterialsList(productName) {
     const materialsListDiv = document.getElementById('materialsList');
     materialsListDiv.innerHTML = '<div class="text-sm text-gray-500">Loading materials...</div>'; // Loading indicator
 
     let url = 'backend/end-points/get_available_materials.php';
-    const params = new URLSearchParams();
-    if (productName) {
-        params.append('product_name', productName);
-    }
-    if (role) {
-        params.append('role', role);
-    }
-    if (params.toString()) {
-        url += `?${params.toString()}`;
+    if (productName && productName !== '') {
+        url += `?product_name=${encodeURIComponent(productName)}`;
     }
 
     fetch(url)
@@ -1630,82 +1605,31 @@ function updateMaterialsList(productName, role) {
             materialsListDiv.innerHTML = ''; // Clear previous content
 
             if (data.success && data.materials && data.materials.length > 0) {
-                materialsListDiv.innerHTML = `<div class="mb-2 text-sm text-gray-600">Select materials to deduct:</div>`;
                 data.materials.forEach(material => {
                     const materialItem = document.createElement('div');
-                    materialItem.className = 'flex items-center justify-between py-1 border-b border-gray-200 last:border-b-0';
+                    materialItem.className = 'flex items-center justify-between py-1';
                     
                     const isAvailable = material.available_quantity > 0;
-                    const textColorClass = isAvailable ? 'text-green-700' : 'text-red-600';
+                    const textColorClass = isAvailable ? 'text-green-600' : 'text-red-600';
                     const availabilityText = isAvailable ? 
-                        `(${material.available_quantity} ${material.unit} available)` : 
-                        '(Out of Stock)';
-                    
+                        `${material.available_quantity} ${material.unit} available` : 
+                        `0 ${material.unit} available (Required)`;
+
                     let materialNameDisplay = material.name;
-                    if (material.sub_category && material.sub_category !== 'null') {
-                        materialNameDisplay += ` (${material.sub_category})`;
-                    } else if (material.category && material.category !== 'null') {
+                    if (material.category) {
                         materialNameDisplay += ` (${material.category})`;
                     }
 
-                    const materialId = material.id;
-                    const materialType = material.category; // 'raw' or 'processed'
-                    const materialSubCategory = material.sub_category || '';
-
                     materialItem.innerHTML = `
-                        <label class="flex items-center space-x-2 flex-grow cursor-pointer">
-                            <input type="checkbox" 
-                                class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out material-checkbox" 
-                                id="material_checkbox_${materialId}_${materialType}_${materialSubCategory.replace(/\s/g, '_')}"
-                                data-material-id="${materialId}" 
-                                data-material-name="${material.name}"
-                                data-material-type="${materialType}"
-                                data-material-subcategory="${materialSubCategory}"
-                                data-available-quantity="${material.available_quantity}"
-                                data-unit="${material.unit}"
-                                ${!isAvailable ? 'disabled' : ''}>
-                            <span class="text-sm font-medium text-gray-700">
-                                ${materialNameDisplay} <span class="${textColorClass}">${availabilityText}</span>
-                            </span>
-                        </label>
-                        <div class="ml-4 flex items-center">
-                            <input type="number" 
-                                class="w-24 px-2 py-1 border border-gray-300 rounded-md text-sm text-center material-quantity-input" 
-                                min="1" 
-                                max="${material.available_quantity}" 
-                                value="1" 
-                                data-material-id="${materialId}"
-                                data-material-type="${materialType}"
-                                data-material-subcategory="${materialSubCategory}"
-                                ${!isAvailable ? 'disabled' : 'enabled'}>
-                            <span class="text-sm text-gray-600 ml-1">${material.unit}</span>
-                        </div>
+                        <span class="text-sm text-gray-700">${materialNameDisplay}</span>
+                        <span class="text-sm font-medium ${textColorClass}">
+                            ${availabilityText}
+                        </span>
                     `;
                     materialsListDiv.appendChild(materialItem);
                 });
-                // Add event listeners for checkboxes and quantity inputs
-                materialsListDiv.querySelectorAll('.material-checkbox').forEach(checkbox => {
-                    checkbox.addEventListener('change', function() {
-                        const quantityInput = this.closest('.flex-grow').nextElementSibling.querySelector('.material-quantity-input');
-                        if (quantityInput) {
-                            quantityInput.disabled = !this.checked;
-                            if (this.checked) {
-                                quantityInput.value = Math.min(quantityInput.value, parseInt(quantityInput.max));
-                            } else {
-                                quantityInput.value = 1; // Reset value when unchecked
-                            }
-                        }
-                    });
-                });
-
-                // Initialize quantity inputs based on checkbox state (for first load)
-                materialsListDiv.querySelectorAll('.material-quantity-input').forEach(input => {
-                    const checkbox = input.closest('div').previousElementSibling.querySelector('.material-checkbox');
-                    input.disabled = !checkbox.checked;
-                });
-
             } else {
-                materialsListDiv.innerHTML = `<div class="text-sm text-gray-500">${data.message || 'No materials information available for this product or role.'}</div>`;
+                materialsListDiv.innerHTML = `<div class="text-sm text-gray-500">${data.message || 'No materials information available for this product.'}</div>`;
             }
         })
         .catch(error => {
@@ -1715,197 +1639,58 @@ function updateMaterialsList(productName, role) {
         });
 }
 
-// Global variable to store member data
-let availableMembers = [];
-
 // Function to fetch and display available materials and members
 function loadModalData() {
-    // Select dropdowns for roles
-    const knotterSelect = document.getElementById('knotter_id');
-    const warperSelect = document.getElementById('warper_id');
-    const weaverSelect = document.getElementById('weaver_id');
-    const productNameSelect = document.getElementById('product_name');
-
-    // Clear existing options except the first one for each select
-    function clearAndAddDefault(selectElement) {
-        while (selectElement.options.length > 1) {
-            selectElement.remove(1);
-        }
-        selectElement.options[0].selected = true; // Select default "Select a member"
-    }
-
-    clearAndAddDefault(knotterSelect);
-    clearAndAddDefault(warperSelect);
-    clearAndAddDefault(weaverSelect);
-
     // Load assignable members
     fetch('backend/end-points/get_members_by_role.php?role=all')
         .then(response => response.json())
         .then(members => {
-            availableMembers = members; // Store the fetched members globally
-
-            if (availableMembers && availableMembers.length > 0) {
-                availableMembers.forEach(member => {
-                    const option = document.createElement('option');
-                    option.value = member.id;
-                    option.textContent = `${member.fullname}`; // Display just name, role is implied by dropdown
-
-                    if (member.role === 'knotter') {
-                        knotterSelect.appendChild(option.cloneNode(true));
-                    } else if (member.role === 'warper') {
-                        warperSelect.appendChild(option.cloneNode(true));
-                    } else if (member.role === 'weaver') {
-                        weaverSelect.appendChild(option.cloneNode(true));
-                    }
-                });
-            } else {
-                // If no members, add disabled option
-                const noMemberOption = document.createElement('option');
-                noMemberOption.value = '';
-                noMemberOption.textContent = 'No members available';
-                noMemberOption.disabled = true;
-                knotterSelect.appendChild(noMemberOption.cloneNode(true));
-                warperSelect.appendChild(noMemberOption.cloneNode(true));
-                weaverSelect.appendChild(noMemberOption.cloneNode(true));
+            const assignedToSelect = document.getElementById('assigned_to');
+            // Clear existing options except the first one
+            while (assignedToSelect.options.length > 1) {
+                assignedToSelect.remove(1);
             }
             
-            // Initial materials list update, no single assigned role yet
-            const initialSelectedProduct = productNameSelect.value;
-            updateMaterialsList(initialSelectedProduct, ''); // No specific role for initial load
+            if (members && members.length > 0) {
+                members.forEach(member => {
+                    const option = document.createElement('option');
+                    option.value = member.id;
+                    option.textContent = `${member.fullname} (${member.role})`;
+                    assignedToSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No members available';
+                option.disabled = true;
+                assignedToSelect.appendChild(option);
+            }
         })
         .catch(error => {
             console.error('Error loading members:', error);
-            // Add error options to selects
-            const errorOption = document.createElement('option');
-            errorOption.value = '';
-            errorOption.textContent = 'Error loading members';
-            errorOption.disabled = true;
-            knotterSelect.appendChild(errorOption.cloneNode(true));
-            warperSelect.appendChild(errorOption.cloneNode(true));
-            weaverSelect.appendChild(errorOption.cloneNode(true));
-            
-            // Update materials list even on error for members
-            const initialSelectedProduct = productNameSelect.value;
-            updateMaterialsList(initialSelectedProduct, '');
+            const assignedToSelect = document.getElementById('assigned_to');
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Error loading members';
+            option.disabled = true;
+            assignedToSelect.appendChild(option);
         });
+
+    // Load initial materials list (empty or for default selected product)
+    const initialSelectedProduct = document.getElementById('product_name').value;
+    updateMaterialsList(initialSelectedProduct);
 }
 
 
-// Function to set minimum date for deadline (today) and default date
-function setMinDeadlineDate(productName = '') {
+// Function to set minimum date for deadline (today)
+function setMinDeadlineDate() {
     const now = new Date();
-    const deadlineInput = document.getElementById('deadline');
-    
     // Format: YYYY-MM-DDTHH:MM
     const minDate = now.toISOString().slice(0, 16);
-    deadlineInput.min = minDate;
-
-    let defaultDaysOffset = 7; // Default to 7 days
-
-    switch (productName) {
-        case 'Warped Silk':
-            defaultDaysOffset = 3; // Shorter for warper task
-            break;
-        case 'Knotted Liniwan':
-        case 'Knotted Bastos':
-            defaultDaysOffset = 5; // Medium for knotter task
-            break;
-        case 'Piña Seda':
-        case 'Pure Piña Cloth':
-            defaultDaysOffset = 10; // Longer for weaver task
-            break;
-        // Default remains 7 days for other products or no selection
-    }
-
-    const defaultDeadline = new Date(now.setDate(now.getDate() + defaultDaysOffset)).toISOString().slice(0, 16);
-    deadlineInput.value = defaultDeadline;
-}
-
-// Helper function to get the primary role for a given product
-function getProductPrimaryRole(productName) {
-    switch (productName) {
-        case 'Piña Seda':
-        case 'Pure Piña Cloth':
-            return 'weaver';
-        case 'Knotted Liniwan':
-        case 'Knotted Bastos':
-            return 'knotter';
-        case 'Warped Silk':
-            return 'warper';
-        default:
-            return ''; // No specific primary role for this product
-    }
-}
-
-// Function to auto-assign a member and set deadline for a specific role
-function autoAssignRoleMemberAndDeadline(role, productName) {
-    console.log(`[autoAssign] Called for role: ${role}, product: ${productName}`);
-    let selectElement;
-    let deadlineElement;
-
-    switch (role) {
-        case 'knotter':
-            selectElement = document.getElementById('knotter_id');
-            deadlineElement = document.getElementById('knotter_deadline');
-            break;
-        case 'warper':
-            selectElement = document.getElementById('warper_id');
-            deadlineElement = document.getElementById('warper_deadline');
-            break;
-        case 'weaver':
-            selectElement = document.getElementById('weaver_id');
-            deadlineElement = document.getElementById('weaver_deadline');
-            break;
-        default:
-            console.log(`[autoAssign] Invalid role: ${role}`);
-            return; // Invalid role
-    }
-
-    console.log(`[autoAssign] Selected element for ${role}:`, selectElement);
-    console.log(`[autoAssign] Deadline element for ${role}:`, deadlineElement);
-
-    // Only auto-assign if the select is currently empty
-    if (!selectElement.value) {
-        const suggestedMember = availableMembers.find(member => member.role === role);
-        if (suggestedMember) {
-            selectElement.value = suggestedMember.id;
-            console.log(`[autoAssign] Auto-assigned ${suggestedMember.fullname} (${role}) with ID: ${suggestedMember.id}`);
-        } else {
-            console.log(`[autoAssign] No suggested member found for role: ${role}`);
-        }
-    } else {
-        console.log(`[autoAssign] ${role} select already has a value: ${selectElement.value}, skipping auto-assignment.`);
-    }
-
-    // Set deadline based on product (reusing setMinDeadlineDate logic)
-    const now = new Date();
-    const minDate = now.toISOString().slice(0, 16);
-    if (deadlineElement) {
-        deadlineElement.min = minDate;
-    }
-
-    let defaultDaysOffset = 7; // Default to 7 days for roles too
-
-    switch (productName) {
-        case 'Warped Silk':
-            defaultDaysOffset = 3; 
-            break;
-        case 'Knotted Liniwan':
-        case 'Knotted Bastos':
-            defaultDaysOffset = 5; 
-            break;
-        case 'Piña Seda':
-        case 'Pure Piña Cloth':
-            defaultDaysOffset = 10; 
-            break;
-    }
-    const defaultDeadline = new Date(now.setDate(now.getDate() + defaultDaysOffset)).toISOString().slice(0, 16);
-    if (deadlineElement) {
-        deadlineElement.value = defaultDeadline;
-        console.log(`[autoAssign] Set deadline for ${role}: ${defaultDeadline}`);
-    } else {
-        console.log(`[autoAssign] Deadline element not found for role: ${role}`);
-    }
+    document.getElementById('deadline').min = minDate;
+    // Set default deadline to 7 days from now
+    const defaultDeadline = new Date(now.setDate(now.getDate() + 7)).toISOString().slice(0, 16);
+    document.getElementById('deadline').value = defaultDeadline;
 }
 
 // Initialize the create task form
@@ -1952,8 +1737,7 @@ document.addEventListener('DOMContentLoaded', function() {
     createTaskBtn.addEventListener('click', function() {
         createTaskModal.classList.remove('hidden');
         loadModalData();
-        // Trigger product change event to initialize role assignment sections and auto-assignment
-        document.getElementById('product_name').dispatchEvent(new Event('change'));
+        setMinDeadlineDate();
     });
 
     // Hide modal
@@ -1961,45 +1745,27 @@ document.addEventListener('DOMContentLoaded', function() {
         createTaskModal.classList.add('hidden');
     });
 
-    // Toggle fields based on product type and handle role assignment sections
+    // Toggle fields based on product type
     productNameSelect.addEventListener('change', function() {
         const selectedProduct = this.value;
         
-        // Reset all fields visibility
+        // Reset all fields
         dimensionFields.classList.add('hidden');
         weightField.classList.add('hidden');
-        
-        // Hide all assignment sections initially
-        document.getElementById('knotterAssignmentSection').classList.add('hidden');
-        document.getElementById('warperAssignmentSection').classList.add('hidden');
-        document.getElementById('weaverAssignmentSection').classList.add('hidden');
-
-        let requiredRoles = [];
         
         // Show/hide fields based on product type
         if (['Piña Seda', 'Pure Piña Cloth'].includes(selectedProduct)) {
             dimensionFields.classList.remove('hidden');
             weightField.classList.add('hidden');
-            document.getElementById('weaverAssignmentSection').classList.remove('hidden');
-            requiredRoles.push('weaver');
         } else if (['Knotted Liniwan', 'Knotted Bastos'].includes(selectedProduct)) {
             dimensionFields.classList.add('hidden');
             weightField.classList.remove('hidden');
-            document.getElementById('knotterAssignmentSection').classList.remove('hidden');
-            requiredRoles.push('knotter');
         } else if (selectedProduct === 'Warped Silk') {
             dimensionFields.classList.add('hidden');
             weightField.classList.add('hidden');
-            document.getElementById('warperAssignmentSection').classList.remove('hidden');
-            requiredRoles.push('warper');
         }
 
-        // Auto-assign member and set deadline for relevant roles
-        requiredRoles.forEach(role => {
-            autoAssignRoleMemberAndDeadline(role, selectedProduct);
-        });
-
-        // Update the materials list based on the selected product
+        // Update materials list based on selected product
         updateMaterialsList(selectedProduct);
     });
 
@@ -2011,87 +1777,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(this);
         const productName = formData.get('product_name');
         const quantity = formData.get('quantity');
+        const deadline = formData.get('deadline');
         
         if (!productName) {
-            Swal.fire('Error', 'Please select a product', 'error');
+            alert('Please select a product');
             return;
         }
         
-        // For products that don't have a quantity field (Knotted Liniwan, Knotted Bastos, Warped Silk)
-        // the quantity should not be validated as 1 (it's implicitly 1 for task creation)
-        if (!['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'].includes(productName) && (!quantity || quantity < 1)) {
-            Swal.fire('Error', 'Please enter a valid quantity for the product', 'error');
+        if (!quantity || quantity < 1) {
+            alert('Please enter a valid quantity');
             return;
         }
-
-        // Collect role-based assignments
-        const knotterId = document.getElementById('knotter_id').value;
-        const knotterDeadline = document.getElementById('knotter_deadline').value;
-        const warperId = document.getElementById('warper_id').value;
-        const warperDeadline = document.getElementById('warper_deadline').value;
-        const weaverId = document.getElementById('weaver_id').value;
-        const weaverDeadline = document.getElementById('weaver_deadline').value;
-
-        let hasAssignment = false;
-        if (knotterId && knotterDeadline) {
-            formData.append('knotter_id[]', knotterId); // Ensure it's an array for PHP
-            formData.append('knotter_deadline', knotterDeadline);
-            hasAssignment = true;
-        }
-        if (warperId && warperDeadline) {
-            formData.append('warper_id', warperId);
-            formData.append('warper_deadline', warperDeadline);
-            hasAssignment = true;
-        }
-        if (weaverId && weaverDeadline) {
-            formData.append('weaver_id', weaverId);
-            formData.append('weaver_deadline', weaverDeadline);
-            hasAssignment = true;
-        }
-
-        if (!hasAssignment) {
-            Swal.fire('Error', 'Please assign at least one member to a role with a deadline.', 'error');
-            return;
-        }
-
-        // Collect selected materials for deduction
-        const selectedMaterials = [];
-        let isValid = true; // Flag to track overall form validity
-
-        document.querySelectorAll('.material-checkbox:checked').forEach(checkbox => {
-            if (!isValid) return; // Skip if already invalid
-
-            const materialId = checkbox.dataset.materialId;
-            const materialType = checkbox.dataset.materialType;
-            const materialName = checkbox.dataset.materialName;
-            const materialSubCategory = checkbox.dataset.materialSubcategory;
-            const quantityInput = checkbox.closest('.flex-grow').nextElementSibling.querySelector('.material-quantity-input');
-            const quantityToDeduct = parseFloat(quantityInput.value);
-            const availableQuantity = parseFloat(checkbox.dataset.availableQuantity);
-
-            if (isNaN(quantityToDeduct) || quantityToDeduct <= 0 || quantityToDeduct > availableQuantity) {
-                Swal.fire('Error', `Invalid quantity for ${materialName}. Available: ${availableQuantity}, Requested: ${quantityToDeduct}`, 'error');
-                isValid = false; // Set flag to false
-                return; // Exit forEach callback, but not the main function
-            }
-            selectedMaterials.push({
-                id: materialId,
-                name: materialName,
-                type: materialType,
-                sub_category: materialSubCategory,
-                deduct_quantity: quantityToDeduct
-            });
-        });
-
-        if (!isValid) {
-            return; // Stop form submission if any material validation failed
-        }
-
-        // Add selected materials to formData
-        formData.append('selected_materials', JSON.stringify(selectedMaterials));
         
-        console.log("Sending formData:", Array.from(formData.entries())); // DEBUG LINE
-
         // Submit the form
         fetch('backend/end-points/create_task.php', {
             method: 'POST',
@@ -2111,12 +1808,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.reload();
                 });
             } else {
-                Swal.fire('Error', data.message || 'Failed to create task', 'error');
+                alert('Error: ' + (data.message || 'Failed to create task'));
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            Swal.fire('Error', 'An error occurred while creating the task. Please check the console for details.', 'error');
+            alert('An error occurred while creating the task');
         });
     });
 
