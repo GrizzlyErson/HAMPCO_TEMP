@@ -306,19 +306,18 @@ class global_class extends db_connect
 
 
 public function check_account($id) {
-
     $id = intval($id);
-
-    $query = "SELECT * FROM user_member WHERE id = $id";
-
-    $result = $this->conn->query($query);
-
+    $stmt = $this->conn->prepare("SELECT * FROM user_member WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
     $items = [];
     if ($result && $result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $items[] = $row;
         }
     }
+    $stmt->close();
     return $items; 
 }
 
