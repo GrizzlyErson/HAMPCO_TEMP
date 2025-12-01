@@ -52,4 +52,37 @@ class Database {
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+
+    public function updateMemberDetails($id, $fullname, $contact, $password = null) {
+        $updateFields = ['fullname = ?', 'phone = ?'];
+        $params = [$fullname, $contact];
+        $paramTypes = 'ss'; // string, string
+
+        if ($password !== null) {
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $updateFields[] = 'password = ?';
+            $params[] = $hashedPassword;
+            $paramTypes .= 's'; // add string for password
+        }
+
+        $query = "UPDATE user_member SET " . implode(', ', $updateFields) . " WHERE id = ?";
+        $params[] = $id;
+        $paramTypes .= 'i'; // add integer for id
+
+        $stmt = $this->conn->prepare($query);
+
+        if (!$stmt) {
+            error_log("Failed to prepare statement: " . $this->conn->error);
+            return ['success' => false, 'error' => $this->conn->error];
+        }
+
+        $stmt->bind_param($paramTypes, ...$params);
+
+        if ($stmt->execute()) {
+            return ['success' => true];
+        } else {
+            error_log("Failed to execute statement: " . $stmt->error);
+            return ['success' => false, 'error' => $stmt->error];
+        }
+    }
 } 
