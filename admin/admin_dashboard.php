@@ -555,7 +555,7 @@ require_once "components/header.php";
                             console.error('Error fetching notifications:', e);
                             return { notifications: [] };
                         }),
-                    fetch('backend/end-points/task_declines.php?action=list&status=pending')
+                    fetch('backend/end-points/task_declines.php?action=list&status=all')
                         .then(r => {
                             console.log('Get declined tasks response status:', r.status);
                             return r.json();
