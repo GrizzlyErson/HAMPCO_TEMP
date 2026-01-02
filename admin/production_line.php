@@ -91,17 +91,20 @@ function renderMemberList(role, listId) {
             
             if (Array.isArray(members) && members.length > 0) {
                 members.forEach(member => {
-                    found = true;
-                    const name = member.fullname;
-                    const status = member.work_status;
-                    const badgeClass = (status === 'Work In Progress' || status === 'Occupied (Pending)') ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
-                    const li = document.createElement('li');
-                    li.className = 'flex items-center justify-between py-2';
-                    li.innerHTML = `
-                        <span class="font-medium">${name}</span>
-                        <span class="ml-2 px-2 py-1 rounded-full text-xs font-semibold ${badgeClass}">${status}</span>
-                    `;
-                    list.appendChild(li);
+                    // Only show available members
+                    if (member.work_status === 'Available') {
+                        found = true;
+                        const name = member.fullname;
+                        const status = member.work_status;
+                        const badgeClass = (status === 'Work In Progress' || status === 'Occupied (Pending)') ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+                        const li = document.createElement('li');
+                        li.className = 'flex items-center justify-between py-2';
+                        li.innerHTML = `
+                            <span class="font-medium">${name}</span>
+                            <span class="ml-2 px-2 py-1 rounded-full text-xs font-semibold ${badgeClass}">${status}</span>
+                        `;
+                        list.appendChild(li);
+                    }
                 });
             }
             
