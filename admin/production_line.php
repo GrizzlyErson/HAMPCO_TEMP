@@ -74,41 +74,7 @@ while ($row = mysqli_fetch_assoc($production_result)) {
 </div>
 
 <script>
-function updateSummaryPanels() {
-    fetch('backend/end-points/list_member.php')
-        .then(function(response) { return response.text(); })
-        .then(function(html) {
-            var tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-            var rows = tempDiv.querySelectorAll('tr');
-            var summary = {
-                knotter: { total: 0, active: 0, inactive: 0 },
-                warper: { total: 0, active: 0, inactive: 0 },
-                weaver: { total: 0, active: 0, inactive: 0 }
-            };
-            rows.forEach(function(row) {
-                var cells = row.querySelectorAll('td');
-                if (cells.length > 0) {
-                    var role = cells[4] ? cells[4].textContent.trim().toLowerCase() : '';
-                    var status = cells[6] ? cells[6].textContent.trim() : '';
-                    if (['knotter', 'warper', 'weaver'].indexOf(role) !== -1) {
-                        summary[role].total++;
-                        if (status === 'Verified' || status === 'Active') summary[role].active++;
-                        else summary[role].inactive++;
-                    }
-                }
-            });
-            if (document.getElementById('knotterTotal')) document.getElementById('knotterTotal').textContent = summary.knotter.total;
-            if (document.getElementById('knotterActive')) document.getElementById('knotterActive').textContent = summary.knotter.active + ' Active';
-            if (document.getElementById('knotterInactive')) document.getElementById('knotterInactive').textContent = summary.knotter.inactive + ' Inactive';
-            if (document.getElementById('warperTotal')) document.getElementById('warperTotal').textContent = summary.warper.total;
-            if (document.getElementById('warperActive')) document.getElementById('warperActive').textContent = summary.warper.active + ' Active';
-            if (document.getElementById('warperInactive')) document.getElementById('warperInactive').textContent = summary.warper.inactive + ' Inactive';
-            if (document.getElementById('weaverTotal')) document.getElementById('weaverTotal').textContent = summary.weaver.total;
-            if (document.getElementById('weaverActive')) document.getElementById('weaverActive').textContent = summary.weaver.active + ' Active';
-            if (document.getElementById('weaverInactive')) document.getElementById('weaverInactive').textContent = summary.weaver.inactive + ' Inactive';
-        });
-}
+
 
 function renderMemberList(role, listId) {
     fetch('backend/end-points/get_members_by_role.php?role=' + role)
@@ -128,7 +94,7 @@ function renderMemberList(role, listId) {
                     found = true;
                     const name = member.fullname;
                     const status = member.work_status;
-                    const badgeClass = status === 'Work In Progress' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+                    const badgeClass = (status === 'Work In Progress' || status === 'Occupied (Pending)') ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
                     const li = document.createElement('li');
                     li.className = 'flex items-center justify-between py-2';
                     li.innerHTML = `
@@ -231,27 +197,21 @@ function refreshTaskAssignments() {
                 throw new Error(response.message);
             }
             
-            const tableBody = document.querySelector('#assignedTasksTable tbody');
-            if (!tableBody) return;
+            const inProgressTableBody = document.querySelector('#inProgressTasksTable tbody');
+            const completedTableBody = document.querySelector('#completedTasksTable tbody');
             
-            tableBody.innerHTML = '';
+            if (!inProgressTableBody || !completedTableBody) return;
             
-            if (response.data.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                            No tasks assigned yet.
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
+            inProgressTableBody.innerHTML = '';
+            completedTableBody.innerHTML = '';
+
+            let inProgressTasksFound = 0;
+            let completedTasksFound = 0;
             
             response.data.forEach(item => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-50';
                 
-                // Create assigned members display without status
                 const assignedMembersHtml = item.assignments.map(assignment => {
                     if (!assignment.member_name) return '';
                     return `
@@ -262,7 +222,6 @@ function refreshTaskAssignments() {
                     `;
                 }).join('');
 
-                // Get the most relevant status from assignments
                 const taskStatuses = item.assignments.map(a => a.task_status);
                 let displayStatus = item.status;
                 if (taskStatuses.includes('in_progress')) {
@@ -273,52 +232,97 @@ function refreshTaskAssignments() {
                     displayStatus = 'pending';
                 }
 
-                // Get status class for the status badge
                 const statusClass = displayStatus === 'completed' ? 'bg-green-100 text-green-800' :
                                   displayStatus === 'submitted' ? 'bg-purple-100 text-purple-800' :
                                   displayStatus === 'in_progress' ? 'bg-blue-100 text-blue-800' :
                                   'bg-yellow-100 text-yellow-800';
 
-                // Determine if all tasks are submitted
-                const allSubmitted = item.assignments.every(assignment => 
-                    assignment.task_status === 'submitted' || assignment.task_status === 'completed'
-                );
-
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">${item.prod_line_id}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.product_name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                            ${displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.date_created}</td>
-                    <td class="px-6 py-4 text-sm text-gray-900">
-                        ${assignedMembersHtml || 'No members assigned'}
-                    </td>
+                if (displayStatus === 'completed') {
+                    completedTasksFound++;
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">${item.prod_line_id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.product_name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                ${displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.date_created}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">
+                            ${assignedMembersHtml || 'No members assigned'}
+                        </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                        ${item.status !== 'completed' ? `
-                            <div class="flex flex-col items-center space-y-2">
-                                <button onclick="confirmTaskCompletion('${item.raw_id}')" 
-                                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors w-full ${displayStatus !== 'submitted' ? 'opacity-50 cursor-not-allowed' : ''}"
-                                    ${displayStatus !== 'submitted' ? 'disabled' : ''}>
-                                    Confirm Task Completion
-                                </button>
-                            </div>
-                        ` : ''}
-                    </td>
-                `;
-                tableBody.appendChild(row);
+                            ${item.assignments[0]?.completion_date ? item.assignments[0].completion_date : '-'}
+                        </td>
+                    `;
+                    completedTableBody.appendChild(row);
+                } else {
+                    inProgressTasksFound++;
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">${item.prod_line_id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.product_name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                ${displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.date_created}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">
+                            ${assignedMembersHtml || 'No members assigned'}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            ${item.status !== 'completed' ? `
+                                <div class="flex flex-col items-center space-y-2">
+                                    <button onclick="confirmTaskCompletion('${item.raw_id}')" 
+                                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors w-full ${displayStatus !== 'submitted' ? 'opacity-50 cursor-not-allowed' : ''}"
+                                        ${displayStatus !== 'submitted' ? 'disabled' : ''}>
+                                        Confirm Task Completion
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </td>
+                    `;
+                    inProgressTableBody.appendChild(row);
+                }
             });
+
+            if (inProgressTasksFound === 0) {
+                inProgressTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                            No in-progress tasks assigned yet.
+                        </td>
+                    </tr>
+                `;
+            }
+            if (completedTasksFound === 0) {
+                completedTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                            No completed tasks found.
+                        </td>
+                    </tr>
+                `;
+            }
         })
         .catch(error => {
             console.error('Error fetching task assignments:', error);
-            const tableBody = document.querySelector('#assignedTasksTable tbody');
-            if (tableBody) {
-                tableBody.innerHTML = `
+            const inProgressTableBody = document.querySelector('#inProgressTasksTable tbody');
+            const completedTableBody = document.querySelector('#completedTasksTable tbody');
+            if (inProgressTableBody) {
+                inProgressTableBody.innerHTML = `
                     <tr>
                         <td colspan="6" class="px-6 py-4 text-center text-sm text-red-600">
-                            Error loading data: ${error.message}
+                            Error loading in-progress tasks: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+            if (completedTableBody) {
+                completedTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-sm text-red-600">
+                            Error loading completed tasks: ${error.message}
                         </td>
                     </tr>
                 `;
@@ -569,6 +573,11 @@ document.addEventListener('DOMContentLoaded', function() {
     renderMemberList('knotter', 'knotterList');
     renderMemberList('warper', 'warperList');
     renderMemberList('weaver', 'weaverList');
+    setInterval(() => {
+        renderMemberList('knotter', 'knotterList');
+        renderMemberList('warper', 'warperList');
+        renderMemberList('weaver', 'weaverList');
+    }, 30000);
     refreshTaskAssignments();
     
     // Get the active tab from URL or localStorage
@@ -860,18 +869,30 @@ function filterProductionItems() {
 function filterTasks() {
     const statusFilter = document.getElementById('statusFilter')?.value || 'all';
     const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
-    const rows = document.querySelectorAll('#assignedTasksTable tbody tr');
     
-    // If no rows found, exit early
-    if (!rows.length) return;
+    const inProgressRows = document.querySelectorAll('#inProgressTasksTable tbody tr');
+    const completedRows = document.querySelectorAll('#completedTasksTable tbody tr');
 
-    rows.forEach(row => {
-        const status = row.querySelector('td:nth-child(3)').textContent.trim().toLowerCase();
-        const productName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+    inProgressRows.forEach(row => {
+        const statusElement = row.querySelector('td:nth-child(3) span');
+        const status = statusElement ? statusElement.textContent.trim().toLowerCase() : '';
+        const productName = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
+        
         const statusMatch = statusFilter === 'all' || status.includes(statusFilter);
-        const searchMatch = productName.includes(searchTerm);
+        const searchMatch = productName.includes(searchTerm) || row.querySelector('td:nth-child(1)').textContent.toLowerCase().includes(searchTerm);
 
-        row.style.display = statusMatch && searchMatch ? '' : 'none';
+        row.style.display = (statusMatch && searchMatch) ? '' : 'none';
+    });
+
+    completedRows.forEach(row => {
+        const productName = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
+        const searchMatch = productName.includes(searchTerm) || row.querySelector('td:nth-child(1)').textContent.toLowerCase().includes(searchTerm);
+        
+        // Completed tasks should only be filtered by search term, not status filter
+        // unless statusFilter explicitly asks for 'completed'
+        const statusExplicitlyCompleted = statusFilter === 'all' || statusFilter === 'completed';
+
+        row.style.display = (searchMatch && statusExplicitlyCompleted) ? '' : 'none';
     });
 }
 
@@ -1296,7 +1317,9 @@ function getStatusClass(status) {
         <div class="flex flex-col space-y-4 mb-6">
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-4">
-                    <h3 class="text-xl font-semibold text-gray-800">Assigned Tasks</h3>
+                    <h3 class="text-xl font-semibold text-gray-800">In Progress Tasks</h3>
+                </div>
+                <div class="flex items-center space-x-4">
                     <div class="relative w-64 z-10">
                         <input type="text" id="searchInput" placeholder="Search tasks..." class="pl-10 pr-4 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1305,20 +1328,20 @@ function getStatusClass(status) {
                             </svg>
                         </div>
                     </div>
-                </div>
-                <div class="w-48 z-10">
-                    <label for="statusFilter" class="sr-only">Filter by Status</label>
-                    <select id="statusFilter" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        <option value="all">All Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                    </select>
+                    <div class="w-48 z-10">
+                        <label for="statusFilter" class="sr-only">Filter by Status</label>
+                        <select id="statusFilter" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200" id="assignedTasksTable">
+            <table class="min-w-full divide-y divide-gray-200" id="inProgressTasksTable">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Production ID</th>
@@ -1327,6 +1350,31 @@ function getStatusClass(status) {
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Date Created</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Assigned Members</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
+        <div class="flex flex-col space-y-4 mb-6">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-semibold text-gray-800">Completed Tasks</h3>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200" id="completedTasksTable">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Production ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Product Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Date Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Assigned Members</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Completion Date</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">

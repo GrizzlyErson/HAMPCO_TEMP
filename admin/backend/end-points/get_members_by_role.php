@@ -24,7 +24,7 @@ $query = "SELECT
     um.role, 
     CASE 
         WHEN ta.status = 'in_progress' THEN 'Work In Progress'
-        WHEN ta.status = 'pending' THEN 'Available'
+        WHEN ta.status = 'pending' THEN 'Occupied (Pending)'
         ELSE 'Available'
     END as work_status
 FROM user_member um
