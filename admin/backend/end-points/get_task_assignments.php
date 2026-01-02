@@ -15,6 +15,7 @@ try {
         GROUP_CONCAT(DISTINCT ta.role) as roles,
         GROUP_CONCAT(DISTINCT ta.status) as task_statuses,
         GROUP_CONCAT(DISTINCT ta.deadline) as deadlines,
+        GROUP_CONCAT(DISTINCT ta.updated_at) as completion_dates, /* Added completion_dates */
         GROUP_CONCAT(DISTINCT um.fullname) as member_names,
         GROUP_CONCAT(DISTINCT um.role) as member_roles,
         pl.date_created
@@ -39,6 +40,7 @@ try {
             $roles = $row['roles'] ? explode(',', $row['roles']) : [];
             $task_statuses = $row['task_statuses'] ? explode(',', $row['task_statuses']) : [];
             $deadlines = $row['deadlines'] ? explode(',', $row['deadlines']) : [];
+            $completion_dates = $row['completion_dates'] ? explode(',', $row['completion_dates']) : []; // Extract completion_dates
             $member_names = $row['member_names'] ? explode(',', $row['member_names']) : [];
             $member_roles = $row['member_roles'] ? explode(',', $row['member_roles']) : [];
 
@@ -51,13 +53,14 @@ try {
                 'product_name' => $row['product_name'],
                 'status' => $row['status'],
                 'date_created' => $formatted_date,
-                'assignments' => array_map(function($i) use ($task_ids, $member_ids, $roles, $task_statuses, $deadlines, $member_names, $member_roles) {
+                'assignments' => array_map(function($i) use ($task_ids, $member_ids, $roles, $task_statuses, $deadlines, $completion_dates, $member_names, $member_roles) {
                     return [
                         'task_id' => $task_ids[$i] ?? null,
                         'member_id' => $member_ids[$i] ?? null,
                         'role' => $roles[$i] ?? null,
                         'task_status' => $task_statuses[$i] ?? null,
                         'deadline' => $deadlines[$i] ?? null,
+                        'completion_date' => $completion_dates[$i] ?? null, // Add completion_date here
                         'member_name' => $member_names[$i] ?? null,
                         'member_role' => $member_roles[$i] ?? null
                     ];
