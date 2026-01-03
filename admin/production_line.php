@@ -270,19 +270,31 @@ function refreshTaskAssignments() {
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.date_created}</td>
-                        <td class="px-6 py-4 text-sm text-gray-900">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             ${assignedMembersHtml || 'No members assigned'}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            ${item.status !== 'completed' ? `
-                                <div class="flex flex-col items-center space-y-2">
-                                    <button onclick="confirmTaskCompletion('${item.raw_id}')" 
-                                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors w-full ${displayStatus !== 'submitted' ? 'opacity-50 cursor-not-allowed' : ''}"
-                                        ${displayStatus !== 'submitted' ? 'disabled' : ''}>
-                                        Confirm Task Completion
-                                    </button>
-                                </div>
-                            ` : ''}
+                            <div class="flex flex-col items-center space-y-2">
+                                ${item.assignments.map(assignment => {
+                                    if (assignment.decline_status && assignment.decline_status !== null) {
+                                        return `
+                                            <button onclick="reassignDeclinedTask('${item.raw_id}', '${assignment.task_id}', '${item.product_name}', '${assignment.decline_id}')" 
+                                                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors w-full">
+                                                Reassign Declined Task
+                                            </button>
+                                        `;
+                                    } else if (assignment.task_status === 'submitted') {
+                                        return `
+                                            <button onclick="confirmTaskCompletion('${item.raw_id}')" 
+                                                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors w-full">
+                                                Confirm Task Completion
+                                            </button>
+                                        `;
+                                    }
+                                    return '';
+                                }).join('')}
+                                ${item.assignments.filter(a => a.decline_status || a.task_status === 'submitted').length === 0 ? '-' : ''}
+                            </div>
                         </td>
                     `;
                     inProgressTableBody.appendChild(row);
@@ -1539,6 +1551,9 @@ function getStatusClass(status) {
                 <input type="hidden" id="identifier" name="identifier">
                 <input type="hidden" id="prod_line_id" name="prod_line_id">
                 <input type="hidden" id="product_details" name="product_details">
+                <input type="hidden" id="is_reassignment" name="is_reassignment" value="false">
+                <input type="hidden" id="original_task_id" name="original_task_id">
+                <input type="hidden" id="decline_notification_id" name="decline_notification_id">
                 
                 <!-- Knotter Section -->
                 <div id="knotterSection" class="space-y-2 hidden">
@@ -1691,7 +1706,8 @@ function updateMaterialsList(productName) {
 }
 
 // Function to fetch and display available materials and members
-function loadModalData() {
+// Function to fetch and display available members for the Create Task modal
+function loadModalDataForCreateTask() {
     // Load assignable members
     fetch('backend/end-points/get_members_by_role.php?role=all')
         .then(response => response.json())
@@ -1718,7 +1734,7 @@ function loadModalData() {
             }
         })
         .catch(error => {
-            console.error('Error loading members:', error);
+            console.error('Error loading members for create task modal:', error);
             const assignedToSelect = document.getElementById('assigned_to');
             const option = document.createElement('option');
             option.value = '';
@@ -1730,19 +1746,207 @@ function loadModalData() {
     // Load initial materials list (empty or for default selected product)
     const initialSelectedProduct = document.getElementById('product_name').value;
     updateMaterialsList(initialSelectedProduct);
-}
+} 
 
+// Function to fetch and display available members for the Task Assignment modal
+function loadAssignmentModalData() {
+    fetch('backend/end-points/get_members_by_role.php?role=all')
+        .then(response => response.json())
+        .then(members => {
+            // Get all role-specific select elements in the taskAssignmentForm
+            const knotterSelect = document.querySelector('#taskAssignmentForm select[name="knotter_id[]"]');
+            const warperSelect = document.querySelector('#taskAssignmentForm select[name="warper_id"]');
+            const weaverSelect = document.querySelector('#taskAssignmentForm select[name="weaver_id"]');
+            
+            // Clear existing options, keeping the first "Select" option
+            [knotterSelect, warperSelect, weaverSelect].forEach(select => {
+                if (select) {
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
+                }
+            });
+            
+            if (members && members.length > 0) {
+                members.forEach(member => {
+                    const option = document.createElement('option');
+                    option.value = member.id;
+                    option.textContent = `${member.fullname} (${member.role}) ${member.work_status === 'Available' ? '' : `(${member.work_status})`}`;
+                    // Only add to the correct role's select field
+                    if (member.role.toLowerCase() === 'knotter' && knotterSelect) {
+                        knotterSelect.appendChild(option.cloneNode(true));
+                    } else if (member.role.toLowerCase() === 'warper' && warperSelect) {
+                        warperSelect.appendChild(option.cloneNode(true));
+                    } else if (member.role.toLowerCase() === 'weaver' && weaverSelect) {
+                        weaverSelect.appendChild(option.cloneNode(true));
+                    }
+                });
+            } else {
+                // If no members, add a disabled option to all selects
+                [knotterSelect, warperSelect, weaverSelect].forEach(select => {
+                    if (select) {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = 'No members available';
+                        option.disabled = true;
+                        select.appendChild(option);
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading members:', error);
+            // On error, add a disabled error option to all selects
+            ['knotter', 'warper', 'weaver'].forEach(role => {
+                const select = document.querySelector(`#taskAssignmentForm select[name="${role}_id[]"]`); // Adjust for knotter[]
+                if (select) {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'Error loading members';
+                    option.disabled = true;
+                    select.appendChild(option);
+                }
+            });
+        });
+} 
 
-// Function to set minimum date for deadline (today)
-function setMinDeadlineDate() {
-    const now = new Date();
-    // Format: YYYY-MM-DDTHH:MM
-    const minDate = now.toISOString().slice(0, 16);
-    document.getElementById('deadline').min = minDate;
-    // Set default deadline to 7 days from now
-    const defaultDeadline = new Date(now.setDate(now.getDate() + 7)).toISOString().slice(0, 16);
-    document.getElementById('deadline').value = defaultDeadline;
-}
+// Function to open the task assignment modal for new assignments
+function assignTask(prodLineId, productName, quantity) {
+    const taskAssignmentModal = document.getElementById('taskAssignmentModal');
+    const taskAssignmentForm = document.getElementById('taskAssignmentForm');
+    const modalTitle = taskAssignmentModal.querySelector('h3');
+
+    // Set modal title for new assignment
+    if (modalTitle) {
+        modalTitle.textContent = 'Assign Tasks';
+    }
+
+    // Reset hidden fields for new assignment
+    taskAssignmentForm.querySelector('#prod_line_id').value = prodLineId;
+    taskAssignmentForm.querySelector('#product_details').value = productName; // Store product name for display
+    taskAssignmentForm.querySelector('#is_reassignment').value = 'false';
+    taskAssignmentForm.querySelector('#original_task_id').value = '';
+    taskAssignmentForm.querySelector('#decline_notification_id').value = '';
+
+    // Clear previous selections and set deadlines for new assignment
+    ['knotter', 'warper', 'weaver'].forEach(role => {
+        const select = taskAssignmentForm.querySelector(`select[name="${role}_id[]"]`);
+        if (select) select.selectedIndex = 0;
+        const deadlineInput = taskAssignmentForm.querySelector(`input[name="${role}_deadline"]`);
+        if (deadlineInput) setMinDeadlineDate(deadlineInput);
+    });
+    const generalDeadlineInput = taskAssignmentForm.querySelector(`input[name="deadline"]`);
+    if (generalDeadlineInput) setMinDeadlineDate(generalDeadlineInput);
+
+    loadAssignmentModalData();
+    taskAssignmentModal.classList.remove('hidden');
+} 
+
+// Function to open the task assignment modal for reassignment of declined tasks
+function reassignDeclinedTask(prodLineId, taskId, productName, declineId) {
+    const taskAssignmentModal = document.getElementById('taskAssignmentModal');
+    const taskAssignmentForm = document.getElementById('taskAssignmentForm');
+    const modalTitle = taskAssignmentModal.querySelector('h3');
+
+    // Set modal title for reassignment
+    if (modalTitle) {
+        modalTitle.textContent = `Reassign Task: ${productName}`;
+    }
+
+    // Set hidden fields for reassignment
+    taskAssignmentForm.querySelector('#prod_line_id').value = prodLineId;
+    taskAssignmentForm.querySelector('#product_details').value = productName;
+    taskAssignmentForm.querySelector('#is_reassignment').value = 'true';
+    taskAssignmentForm.querySelector('#original_task_id').value = taskId;
+    taskAssignmentForm.querySelector('#decline_notification_id').value = declineId;
+
+    // Clear previous selections and set deadlines for reassignment
+    ['knotter', 'warper', 'weaver'].forEach(role => {
+        const select = taskAssignmentForm.querySelector(`select[name="${role}_id[]"]`);
+        if (select) select.selectedIndex = 0;
+        const deadlineInput = taskAssignmentForm.querySelector(`input[name="${role}_deadline"]`);
+        if (deadlineInput) setMinDeadlineDate(deadlineInput);
+    });
+    const generalDeadlineInput = taskAssignmentForm.querySelector(`input[name="deadline"]`);
+    if (generalDeadlineInput) setMinDeadlineDate(generalDeadlineInput);
+
+        loadAssignmentModalData();
+
+        taskAssignmentModal.classList.remove('hidden');
+
+    } 
+
+    
+
+    // Function to handle opening the task assignment modal from the Production Line Monitoring tab
+
+    
+
+    function openAssignTaskModal(prodLineId, productName, quantity) {
+
+    
+
+        assignTask(prodLineId, productName, quantity);
+
+    
+
+    }
+
+    
+
+    
+
+    
+
+    // Function to set minimum date for deadline (today)
+
+    
+
+    function setMinDeadlineDate(inputElement) {
+
+    
+
+        const now = new Date();
+
+    
+
+        // Format: YYYY-MM-DDTHH:MM
+
+    
+
+        const minDate = now.toISOString().slice(0, 16);
+
+    
+
+        if (inputElement) {
+
+    
+
+            inputElement.min = minDate;
+
+    
+
+            if (!inputElement.value) { // Only set default if no value exists
+
+    
+
+                const defaultDeadline = new Date(now.setDate(now.getDate() + 7)).toISOString().slice(0, 16);
+
+    
+
+                inputElement.value = defaultDeadline;
+
+    
+
+            }
+
+    
+
+        }
+
+    
+
+    }
 
 // Initialize the create task form
 // Initialize search functionality for assigned tasks
