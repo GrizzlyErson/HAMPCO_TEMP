@@ -1,63 +1,39 @@
 <?php include "components/header.php";?>
 
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Customer Overview</h1>
+    <h1 class="h3 mb-0 text-gray-800">Sales Forecasting</h1>
 </div>
 
 <!-- Content Row -->
 <div class="row">
-
-    <!-- Total Sales Card -->
+    <!-- Predicted Sales Card -->
     <div class="col-xl-4 col-md-6 mb-4">
-        <div class="card border-left-success shadow h-100 py-2">
+        <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Total Sales</div>
-                        <div id="totalSalesCard" class="h5 mb-0 font-weight-bold text-gray-800">₱0.00</div>
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Predicted Sales for <span id="predictionMonth">Next Month</span>
+                        </div>
+                        <div id="predictedSalesCard" class="h5 mb-0 font-weight-bold text-gray-800">₱0.00</div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        <i class="fas fa-chart-line fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Completed Orders Card -->
-    <div class="col-xl-4 col-md-6 mb-4">
-        <div class="card border-left-info shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Completed Orders</div>
-                        <div id="completedOrdersCard" class="h5 mb-0 font-weight-bold text-gray-800">0</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- Sales Forecasting Chart -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Monthly Sales and Forecast</h6>
     </div>
-
-    <!-- Total Pending Orders Card -->
-    <div class="col-xl-4 col-md-6 mb-4">
-        <div class="card border-left-warning shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Total Pending Orders</div>
-                        <div id="totalPendingOrdersCard" class="h5 mb-0 font-weight-bold text-gray-800">0</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-clock fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
+    <div class="card-body">
+        <div class="chart-area">
+            <canvas id="salesForecastChart"></canvas>
         </div>
     </div>
 </div>
@@ -111,103 +87,121 @@
 
 <?php include "components/footer.php";?>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    fetchSalesDataAndRenderChart();
     fetchMostSoldProducts();
     fetchTopCustomers();
-    fetchSummaryData();
 });
 
-function fetchSummaryData() {
-    // Fetch Total Sales
-    fetch('backend/get_total_sales.php')
+function fetchSalesDataAndRenderChart() {
+    fetch('backend/get_sales_data_for_forecasting.php')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const totalSales = parseFloat(data.total_sales).toLocaleString('en-US', { style: 'currency', currency: 'PHP' });
-                document.getElementById('totalSalesCard').textContent = totalSales;
+                renderSalesChart(data);
+                updatePredictionCard(data.prediction);
+            } else {
+                console.error('Failed to fetch sales data for forecasting:', data.error);
             }
         })
-        .catch(error => console.error('Error fetching total sales:', error));
-
-    // Fetch Completed Orders
-    fetch('backend/get_completed_orders.php')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('completedOrdersCard').textContent = data.completed_orders;
-            }
-        })
-        .catch(error => console.error('Error fetching completed orders:', error));
-
-    // Fetch Total Pending Orders
-    fetch('backend/get_pending_orders.php')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('totalPendingOrdersCard').textContent = data.pending_orders;
-            }
-        })
-        .catch(error => console.error('Error fetching total pending orders:', error));
+        .catch(error => console.error('Error fetching sales data:', error));
 }
 
-function loadTopSalesChart() {
-    fetch('backend/get_top_sales_data.php')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const salesData = data.data;
-                const labels = salesData.map(item => item.customer_name);
-                const values = salesData.map(item => item.total_sales);
+function updatePredictionCard(prediction) {
+    document.getElementById('predictionMonth').textContent = prediction.month;
+    const predictedSales = parseFloat(prediction.sales).toLocaleString('en-US', { style: 'currency', currency: 'PHP' });
+    document.getElementById('predictedSalesCard').textContent = predictedSales;
+}
 
-                const ctx = document.getElementById('topSalesChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Total Sales',
-                            data: values,
-                            backgroundColor: '#4e73df',
-                            borderColor: '#4e73df',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function(value, index, values) {
-                                        return '₱' + value.toLocaleString();
-                                    }
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        if (context.parsed.y !== null) {
-                                            label += '₱' + context.parsed.y.toLocaleString();
-                                        }
-                                        return label;
-                                    }
-                                }
-                            }
+function renderSalesChart(data) {
+    const ctx = document.getElementById('salesForecastChart').getContext('2d');
+    
+    const labels = data.labels;
+    
+    // Add the prediction month to the labels for the chart
+    const extendedLabels = [...labels, data.prediction.month];
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: extendedLabels,
+            datasets: [
+                {
+                    label: 'Monthly Sales',
+                    data: data.sales,
+                    backgroundColor: 'rgba(78, 115, 223, 0.5)',
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    borderWidth: 1,
+                    order: 2
+                },
+                {
+                    label: '3-Month Moving Average',
+                    data: data.movingAverage,
+                    type: 'line',
+                    borderColor: 'rgba(28, 200, 138, 1)',
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    tension: 0.1,
+                    order: 1
+                },
+                {
+                    label: 'Linear Regression Trend',
+                    data: data.regressionLine,
+                    type: 'line',
+                    borderColor: 'rgba(246, 194, 62, 1)',
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    tension: 0.1,
+                    order: 0
+                },
+                {
+                    label: 'Predicted Sales',
+                    data: [...new Array(data.sales.length).fill(null), data.prediction.sales],
+                    backgroundColor: 'rgba(217, 30, 24, 0.5)',
+                    borderColor: 'rgba(217, 30, 24, 1)',
+                    borderWidth: 1,
+                    order: 3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₱' + value.toLocaleString();
                         }
                     }
-                });
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += '₱' + context.parsed.y.toLocaleString();
+                            }
+                            return label;
+                        }
+                    }
+                }
             }
-        })
-        .catch(error => console.error('Error loading top sales chart:', error));
+        }
+    });
 }
 
 function fetchMostSoldProducts() {

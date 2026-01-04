@@ -59,7 +59,7 @@
       <li>
         <a href="customer_overview.php">
           <i class="fas fa-solid fa-user"></i>
-          <span>Customer Overview</span>
+          <span>Sales Forecasting</span>
         </a>
       </li>
       <li>
