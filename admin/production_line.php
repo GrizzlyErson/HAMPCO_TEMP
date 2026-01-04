@@ -700,6 +700,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('createTaskBtn').addEventListener('click', function() {
         document.getElementById('createTaskModal').classList.remove('hidden');
+        loadModalDataForCreateTask();
     });
 
     document.getElementById('cancelCreateTask').addEventListener('click', function() {
@@ -1096,19 +1097,10 @@ function getStatusClass(status) {
                     </div>
                 </div>
 
-                <!-- Row 3: Deadline and Assign To -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="deadline" class="block text-xs font-medium text-gray-700 mb-1">Deadline</label>
-                        <input type="datetime-local" id="deadline" name="deadline" min="" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
-                    </div>
-                    <div>
-                        <label for="assigned_to" class="block text-xs font-medium text-gray-700 mb-1">Assign To</label>
-                        <select id="assigned_to" name="assigned_to" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
-                            <option value="">Select a member</option>
-                            <!-- Will be populated by JavaScript -->
-                        </select>
-                    </div>
+                <!-- Row 3: Deadline -->
+                <div>
+                    <label for="deadline" class="block text-xs font-medium text-gray-700 mb-1">Deadline</label>
+                    <input type="datetime-local" id="deadline" name="deadline" min="" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
                 </div>
 
                 <!-- Row 4: Available Materials -->
@@ -1815,11 +1807,20 @@ function loadModalDataForCreateTask() {
     // Get the currently selected product
     const selectedProduct = document.getElementById('product_name').value;
     
-    // Load assignable members filtered by product
-    let url = 'backend/end-points/get_members_by_role.php?role=all';
-    if (selectedProduct) {
-        url += `&product_name=${encodeURIComponent(selectedProduct)}`;
-    }
+    // Map product names to required roles for testing
+    const productRoleMap = {
+        'Piña Seda': 'weaver',
+        'Pure Piña Cloth': 'weaver',
+        'Knotted Liniwan': 'knotter',
+        'Knotted Bastos': 'knotter',
+        'Warped Silk': 'warper'
+    };
+    
+    // Get the role based on selected product
+    const role = selectedProduct && productRoleMap[selectedProduct] ? productRoleMap[selectedProduct] : 'all';
+    
+    // Load assignable members filtered by role
+    const url = `backend/end-points/get_members_by_role.php?role=${encodeURIComponent(role)}`;
     
     fetch(url)
         .then(response => response.json())
@@ -1870,69 +1871,60 @@ function loadAssignmentModalData(productName = null) {
         }
     }
 
-    let url = 'backend/end-points/get_members_by_role.php?role=all';
-    if (productName) {
-        url += '&product_name=' + encodeURIComponent(productName);
-    }
+    // Map product names to required roles
+    const productRoleMap = {
+        'Piña Seda': ['weaver'],
+        'Pure Piña Cloth': ['weaver'],
+        'Knotted Liniwan': ['knotter'],
+        'Knotted Bastos': ['knotter'],
+        'Warped Silk': ['warper']
+    };
 
-    fetch(url)
-        .then(response => response.json())
-        .then(members => {
-            // Get all role-specific select elements in the taskAssignmentForm
-            const knotterSelect = document.querySelector('#taskAssignmentForm select[name="knotter_id[]"]');
-            const warperSelect = document.querySelector('#taskAssignmentForm select[name="warper_id"]');
-            const weaverSelect = document.querySelector('#taskAssignmentForm select[name="weaver_id"]');
-            
-            // Clear existing options, keeping the first "Select" option
-            [knotterSelect, warperSelect, weaverSelect].forEach(select => {
-                if (select) {
-                    while (select.options.length > 1) {
-                        select.remove(1);
-                    }
-                }
-            });
-            
-            if (members && members.length > 0) {
-                members.forEach(member => {
-                    const option = document.createElement('option');
-                    option.value = member.id;
-                    option.textContent = `${member.fullname} (${member.role}) ${member.work_status === 'Available' ? '' : `(${member.work_status})`}`;
-                    // Only add to the correct role's select field
-                    if (member.role.toLowerCase() === 'knotter' && knotterSelect) {
-                        knotterSelect.appendChild(option.cloneNode(true));
-                    } else if (member.role.toLowerCase() === 'warper' && warperSelect) {
-                        warperSelect.appendChild(option.cloneNode(true));
-                    } else if (member.role.toLowerCase() === 'weaver' && weaverSelect) {
-                        weaverSelect.appendChild(option.cloneNode(true));
-                    }
-                });
-            } else {
-                // If no members, add a disabled option to all selects
-                [knotterSelect, warperSelect, weaverSelect].forEach(select => {
-                    if (select) {
-                        const option = document.createElement('option');
-                        option.value = '';
-                        option.textContent = 'No members available';
-                        option.disabled = true;
-                        select.appendChild(option);
-                    }
-                });
+    // Get the roles based on selected product
+    const requiredRoles = productName && productRoleMap[productName] ? productRoleMap[productName] : ['knotter', 'warper', 'weaver'];
+
+    // Get all role-specific select elements in the taskAssignmentForm
+    const knotterSelect = document.querySelector('#taskAssignmentForm select[name="knotter_id[]"]');
+    const warperSelect = document.querySelector('#taskAssignmentForm select[name="warper_id"]');
+    const weaverSelect = document.querySelector('#taskAssignmentForm select[name="weaver_id"]');
+
+    // Clear existing options, keeping the first "Select" option
+    [knotterSelect, warperSelect, weaverSelect].forEach(select => {
+        if (select) {
+            while (select.options.length > 1) {
+                select.remove(1);
             }
-        })
-        .catch(error => {
-            console.error('Error loading members:', error);
-            // On error, add a disabled error option to all selects
-            ['knotter', 'warper', 'weaver'].forEach(role => {
-                const select = document.querySelector(`#taskAssignmentForm select[name="${role}_id[]"]`); // Adjust for knotter[]
-                if (select) {
-                    const option = document.createElement('option');
-                    option.value = '';
-                    option.textContent = 'Error loading members';
-                    option.disabled = true;
-                    select.appendChild(option);
+        }
+    });
+
+    // Load members for each required role
+    requiredRoles.forEach(role => {
+        const url = `backend/end-points/get_members_by_role.php?role=${role}`;
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(members => {
+                if (members && members.length > 0) {
+                    members.forEach(member => {
+                        const option = document.createElement('option');
+                        option.value = member.id;
+                        option.textContent = `${member.fullname} (${member.work_status})`;
+                        
+                        // Add to the correct role's select field
+                        if (member.role.toLowerCase() === 'knotter' && knotterSelect) {
+                            knotterSelect.appendChild(option.cloneNode(true));
+                        } else if (member.role.toLowerCase() === 'warper' && warperSelect) {
+                            warperSelect.appendChild(option.cloneNode(true));
+                        } else if (member.role.toLowerCase() === 'weaver' && weaverSelect) {
+                            weaverSelect.appendChild(option.cloneNode(true));
+                        }
+                    });
                 }
+            })
+            .catch(error => {
+                console.error(`Error loading ${role} members:`, error);
             });
-        });
+    });
 } 
 
 // Function to set minimum date for deadline (today)

@@ -75,10 +75,8 @@ $result = $stmt->get_result();
 
 $members = [];
 while ($row = $result->fetch_assoc()) {
-    // Only include available members
-    if ($row['work_status'] === 'Available') {
-        $members[] = $row;
-    }
+    // Include all members (both available and occupied)
+    $members[] = $row;
 }
 
 echo json_encode($members);

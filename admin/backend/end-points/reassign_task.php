@@ -32,7 +32,7 @@ if (!$task_id || !$prod_line_id || !$new_member_id || !$deadline) {
 
 try {
     // Fetch the new member's role from user_member table
-    $member_role_sql = "SELECT role FROM user_member WHERE member_id = ?";
+    $member_role_sql = "SELECT role FROM user_member WHERE id = ?";
     $stmt_role = $conn->prepare($member_role_sql);
     if (!$stmt_role) {
         throw new Exception("Failed to prepare member role statement: " . $conn->error);
