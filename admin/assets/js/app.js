@@ -1,7 +1,11 @@
-// Function to load members for a specific role
-async function loadMembers(role, selectElement) {
+// Function to load members for a specific role and product
+async function loadMembers(role, selectElement, productName = null) {
     try {
-        const response = await fetch('backend/end-points/get_members_by_role.php?role=' + role);
+        let url = 'backend/end-points/get_members_by_role.php?role=' + role;
+        if (productName) {
+            url += '&product_name=' + encodeURIComponent(productName);
+        }
+        const response = await fetch(url);
         const members = await response.json();
 
         // Clear existing options except the first one
@@ -16,6 +20,12 @@ async function loadMembers(role, selectElement) {
                 option.textContent = member.fullname;
                 selectElement.appendChild(option);
             });
+        } else {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'No available members';
+            option.disabled = true;
+            selectElement.appendChild(option);
         }
     } catch (error) {
         console.error('Error loading members:', error);
@@ -65,13 +75,32 @@ async function assignTask(prodLineId, productName, quantity) { // Made async
     const warperSelect = document.querySelector('select[name="warper_id"]');
     const weaverSelect = document.querySelector('select[name="weaver_id"]');
 
-    // Load members for each role
-    // Using a Promise.all to load members concurrently
-    await Promise.all([
-        loadMembers('knotter', knotterSelect),
-        loadMembers('warper', warperSelect),
-        loadMembers('weaver', weaverSelect)
-    ]);
+    // Load members for each role with product name filtering
+    // Determine which role(s) are needed based on product name
+    let rolesToLoad = [];
+    if (productName === 'Knotted Liniwan' || productName === 'Knotted Bastos') {
+        rolesToLoad = [
+            loadMembers('knotter', knotterSelect, productName)
+        ];
+    } else if (productName === 'Warped Silk') {
+        rolesToLoad = [
+            loadMembers('warper', warperSelect, productName)
+        ];
+    } else if (productName === 'Piña Seda' || productName === 'Pure Piña Cloth') {
+        rolesToLoad = [
+            loadMembers('weaver', weaverSelect, productName)
+        ];
+    } else {
+        // Load all roles if product name doesn't match expected values
+        rolesToLoad = [
+            loadMembers('knotter', knotterSelect, productName),
+            loadMembers('warper', warperSelect, productName),
+            loadMembers('weaver', weaverSelect, productName)
+        ];
+    }
+
+    // Using Promise.all to load members concurrently
+    await Promise.all(rolesToLoad);
 
     // Fetch existing assignments for pre-population
     let existingAssignments = [];

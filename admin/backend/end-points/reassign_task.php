@@ -3,9 +3,8 @@ session_start();
 header('Content-Type: application/json');
 
 define('ALLOW_ACCESS', true);
-require_once '../../../function/db_connect.php'; // Adjust path as necessary
-require_once '../class.php'; // For global_class and other helpers
-require_once '../helpers/task_decline_helper.php'; // For updateTaskDeclineStatus
+require_once '../../../function/db_connect.php';
+require_once '../class.php';
 
 $response = ["success" => false, "message" => "Unknown error."];
 
@@ -18,67 +17,57 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-// Get the POST data
-$input = json_decode(file_get_contents('php://input'), true);
-
-$prod_line_id = $input['prod_line_id'] ?? null;
-$original_task_id = $input['original_task_id'] ?? null;
-$decline_notification_id = $input['decline_notification_id'] ?? null;
-$assignments = $input['assignments'] ?? []; // Array of { member_id, role, deadline }
+// Get the POST data from form
+$task_id = $_POST['task_id'] ?? null;
+$prod_line_id = $_POST['prod_line_id'] ?? null;
+$new_member_id = $_POST['new_member_id'] ?? null;
+$deadline = $_POST['deadline'] ?? null;
 
 // Basic validation
-if (!$prod_line_id || !$original_task_id || !$decline_notification_id || !is_array($assignments) || empty($assignments)) {
-    $response["message"] = "Missing or invalid required parameters for reassignment.";
+if (!$task_id || !$prod_line_id || !$new_member_id || !$deadline) {
+    $response["message"] = "Missing required parameters for reassignment.";
     echo json_encode($response);
     exit();
 }
 
-$conn->begin_transaction();
-
 try {
-    // 1. Mark the original declined task assignment as 'reassigned' or 'declined'
-    $update_original_task_sql = "UPDATE task_assignments SET status = 'reassigned', updated_at = NOW() WHERE id = ?";
-    $stmt_update_original = $conn->prepare($update_original_task_sql);
-    if (!$stmt_update_original) {
-        throw new Exception("Failed to prepare original task update statement: " . $conn->error);
+    // Fetch the new member's role from user_member table
+    $member_role_sql = "SELECT role FROM user_member WHERE member_id = ?";
+    $stmt_role = $conn->prepare($member_role_sql);
+    if (!$stmt_role) {
+        throw new Exception("Failed to prepare member role statement: " . $conn->error);
     }
-    $stmt_update_original->bind_param("i", $original_task_id);
-    if (!$stmt_update_original->execute()) {
-        throw new Exception("Failed to update original task status: " . $stmt_update_original->error);
+    $stmt_role->bind_param("i", $new_member_id);
+    if (!$stmt_role->execute()) {
+        throw new Exception("Failed to fetch member role: " . $stmt_role->error);
     }
-    $stmt_update_original->close();
-
-    // 2. Create new task assignments for the selected members
-    $insert_new_assignment_sql = "INSERT INTO task_assignments (prod_line_id, member_id, role, status, deadline, created_at, updated_at) VALUES (?, ?, ?, 'pending', ?, NOW(), NOW())";
-    $stmt_insert_new = $conn->prepare($insert_new_assignment_sql);
-    if (!$stmt_insert_new) {
-        throw new Exception("Failed to prepare new task assignment statement: " . $conn->error);
+    
+    $result = $stmt_role->get_result();
+    if ($result->num_rows === 0) {
+        throw new Exception("Member not found.");
     }
+    
+    $member_row = $result->fetch_assoc();
+    $new_role = $member_row['role'];
+    $stmt_role->close();
 
-    foreach ($assignments as $assignment) {
-        $member_id = $assignment['member_id'] ?? null;
-        $role = $assignment['role'] ?? null;
-        $deadline = $assignment['deadline'] ?? null;
-
-        if (!$member_id || !$role || !$deadline) {
-            throw new Exception("Invalid new assignment details provided.");
-        }
-        $stmt_insert_new->bind_param("iiss", $prod_line_id, $member_id, $role, $deadline);
-        if (!$stmt_insert_new->execute()) {
-            throw new Exception("Failed to create new task assignment: " . $stmt_insert_new->error);
-        }
+    // Update the task assignment with new member and deadline
+    $update_task_sql = "UPDATE task_assignments SET member_id = ?, role = ?, deadline = ?, updated_at = NOW() WHERE id = ?";
+    $stmt_update = $conn->prepare($update_task_sql);
+    if (!$stmt_update) {
+        throw new Exception("Failed to prepare task update statement: " . $conn->error);
     }
-    $stmt_insert_new->close();
+    
+    $stmt_update->bind_param("issi", $new_member_id, $new_role, $deadline, $task_id);
+    if (!$stmt_update->execute()) {
+        throw new Exception("Failed to update task assignment: " . $stmt_update->error);
+    }
+    $stmt_update->close();
 
-    // 3. Mark the decline notification as handled/acknowledged
-    updateTaskDeclineStatus($conn, $decline_notification_id, 'acknowledged', 'Admin reassigned task.');
-
-    $conn->commit();
     $response["success"] = true;
-    $response["message"] = "Task successfully reassigned and decline notification handled.";
+    $response["message"] = "Task successfully reassigned to the new member.";
 
 } catch (Exception $e) {
-    $conn->rollback();
     $response["message"] = "Reassignment failed: " . $e->getMessage();
     error_log("Task reassignment error: " . $e->getMessage());
 }

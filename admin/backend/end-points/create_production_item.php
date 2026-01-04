@@ -31,6 +31,8 @@ try {
         $width = isset($_POST['width']) && $_POST['width'] !== '' ? floatval($_POST['width']) : 0;
         $weight = isset($_POST['weight']) && $_POST['weight'] !== '' ? floatval($_POST['weight']) : 0;
         $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 0;
+        $assigned_to = isset($_POST['assigned_to']) && $_POST['assigned_to'] !== '' ? intval($_POST['assigned_to']) : null;
+        $deadline = isset($_POST['deadline']) && $_POST['deadline'] !== '' ? $_POST['deadline'] : null;
         $status = 'pending';
 
         if ($product_name === '' || !$quantity) {
@@ -77,9 +79,50 @@ try {
             throw new Exception("Execute failed: " . $stmt->error);
         }
 
+        $prod_line_id = $stmt->insert_id;
+        $stmt->close();
+
+        // If a member was selected, assign the task to them
+        if ($assigned_to && $deadline) {
+            // Get the member's role
+            $role_sql = "SELECT role FROM user_member WHERE id = ?";
+            $role_stmt = $conn->prepare($role_sql);
+            if (!$role_stmt) {
+                throw new Exception("Failed to prepare role query: " . $conn->error);
+            }
+            $role_stmt->bind_param('i', $assigned_to);
+            if (!$role_stmt->execute()) {
+                throw new Exception("Failed to execute role query: " . $role_stmt->error);
+            }
+            $role_result = $role_stmt->get_result();
+            
+            if ($role_result && $role_result->num_rows > 0) {
+                $role_row = $role_result->fetch_assoc();
+                $member_role = $role_row['role'];
+                
+                // Insert task assignment
+                $task_sql = "INSERT INTO task_assignments (prod_line_id, member_id, role, deadline, status) VALUES (?, ?, ?, ?, 'pending')";
+                $task_stmt = $conn->prepare($task_sql);
+                if (!$task_stmt) {
+                    throw new Exception("Failed to prepare task assignment: " . $conn->error);
+                }
+                $task_stmt->bind_param('iiss', $prod_line_id, $assigned_to, $member_role, $deadline);
+                if (!$task_stmt->execute()) {
+                    throw new Exception("Failed to assign task: " . $task_stmt->error);
+                }
+                $task_stmt->close();
+                error_log("Task assigned successfully: prod_line_id=$prod_line_id, member_id=$assigned_to, role=$member_role");
+            } else {
+                error_log("Member not found: $assigned_to");
+                throw new Exception("Selected member not found");
+            }
+            $role_stmt->close();
+        } elseif ($assigned_to || $deadline) {
+            error_log("Incomplete assignment data: assigned_to=$assigned_to, deadline=$deadline");
+        }
+
         $response['success'] = true;
         $response['message'] = 'Production item created successfully!';
-        $stmt->close();
         $conn->close();
     } else {
         $response['message'] = 'Invalid request method.';

@@ -10,8 +10,15 @@ try {
     if ($product_name) {
         // Fetch required materials for the given product
         $stmt = $conn->prepare("SELECT material_type, material_name FROM product_materials WHERE product_name = ?");
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $conn->error);
+        }
+        
         $stmt->bind_param("s", $product_name);
-        $stmt->execute();
+        if (!$stmt->execute()) {
+            throw new Exception("Execute failed: " . $stmt->error);
+        }
+        
         $required_materials_result = $stmt->get_result();
         $required_materials = [];
         while ($row = $required_materials_result->fetch_assoc()) {
@@ -34,21 +41,27 @@ try {
 
             if ($material_type == 'raw') {
                 $stmt = $conn->prepare("SELECT SUM(rm_quantity) as total_stocks FROM raw_materials WHERE raw_materials_name = ? AND rm_status = 'Available'");
+                if (!$stmt) {
+                    throw new Exception("Prepare failed for raw materials: " . $conn->error);
+                }
                 $stmt->bind_param("s", $material_name);
                 $stmt->execute();
                 $raw_material_result = $stmt->get_result();
                 if ($raw_material_result && $row = $raw_material_result->fetch_assoc()) {
-                    $available_quantity = $row['total_stocks'] ?? 0;
+                    $available_quantity = (int)($row['total_stocks'] ?? 0);
                     $unit = 'unit(s)'; // Assuming raw materials are in units
                 }
                 $stmt->close();
             } else if ($material_type == 'processed') {
                 $stmt = $conn->prepare("SELECT SUM(weight) as total_weight FROM processed_materials WHERE processed_materials_name = ? AND status = 'Available'");
+                if (!$stmt) {
+                    throw new Exception("Prepare failed for processed materials: " . $conn->error);
+                }
                 $stmt->bind_param("s", $material_name);
                 $stmt->execute();
                 $processed_material_result = $stmt->get_result();
                 if ($processed_material_result && $row = $processed_material_result->fetch_assoc()) {
-                    $available_quantity = $row['total_weight'] ?? 0;
+                    $available_quantity = (int)($row['total_weight'] ?? 0);
                     $unit = 'g'; // Assuming processed materials are in grams
                 }
                 $stmt->close();
@@ -86,7 +99,8 @@ try {
     $response['success'] = true;
 
 } catch (Exception $e) {
-    $response['message'] = $e->getMessage();
+    $response['message'] = "Error: " . $e->getMessage();
+    $response['success'] = false;
 }
 
 echo json_encode($response);

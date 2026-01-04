@@ -290,10 +290,17 @@ function refreshTaskAssignments() {
                                                 Confirm Task Completion
                                             </button>
                                         `;
+                                    } else if (assignment.task_status === 'pending') {
+                                        return `
+                                            <button onclick="openReassignModal('${item.raw_id}', '${assignment.task_id}', '${item.product_name}', '${assignment.member_id}')" 
+                                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors w-full">
+                                                Reassign
+                                            </button>
+                                        `;
                                     }
                                     return '';
                                 }).join('')}
-                                ${item.assignments.filter(a => a.decline_status || a.task_status === 'submitted').length === 0 ? '-' : ''}
+                                ${item.assignments.filter(a => a.decline_status || a.task_status === 'submitted' || a.task_status === 'pending').length === 0 ? '-' : ''}
                             </div>
                         </td>
                     `;
@@ -715,6 +722,12 @@ document.addEventListener('DOMContentLoaded', function() {
             weightField.classList.add('hidden');
             quantityField.classList.remove('hidden');
         }
+        
+        // Update materials list when product changes
+        updateMaterialsList(selectedProduct);
+        
+        // Update member list when product changes
+        loadModalDataForCreateTask();
     });
 
     // Update the form submission to handle quantity
@@ -722,6 +735,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const formData = new FormData(this);
         const selectedProduct = formData.get('product_name');
+        const assignedTo = formData.get('assigned_to');
         
         // Set quantity to 1 for Knotted products and Warped Silk
         if (selectedProduct === 'Knotted Liniwan' || selectedProduct === 'Knotted Bastos' || selectedProduct === 'Warped Silk') {
@@ -735,17 +749,54 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Task created successfully!');
-                document.getElementById('createTaskModal').classList.add('hidden');
-                this.reset();
-                location.reload();
+                // Show success message with SweetAlert
+                const message = assignedTo ? 'Task created and assigned successfully!' : 'Task created successfully!';
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: message,
+                    showConfirmButton: false,
+                    timer: 2000
+                }).then(() => {
+                    document.getElementById('createTaskModal').classList.add('hidden');
+                    const form = document.getElementById('createTaskForm');
+                    if (form) form.reset();
+                    
+                    // If a member was assigned, switch to Assigned Tasks tab
+                    if (assignedTo) {
+                        const tasksTab = document.getElementById('tasksTab');
+                        const tasksContent = document.getElementById('tasksContent');
+                        const monitoringTab = document.getElementById('monitoringTab');
+                        const monitoringContent = document.getElementById('monitoringContent');
+                        const workforceTab = document.getElementById('workforceTab');
+                        const workforceContent = document.getElementById('workforceContent');
+                        const memberTaskRequestsTab = document.getElementById('memberTaskRequestsTab');
+                        const memberTaskRequestsContent = document.getElementById('memberTaskRequestsContent');
+                        
+                        if (tasksTab && tasksContent && monitoringTab && monitoringContent) {
+                            switchTab(tasksTab, tasksContent, monitoringTab, monitoringContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent);
+                        }
+                    }
+                    
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                });
             } else {
-                alert('Error: ' + data.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: data.message || 'Failed to create task'
+                });
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while creating the task. Please check the console for details.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'An error occurred while creating the task. Please check the console for details.'
+            });
         });
     });
 
@@ -1212,7 +1263,6 @@ function getStatusClass(status) {
                                     <div id="dropdown-menu-<?php echo $item['raw_id']; ?>" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10" role="menu" aria-orientation="vertical" aria-labelledby="options-menu-<?php echo $item['raw_id']; ?>">
                                                                                 <div class="py-1" role="none">
                                                                                     <a href="#" onclick="assignTask('<?php echo $item['raw_id']; ?>', '<?php echo htmlspecialchars($item['product_name'], ENT_QUOTES); ?>', <?php echo $item['quantity']; ?>); return false;" class="block px-4 py-2 text-sm text-gray-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-150 <?php echo $item['has_assignments'] ? 'opacity-50 cursor-not-allowed' : ''; ?>" role="menuitem" <?php echo $item['has_assignments'] ? 'disabled' : ''; ?>>Assign Tasks</a>
-                                                                                    <a href="#" onclick="editProduct('<?php echo $item['raw_id']; ?>'); return false;" class="block px-4 py-2 text-sm text-gray-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-150" role="menuitem">Edit</a>
                                                                                     <a href="#" onclick="deleteProduct('<?php echo $item['raw_id']; ?>'); return false;" class="block px-4 py-2 text-sm text-gray-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-150" role="menuitem">Delete</a>
                                                                                 </div>
                                     </div>
@@ -1541,6 +1591,45 @@ function getStatusClass(status) {
     </div>
 </div>
 
+<!-- Reassign Task Modal -->
+<div id="reassignModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-[1000]">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Reassign Task</h3>
+            
+            <form id="reassignForm" class="space-y-4" novalidate>
+                <input type="hidden" id="reassign_prod_line_id" name="prod_line_id">
+                <input type="hidden" id="reassign_task_id" name="task_id">
+                <input type="hidden" id="reassign_product_name" name="product_name">
+                <input type="hidden" id="reassign_current_member" name="current_member_id">
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Select New Member</label>
+                    <select id="reassign_member_select" name="new_member_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                        <option value="">Loading members...</option>
+                    </select>
+                    <div class="text-xs text-red-500 hidden" id="reassignMemberError">Please select a member</div>
+                </div>
+
+                <div>
+                    <label for="reassign_deadline" class="block text-sm font-medium text-gray-700">New Deadline</label>
+                    <input type="datetime-local" id="reassign_deadline" name="deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <div class="text-xs text-red-500 hidden" id="reassignDeadlineError">Please set a deadline</div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-4">
+                    <button type="button" id="cancelReassignBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
+                        Cancel
+                    </button>
+                    <button type="submit" class="bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600">
+                        Reassign Task
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Task Assignment Modal -->
 <div id="taskAssignmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-[1000]">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
@@ -1658,19 +1747,34 @@ function getStatusClass(status) {
 // Function to fetch and display available materials
 function updateMaterialsList(productName) {
     const materialsListDiv = document.getElementById('materialsList');
+    
+    if (!productName || productName === '') {
+        materialsListDiv.innerHTML = '<div class="text-sm text-gray-500">Select a product to view materials</div>';
+        return;
+    }
+    
     materialsListDiv.innerHTML = '<div class="text-sm text-gray-500">Loading materials...</div>'; // Loading indicator
 
     let url = 'backend/end-points/get_available_materials.php';
-    if (productName && productName !== '') {
-        url += `?product_name=${encodeURIComponent(productName)}`;
-    }
+    url += `?product_name=${encodeURIComponent(productName)}`;
 
     fetch(url)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             materialsListDiv.innerHTML = ''; // Clear previous content
 
-            if (data.success && data.materials && data.materials.length > 0) {
+            if (!data.success) {
+                console.error('API Error:', data.message);
+                materialsListDiv.innerHTML = `<div class="text-sm text-red-600">Error: ${data.message || 'Failed to load materials'}</div>`;
+                return;
+            }
+
+            if (data.materials && data.materials.length > 0) {
                 data.materials.forEach(material => {
                     const materialItem = document.createElement('div');
                     materialItem.className = 'flex items-center justify-between py-1';
@@ -1701,15 +1805,23 @@ function updateMaterialsList(productName) {
         .catch(error => {
             console.error('Error loading materials:', error);
             materialsListDiv.innerHTML = 
-                '<div class="text-sm text-red-600">Error loading materials. Please try again.</div>';
+                `<div class="text-sm text-red-600">Error loading materials: ${error.message}</div>`;
         });
 }
 
 // Function to fetch and display available materials and members
 // Function to fetch and display available members for the Create Task modal
 function loadModalDataForCreateTask() {
-    // Load assignable members
-    fetch('backend/end-points/get_members_by_role.php?role=all')
+    // Get the currently selected product
+    const selectedProduct = document.getElementById('product_name').value;
+    
+    // Load assignable members filtered by product
+    let url = 'backend/end-points/get_members_by_role.php?role=all';
+    if (selectedProduct) {
+        url += `&product_name=${encodeURIComponent(selectedProduct)}`;
+    }
+    
+    fetch(url)
         .then(response => response.json())
         .then(members => {
             const assignedToSelect = document.getElementById('assigned_to');
@@ -1749,8 +1861,21 @@ function loadModalDataForCreateTask() {
 } 
 
 // Function to fetch and display available members for the Task Assignment modal
-function loadAssignmentModalData() {
-    fetch('backend/end-points/get_members_by_role.php?role=all')
+function loadAssignmentModalData(productName = null) {
+    // Get product name from form if not provided
+    if (!productName) {
+        const productDetailsInput = document.getElementById('product_details');
+        if (productDetailsInput) {
+            productName = productDetailsInput.value;
+        }
+    }
+
+    let url = 'backend/end-points/get_members_by_role.php?role=all';
+    if (productName) {
+        url += '&product_name=' + encodeURIComponent(productName);
+    }
+
+    fetch(url)
         .then(response => response.json())
         .then(members => {
             // Get all role-specific select elements in the taskAssignmentForm
@@ -1810,143 +1935,74 @@ function loadAssignmentModalData() {
         });
 } 
 
-// Function to open the task assignment modal for new assignments
-function assignTask(prodLineId, productName, quantity) {
-    const taskAssignmentModal = document.getElementById('taskAssignmentModal');
-    const taskAssignmentForm = document.getElementById('taskAssignmentForm');
-    const modalTitle = taskAssignmentModal.querySelector('h3');
-
-    // Set modal title for new assignment
-    if (modalTitle) {
-        modalTitle.textContent = 'Assign Tasks';
-    }
-
-    // Reset hidden fields for new assignment
-    taskAssignmentForm.querySelector('#prod_line_id').value = prodLineId;
-    taskAssignmentForm.querySelector('#product_details').value = productName; // Store product name for display
-    taskAssignmentForm.querySelector('#is_reassignment').value = 'false';
-    taskAssignmentForm.querySelector('#original_task_id').value = '';
-    taskAssignmentForm.querySelector('#decline_notification_id').value = '';
-
-    // Clear previous selections and set deadlines for new assignment
-    ['knotter', 'warper', 'weaver'].forEach(role => {
-        const select = taskAssignmentForm.querySelector(`select[name="${role}_id[]"]`);
-        if (select) select.selectedIndex = 0;
-        const deadlineInput = taskAssignmentForm.querySelector(`input[name="${role}_deadline"]`);
-        if (deadlineInput) setMinDeadlineDate(deadlineInput);
-    });
-    const generalDeadlineInput = taskAssignmentForm.querySelector(`input[name="deadline"]`);
-    if (generalDeadlineInput) setMinDeadlineDate(generalDeadlineInput);
-
-    loadAssignmentModalData();
-    taskAssignmentModal.classList.remove('hidden');
-} 
-
-// Function to open the task assignment modal for reassignment of declined tasks
-function reassignDeclinedTask(prodLineId, taskId, productName, declineId) {
-    const taskAssignmentModal = document.getElementById('taskAssignmentModal');
-    const taskAssignmentForm = document.getElementById('taskAssignmentForm');
-    const modalTitle = taskAssignmentModal.querySelector('h3');
-
-    // Set modal title for reassignment
-    if (modalTitle) {
-        modalTitle.textContent = `Reassign Task: ${productName}`;
-    }
-
-    // Set hidden fields for reassignment
-    taskAssignmentForm.querySelector('#prod_line_id').value = prodLineId;
-    taskAssignmentForm.querySelector('#product_details').value = productName;
-    taskAssignmentForm.querySelector('#is_reassignment').value = 'true';
-    taskAssignmentForm.querySelector('#original_task_id').value = taskId;
-    taskAssignmentForm.querySelector('#decline_notification_id').value = declineId;
-
-    // Clear previous selections and set deadlines for reassignment
-    ['knotter', 'warper', 'weaver'].forEach(role => {
-        const select = taskAssignmentForm.querySelector(`select[name="${role}_id[]"]`);
-        if (select) select.selectedIndex = 0;
-        const deadlineInput = taskAssignmentForm.querySelector(`input[name="${role}_deadline"]`);
-        if (deadlineInput) setMinDeadlineDate(deadlineInput);
-    });
-    const generalDeadlineInput = taskAssignmentForm.querySelector(`input[name="deadline"]`);
-    if (generalDeadlineInput) setMinDeadlineDate(generalDeadlineInput);
-
-        loadAssignmentModalData();
-
-        taskAssignmentModal.classList.remove('hidden');
-
-    } 
-
-    
-
-    // Function to handle opening the task assignment modal from the Production Line Monitoring tab
-
-    
-
-    function openAssignTaskModal(prodLineId, productName, quantity) {
-
-    
-
-        assignTask(prodLineId, productName, quantity);
-
-    
-
-    }
-
-    
-
-    
-
-    
-
-    // Function to set minimum date for deadline (today)
-
-    
-
-    function setMinDeadlineDate(inputElement) {
-
-    
-
-        const now = new Date();
-
-    
-
-        // Format: YYYY-MM-DDTHH:MM
-
-    
-
-        const minDate = now.toISOString().slice(0, 16);
-
-    
-
-        if (inputElement) {
-
-    
-
-            inputElement.min = minDate;
-
-    
-
-            if (!inputElement.value) { // Only set default if no value exists
-
-    
-
-                const defaultDeadline = new Date(now.setDate(now.getDate() + 7)).toISOString().slice(0, 16);
-
-    
-
-                inputElement.value = defaultDeadline;
-
-    
-
-            }
-
-    
-
+// Function to set minimum date for deadline (today)
+function setMinDeadlineDate(inputElement) {
+    const now = new Date();
+    // Format: YYYY-MM-DDTHH:MM
+    const minDate = now.toISOString().slice(0, 16);
+    if (inputElement) {
+        inputElement.min = minDate;
+        if (!inputElement.value) { // Only set default if no value exists
+            const defaultDeadline = new Date(now.setDate(now.getDate() + 7)).toISOString().slice(0, 16);
+            inputElement.value = defaultDeadline;
         }
-
-    
-
     }
+}
+
+// Function to open reassign modal for pending tasks
+function openReassignModal(prodLineId, taskId, productName, currentMemberId) {
+    const modal = document.getElementById('reassignModal');
+    
+    if (!modal) {
+        console.error('Reassign modal not found');
+        return;
+    }
+    
+    // Set the form data
+    document.getElementById('reassign_prod_line_id').value = prodLineId;
+    document.getElementById('reassign_task_id').value = taskId;
+    document.getElementById('reassign_product_name').value = productName;
+    document.getElementById('reassign_current_member').value = currentMemberId;
+    
+    // Load members filtered by product
+    let url = 'backend/end-points/get_members_by_role.php?role=all';
+    url += `&product_name=${encodeURIComponent(productName)}`;
+    
+    const memberSelect = document.getElementById('reassign_member_select');
+    memberSelect.innerHTML = '<option value="">Select a member</option>';
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(members => {
+            if (members && members.length > 0) {
+                members.forEach(member => {
+                    if (member.id != currentMemberId) { // Don't show current member
+                        const option = document.createElement('option');
+                        option.value = member.id;
+                        option.textContent = `${member.fullname} (${member.role})`;
+                        memberSelect.appendChild(option);
+                    }
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No other members available';
+                option.disabled = true;
+                memberSelect.appendChild(option);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading members:', error);
+            memberSelect.innerHTML = '<option value="">Error loading members</option>';
+        });
+    
+    // Set deadline input
+    const deadlineInput = document.getElementById('reassign_deadline');
+    setMinDeadlineDate(deadlineInput);
+    
+    // Show the modal
+    modal.classList.remove('hidden');
+}
 
 // Initialize the create task form
 // Initialize search functionality for assigned tasks
@@ -1991,7 +2047,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show modal and load data
     createTaskBtn.addEventListener('click', function() {
         createTaskModal.classList.remove('hidden');
-        loadModalData();
+        loadModalDataForCreateTask();
         setMinDeadlineDate();
     });
 
@@ -2084,6 +2140,83 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Handle Reassign Modal
+    const reassignModal = document.getElementById('reassignModal');
+    const reassignForm = document.getElementById('reassignForm');
+    const cancelReassignBtn = document.getElementById('cancelReassignBtn');
+
+    if (cancelReassignBtn && reassignModal) {
+        cancelReassignBtn.addEventListener('click', function() {
+            reassignModal.classList.add('hidden');
+            if (reassignForm) reassignForm.reset();
+        });
+    }
+
+    if (reassignModal) {
+        reassignModal.addEventListener('click', function(e) {
+            if (e.target === reassignModal) {
+                reassignModal.classList.add('hidden');
+                if (reassignForm) reassignForm.reset();
+            }
+        });
+    }
+
+    if (reassignForm) {
+        reassignForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newMemberId = document.getElementById('reassign_member_select').value;
+            const deadline = document.getElementById('reassign_deadline').value;
+            
+            if (!newMemberId || !deadline) {
+                if (!newMemberId) {
+                    document.getElementById('reassignMemberError').classList.remove('hidden');
+                }
+                if (!deadline) {
+                    document.getElementById('reassignDeadlineError').classList.remove('hidden');
+                }
+                return;
+            }
+            
+            const formData = new FormData(this);
+            
+            fetch('backend/end-points/reassign_task.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Task reassigned successfully!',
+                        showConfirmButton: false,
+                        timer: 2000
+                    }).then(() => {
+                        reassignModal.classList.add('hidden');
+                        reassignForm.reset();
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: data.message || 'Failed to reassign task'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'An error occurred while reassigning the task'
+                });
+            });
+        });
+    }
 });
 </script>
 </body>
