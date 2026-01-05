@@ -58,7 +58,7 @@
       </li>
       <li>
         <a href="customer_overview.php">
-          <i class="fas fa-solid fa-user"></i>
+          <i class="fas fa-solid fa-chart-bar"></i>
           <span>Sales Forecasting</span>
         </a>
       </li>
@@ -80,7 +80,12 @@
           <span>Payments</span>
         </a>
       </li>
-      
+      <li>
+        <a href="logout.php">
+          <i class="fas fa-solid fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </li>
       <li>
         <button onclick=toggleSubMenu(this) class="dropdown-btn">
           <i class="fas fa-solid fa-warehouse"></i>
@@ -95,15 +100,6 @@
           </div>
         </ul>
       </li>
-
-      <li>
-        <a href="logout.php">
-          <i class="fas fa-solid fa-sign-out-alt"></i>
-          <span>Logout</span>
-        </a>
-      </li>
-    
-      
     </ul>
   </nav>
 </div>
