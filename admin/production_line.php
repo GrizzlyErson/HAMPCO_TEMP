@@ -274,9 +274,13 @@ function refreshTaskAssignments() {
                             ${item.status !== 'completed' ? `
                                 <div class="flex flex-col items-center space-y-2">
                                     <button onclick="confirmTaskCompletion('${item.raw_id}')" 
-                                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors w-full ${displayStatus !== 'submitted' ? 'opacity-50 cursor-not-allowed' : ''}"
+                                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-md transition-colors w-full text-xs ${displayStatus !== 'submitted' ? 'opacity-50 cursor-not-allowed' : ''}"
                                         ${displayStatus !== 'submitted' ? 'disabled' : ''}>
-                                        Confirm Task Completion
+                                        Confirm
+                                    </button>
+                                    <button onclick="openReassignModal('${item.raw_id}', '${item.product_name}', ${item.assignments[0]?.task_id || 0}, '${item.assignments[0]?.member_name || ''}', '${item.assignments[0]?.role || ''}')"
+                                        class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md transition-colors w-full text-xs">
+                                        Reassign
                                     </button>
                                 </div>
                             ` : ''}
@@ -1092,6 +1096,60 @@ function getStatusClass(status) {
     </div>
 </div>
 
+<!-- Reassign Task Modal -->
+<div id="reassignTaskModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-[1000] p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Reassign Task</h3>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6">
+            <form id="reassignTaskForm" class="space-y-4">
+                <input type="hidden" id="reassign_task_id" name="task_id">
+                <input type="hidden" id="reassign_prod_line_id" name="prod_line_id">
+                
+                <!-- Product Info -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Product</label>
+                    <div id="reassign_product_name" class="text-sm text-gray-900 bg-gray-50 p-3 rounded-md">-</div>
+                </div>
+                
+                <!-- Current Member -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Current Member</label>
+                    <div id="reassign_current_member" class="text-sm text-gray-900 bg-gray-50 p-3 rounded-md">-</div>
+                </div>
+                
+                <!-- New Member Selection -->
+                <div>
+                    <label for="reassign_member" class="block text-sm font-medium text-gray-700 mb-1">Assign To</label>
+                    <select id="reassign_member" name="new_member_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                        <option value="">Select a member</option>
+                    </select>
+                </div>
+                
+                <!-- Deadline -->
+                <div>
+                    <label for="reassign_deadline" class="block text-sm font-medium text-gray-700 mb-1">New Deadline</label>
+                    <input type="datetime-local" id="reassign_deadline" name="deadline" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                </div>
+            </form>
+        </div>
+        
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+            <button type="button" id="cancelReassignTask" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+                Cancel
+            </button>
+            <button type="button" id="submitReassignTask" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700">
+                Reassign Task
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Tabs -->
 <div class="mb-6">
     <div class="border-b border-gray-200">
@@ -1712,6 +1770,123 @@ function updateMaterialsList(productName) {
         });
 }
 
+// Function to open reassign modal
+function openReassignModal(prodLineId, productName, taskId, currentMember, currentRole) {
+    const modal = document.getElementById('reassignTaskModal');
+    
+    // Set the form data
+    document.getElementById('reassign_task_id').value = taskId;
+    document.getElementById('reassign_prod_line_id').value = prodLineId;
+    document.getElementById('reassign_product_name').textContent = productName;
+    document.getElementById('reassign_current_member').textContent = `${currentMember} (${currentRole})`;
+    
+    // Load available members for this role
+    loadReassignMembers(currentRole);
+    
+    // Set default deadline to 7 days from now
+    const now = new Date();
+    const defaultDeadline = new Date(now.setDate(now.getDate() + 7)).toISOString().slice(0, 16);
+    document.getElementById('reassign_deadline').value = defaultDeadline;
+    
+    // Show modal
+    modal.classList.remove('hidden');
+}
+
+// Function to load available members for reassignment
+function loadReassignMembers(role) {
+    fetch(`backend/end-points/get_members_by_role.php?role=${role}`)
+        .then(response => response.json())
+        .then(members => {
+            const select = document.getElementById('reassign_member');
+            // Clear existing options except the first one
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            
+            if (members && members.length > 0) {
+                // Filter to show only available members
+                const availableMembers = members.filter(m => m.work_status === 'Available');
+                
+                if (availableMembers.length > 0) {
+                    availableMembers.forEach(member => {
+                        const option = document.createElement('option');
+                        option.value = member.id;
+                        option.textContent = `${member.fullname} - Available`;
+                        select.appendChild(option);
+                    });
+                } else {
+                    // Show occupied members if no available
+                    members.forEach(member => {
+                        const option = document.createElement('option');
+                        option.value = member.id;
+                        option.textContent = `${member.fullname} - ${member.work_status}`;
+                        select.appendChild(option);
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading members:', error);
+            const select = document.getElementById('reassign_member');
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Error loading members';
+            option.disabled = true;
+            select.appendChild(option);
+        });
+}
+
+// Function to submit reassign task form
+function submitReassignTask() {
+    const taskId = document.getElementById('reassign_task_id').value;
+    const prodLineId = document.getElementById('reassign_prod_line_id').value;
+    const newMemberId = document.getElementById('reassign_member').value;
+    const deadline = document.getElementById('reassign_deadline').value;
+    
+    if (!newMemberId) {
+        alert('Please select a member to reassign the task to');
+        return;
+    }
+    
+    if (!deadline) {
+        alert('Please set a new deadline');
+        return;
+    }
+    
+    // Submit the reassignment
+    const formData = new FormData();
+    formData.append('task_id', taskId);
+    formData.append('prod_line_id', prodLineId);
+    formData.append('new_member_id', newMemberId);
+    formData.append('deadline', deadline);
+    
+    fetch('backend/end-points/reassign_task.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Task reassigned successfully!',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                document.getElementById('reassignTaskModal').classList.add('hidden');
+                location.reload();
+            });
+        } else {
+            alert('Error: ' + (data.message || 'Failed to reassign task'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while reassigning the task');
+    });
+}
+
 // Function to fetch and display available materials and members
 function loadModalData() {
     // Load initial materials list (empty or for default selected product)
@@ -1878,6 +2053,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Update materials list based on selected product
         updateMaterialsList(selectedProduct);
+    });
+
+    // Handle reassign task modal
+    const cancelReassignTask = document.getElementById('cancelReassignTask');
+    const submitReassignTask = document.getElementById('submitReassignTask');
+    const reassignTaskModal = document.getElementById('reassignTaskModal');
+
+    // Hide reassign modal
+    cancelReassignTask.addEventListener('click', function() {
+        reassignTaskModal.classList.add('hidden');
+    });
+
+    // Submit reassign form
+    submitReassignTask.addEventListener('click', function() {
+        submitReassignTask();
     });
 
     // Handle form submission
