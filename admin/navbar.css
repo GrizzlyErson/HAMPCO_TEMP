@@ -184,6 +184,11 @@ html{
   overflow-x: hidden !important;
   display: flex !important;
   flex-direction: column !important;
+  transition: overflow-y 300ms ease-in-out !important;
+}
+/* Enable scrolling when inventory dropdown is shown */
+.hampco-sidebar-isolation #sidebar ul.scrollable{
+  overflow-y: auto !important;
 }
 /* Push logout to bottom */
 .hampco-sidebar-isolation #sidebar ul li:last-child{

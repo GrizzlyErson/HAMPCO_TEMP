@@ -35,6 +35,13 @@ function toggleSubMenu(button){
   button.nextElementSibling.classList.toggle('show')
   button.classList.toggle('rotate')
 
+  // Toggle scrollable state based on inventory dropdown
+  const isInventoryDropdown = button.textContent.includes('Inventory');
+  if (isInventoryDropdown) {
+    const sidebarList = sidebar.querySelector('ul');
+    sidebarList.classList.toggle('scrollable');
+  }
+
   if(sidebar.classList.contains('close')){
     sidebar.classList.toggle('close')
     toggleButton.classList.toggle('rotate')
