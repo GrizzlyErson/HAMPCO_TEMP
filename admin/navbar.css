@@ -104,7 +104,7 @@ html{
   top: 0 !important;
   align-self: start !important;
   transition: width 300ms ease-in-out, padding 300ms ease-in-out !important;
-  overflow-y: auto !important;
+  overflow-y: hidden !important;
   overflow-x: hidden !important;
   text-wrap: nowrap !important;
   flex-shrink: 0 !important;
@@ -180,7 +180,7 @@ html{
   margin: 0 !important;
   padding: 0 !important;
   height: calc(100vh - 80px) !important;
-  overflow-y: auto !important;
+  overflow-y: hidden !important;
   overflow-x: hidden !important;
 }
 .hampco-sidebar-isolation #sidebar > ul > li:first-child{
