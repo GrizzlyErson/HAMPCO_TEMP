@@ -59,14 +59,14 @@ function getKPIs($db, $period) {
     
     // Current period
     $currentQuery = "SELECT 
-        COALESCE(SUM(oi.price * oi.quantity), 0) as totalRevenue,
+        COALESCE(SUM(oi.subtotal), 0) as totalRevenue,
         COUNT(DISTINCT o.order_id) as totalOrders,
-        COUNT(DISTINCT o.customer_id) as totalCustomers,
+        COUNT(DISTINCT o.order_user_id) as totalCustomers,
         COALESCE(AVG(o.total_amount), 0) as avgOrderValue
     FROM orders o
     LEFT JOIN order_items oi ON o.order_id = oi.order_id
-    WHERE o.order_date >= DATE_SUB(NOW(), INTERVAL ? DAY)
-    AND o.order_status IN ('delivered', 'completed')";
+    WHERE o.date_created >= DATE_SUB(NOW(), INTERVAL ? DAY)
+    AND (o.order_status = 'Delivered' OR o.order_status = 'Accepted')";
     
     $stmt = $conn->prepare($currentQuery);
     $stmt->bind_param('i', $period);
@@ -76,15 +76,15 @@ function getKPIs($db, $period) {
     
     // Previous period
     $prevQuery = "SELECT 
-        COALESCE(SUM(oi.price * oi.quantity), 0) as totalRevenue,
+        COALESCE(SUM(oi.subtotal), 0) as totalRevenue,
         COUNT(DISTINCT o.order_id) as totalOrders,
-        COUNT(DISTINCT o.customer_id) as totalCustomers,
+        COUNT(DISTINCT o.order_user_id) as totalCustomers,
         COALESCE(AVG(o.total_amount), 0) as avgOrderValue
     FROM orders o
     LEFT JOIN order_items oi ON o.order_id = oi.order_id
-    WHERE o.order_date >= DATE_SUB(NOW(), INTERVAL ? DAY)
-    AND o.order_date < DATE_SUB(NOW(), INTERVAL ? DAY)
-    AND o.order_status IN ('delivered', 'completed')";
+    WHERE o.date_created >= DATE_SUB(NOW(), INTERVAL ? DAY)
+    AND o.date_created < DATE_SUB(NOW(), INTERVAL ? DAY)
+    AND (o.order_status = 'Delivered' OR o.order_status = 'Accepted')";
     
     $stmt = $conn->prepare($prevQuery);
     $stmt->bind_param('ii', $period, $period);
@@ -108,13 +108,13 @@ function getSalesTrend($db, $period) {
     $conn = $db->conn;
     
     $query = "SELECT 
-        DATE(o.order_date) as date,
+        DATE(o.date_created) as date,
         COALESCE(SUM(o.total_amount), 0) as sales
     FROM orders o
-    WHERE o.order_date >= DATE_SUB(NOW(), INTERVAL ? DAY)
-    AND o.order_status IN ('delivered', 'completed')
-    GROUP BY DATE(o.order_date)
-    ORDER BY DATE(o.order_date) ASC";
+    WHERE o.date_created >= DATE_SUB(NOW(), INTERVAL ? DAY)
+    AND (o.order_status = 'Delivered' OR o.order_status = 'Accepted')
+    GROUP BY DATE(o.date_created)
+    ORDER BY DATE(o.date_created) ASC";
     
     $stmt = $conn->prepare($query);
     $stmt->bind_param('i', $period);
@@ -141,11 +141,12 @@ function getOrderStatus($db) {
     $conn = $db->conn;
     
     $query = "SELECT 
-        CASE WHEN order_status = 'pending' THEN 'Pending'
-             WHEN order_status = 'processing' THEN 'Processing'
-             WHEN order_status = 'shipped' THEN 'Shipped'
-             WHEN order_status = 'delivered' THEN 'Delivered'
-             WHEN order_status = 'cancelled' THEN 'Cancelled'
+        CASE WHEN order_status = 'Pending' THEN 'Pending'
+             WHEN order_status = 'Accepted' THEN 'Accepted'
+             WHEN order_status = 'Processing' THEN 'Processing'
+             WHEN order_status = 'Shipped' THEN 'Shipped'
+             WHEN order_status = 'Delivered' THEN 'Delivered'
+             WHEN order_status = 'Cancelled' THEN 'Cancelled'
              ELSE 'Other' END as status,
         COUNT(*) as count
     FROM orders
@@ -171,13 +172,13 @@ function getTopProducts($db) {
     $conn = $db->conn;
     
     $query = "SELECT 
-        p.product_name,
+        p.prod_name,
         SUM(oi.quantity) as total_sold
     FROM order_items oi
-    JOIN products p ON oi.product_id = p.product_id
+    JOIN product p ON oi.prod_id = p.prod_id
     JOIN orders o ON oi.order_id = o.order_id
-    WHERE o.order_status IN ('delivered', 'completed')
-    GROUP BY oi.product_id, p.product_name
+    WHERE (o.order_status = 'Delivered' OR o.order_status = 'Accepted')
+    GROUP BY oi.prod_id, p.prod_name
     ORDER BY total_sold DESC
     LIMIT 5";
     
@@ -187,7 +188,7 @@ function getTopProducts($db) {
     $sales = [];
     
     while ($row = $result->fetch_assoc()) {
-        $labels[] = $row['product_name'];
+        $labels[] = $row['prod_name'];
         $sales[] = intval($row['total_sold']);
     }
     
@@ -201,12 +202,12 @@ function getTopCustomers($db) {
     $conn = $db->conn;
     
     $query = "SELECT 
-        c.fullname as name,
+        c.customer_fullname as name,
         COUNT(o.order_id) as orders,
         COALESCE(SUM(o.total_amount), 0) as spent
-    FROM customers c
-    LEFT JOIN orders o ON c.customer_id = o.customer_id
-    GROUP BY c.customer_id, c.fullname
+    FROM user_customer c
+    LEFT JOIN orders o ON c.customer_id = o.order_user_id
+    GROUP BY c.customer_id, c.customer_fullname
     ORDER BY spent DESC
     LIMIT 5";
     
@@ -229,9 +230,9 @@ function getPerformanceMetrics($db) {
     
     // Conversion Rate (orders / visitors - simplified)
     $conversionQuery = "SELECT 
-        COALESCE(COUNT(DISTINCT customer_id) * 100.0 / NULLIF(COUNT(DISTINCT customer_id) + 100, 0), 0) as conversion_rate
+        COALESCE(COUNT(DISTINCT order_user_id) * 100.0 / NULLIF(COUNT(DISTINCT order_user_id) + 100, 0), 0) as conversion_rate
     FROM orders
-    WHERE order_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+    WHERE date_created >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
     
     $conversionResult = $conn->query($conversionQuery)->fetch_assoc();
     
@@ -239,14 +240,14 @@ function getPerformanceMetrics($db) {
     $returnQuery = "SELECT 
         COALESCE(COUNT(*) * 100.0 / NULLIF(COUNT(*) + COUNT(*) * 20, 0), 0) as return_rate
     FROM orders
-    WHERE order_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+    WHERE date_created >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
     
     $returnResult = $conn->query($returnQuery)->fetch_assoc();
     
     // Retention Rate (repeat customers)
     $retentionQuery = "SELECT 
-        COALESCE(COUNT(DISTINCT CASE WHEN order_count > 1 THEN customer_id END) * 100.0 / NULLIF(COUNT(DISTINCT customer_id), 0), 0) as retention_rate
-    FROM (SELECT customer_id, COUNT(*) as order_count FROM orders GROUP BY customer_id) subquery";
+        COALESCE(COUNT(DISTINCT CASE WHEN order_count > 1 THEN order_user_id END) * 100.0 / NULLIF(COUNT(DISTINCT order_user_id), 0), 0) as retention_rate
+    FROM (SELECT order_user_id, COUNT(*) as order_count FROM orders GROUP BY order_user_id) subquery";
     
     $retentionResult = $conn->query($retentionQuery)->fetch_assoc();
     
@@ -262,16 +263,16 @@ function getRecentOrders($db) {
     
     $query = "SELECT 
         o.order_id,
-        c.fullname as customer,
-        COUNT(oi.item_id) as items,
+        c.customer_fullname as customer,
+        COUNT(oi.order_item_id) as items,
         o.total_amount,
         o.order_status,
-        o.order_date
+        o.date_created
     FROM orders o
-    JOIN customers c ON o.customer_id = c.customer_id
+    JOIN user_customer c ON o.order_user_id = c.customer_id
     LEFT JOIN order_items oi ON o.order_id = oi.order_id
     GROUP BY o.order_id
-    ORDER BY o.order_date DESC
+    ORDER BY o.date_created DESC
     LIMIT 10";
     
     $result = $conn->query($query);
@@ -284,7 +285,7 @@ function getRecentOrders($db) {
             'items' => intval($row['items']),
             'total' => floatval($row['total_amount']),
             'status' => ucfirst($row['order_status']),
-            'date' => $row['order_date']
+            'date' => $row['date_created']
         ];
     }
     
@@ -295,14 +296,14 @@ function getTopCustomersTable($db) {
     $conn = $db->conn;
     
     $query = "SELECT 
-        c.fullname as name,
-        c.email,
+        c.customer_fullname as name,
+        c.customer_email as email,
         COUNT(o.order_id) as orders,
         COALESCE(SUM(o.total_amount), 0) as spent,
-        MAX(o.order_date) as lastOrder,
-        CASE WHEN MAX(o.order_date) >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END as active
-    FROM customers c
-    LEFT JOIN orders o ON c.customer_id = o.customer_id
+        MAX(o.date_created) as lastOrder,
+        CASE WHEN MAX(o.date_created) >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END as active
+    FROM user_customer c
+    LEFT JOIN orders o ON c.customer_id = o.order_user_id
     GROUP BY c.customer_id
     ORDER BY spent DESC
     LIMIT 10";
@@ -328,19 +329,18 @@ function getBestSellers($db) {
     $conn = $db->conn;
     
     $query = "SELECT 
-        p.product_id,
-        p.product_name as name,
-        c.category_name as category,
+        p.prod_id,
+        p.prod_name as name,
+        pc.category_name as category,
         SUM(oi.quantity) as sold,
-        COALESCE(SUM(oi.price * oi.quantity), 0) as revenue,
-        COALESCE(AVG(pr.rating), 0) as rating
-    FROM products p
-    LEFT JOIN product_categories c ON p.category_id = c.category_id
-    LEFT JOIN order_items oi ON p.product_id = oi.product_id
+        COALESCE(SUM(oi.subtotal), 0) as revenue,
+        0 as rating
+    FROM product p
+    LEFT JOIN product_category pc ON p.prod_category_id = pc.category_id
+    LEFT JOIN order_items oi ON p.prod_id = oi.prod_id
     LEFT JOIN orders o ON oi.order_id = o.order_id
-    LEFT JOIN product_reviews pr ON p.product_id = pr.product_id
-    WHERE o.order_status IN ('delivered', 'completed') OR o.order_id IS NULL
-    GROUP BY p.product_id, p.product_name, c.category_name
+    WHERE (o.order_status = 'Delivered' OR o.order_status = 'Accepted') OR o.order_id IS NULL
+    GROUP BY p.prod_id, p.prod_name, pc.category_name
     ORDER BY sold DESC
     LIMIT 10";
     
