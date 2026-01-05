@@ -180,7 +180,7 @@ html{
   margin: 0 !important;
   padding: 0 !important;
   height: calc(100vh - 80px) !important;
-  overflow-y: hidden !important;
+  overflow-y: auto !important;
   overflow-x: hidden !important;
   display: flex !important;
   flex-direction: column !important;
