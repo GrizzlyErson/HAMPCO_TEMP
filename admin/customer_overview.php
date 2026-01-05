@@ -76,6 +76,53 @@ include "components/header.php";
         </div>
     </div>
 
+    <!-- Member Work Overview -->
+    <div class="mb-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Member Work Overview</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Member Productivity by Role -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Productivity by Role</h3>
+                <div id="memberProductivityList" class="space-y-3">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Active Member Tasks -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Top Performers</h3>
+                <div id="topPerformersList" class="space-y-3">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Member Tasks Table -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold text-gray-800">Active Member Tasks</h2>
+            <a href="production_line.php" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View All →</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700">Member</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700">Role</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700">Product Code</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700">Assigned</th>
+                    </tr>
+                </thead>
+                <tbody id="activeTasksBody" class="divide-y divide-gray-200">
+                    <!-- Will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Charts Row 1 -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <!-- Sales Trend Chart -->
@@ -265,6 +312,20 @@ async function loadDashboardData() {
         }
     } catch (error) {
         console.error('Error loading dashboard data:', error);
+    }
+
+    // Load member work statistics
+    try {
+        const memberResponse = await fetch('backend/end-points/get_member_work_stats.php');
+        const memberData = await memberResponse.json();
+        
+        if (memberData.success) {
+            renderMemberProductivity(memberData.productivity);
+            renderTopPerformers(memberData.stats);
+            renderActiveMemberTasks(memberData.currentTasks);
+        }
+    } catch (error) {
+        console.error('Error loading member work data:', error);
     }
 }
 
@@ -504,9 +565,78 @@ function getStatusColor(status) {
         'Shipped': 'bg-purple-100 text-purple-800',
         'Delivered': 'bg-green-100 text-green-800',
         'Accepted': 'bg-green-100 text-green-800',
-        'Cancelled': 'bg-red-100 text-red-800'
+        'Cancelled': 'bg-red-100 text-red-800',
+        'pending': 'bg-yellow-100 text-yellow-800',
+        'in_progress': 'bg-blue-100 text-blue-800',
+        'completed': 'bg-green-100 text-green-800'
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
+}
+
+function renderMemberProductivity(productivity) {
+    const container = document.getElementById('memberProductivityList');
+    if (!container) return;
+    
+    container.innerHTML = productivity.map(role => `
+        <div class="bg-gray-50 rounded-lg p-4">
+            <div class="flex justify-between items-center mb-2">
+                <p class="font-semibold text-gray-800">${role.role}</p>
+                <span class="text-sm text-gray-600">${role.memberCount} members</span>
+            </div>
+            <div class="text-sm text-gray-700 mb-3">
+                <p>${role.completedTasks} of ${role.totalTasks} tasks completed</p>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-green-600 h-2 rounded-full" style="width: ${role.completionRate}%"></div>
+            </div>
+            <p class="text-xs text-gray-600 mt-2 text-right">${role.completionRate.toFixed(1)}% completion</p>
+        </div>
+    `).join('');
+}
+
+function renderTopPerformers(members) {
+    const container = document.getElementById('topPerformersList');
+    if (!container) return;
+    
+    container.innerHTML = members.slice(0, 5).map(member => `
+        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+            <div>
+                <p class="font-semibold text-gray-800">${member.name}</p>
+                <p class="text-xs text-gray-600">${member.role} • ${member.status}</p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm font-bold text-blue-600">${member.completionRate.toFixed(0)}%</p>
+                <p class="text-xs text-gray-600">${member.completedTasks}/${member.totalTasks}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderActiveMemberTasks(tasks) {
+    const tbody = document.getElementById('activeTasksBody');
+    if (!tbody) return;
+    
+    if (tasks.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No active tasks</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = tasks.map(task => `
+        <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm font-medium text-gray-800">${task.member}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">
+                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">${task.role}</span>
+            </td>
+            <td class="px-6 py-4 text-sm font-medium text-gray-800">${task.productCode}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">${task.productName}</td>
+            <td class="px-6 py-4 text-sm">
+                <span class="px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(task.status)}">
+                    ${task.status.replace('_', ' ').charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ')}
+                </span>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-700">${formatDate(task.dateAssigned)}</td>
+        </tr>
+    `).join('');
 }
 </script>
 
