@@ -1871,12 +1871,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (['Piña Seda', 'Pure Piña Cloth'].includes(selectedProduct)) {
             dimensionFields.classList.remove('hidden');
             weightField.classList.add('hidden');
-        } else if (['Knotted Liniwan', 'Knotted Bastos'].includes(selectedProduct)) {
+        } else if (['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'].includes(selectedProduct)) {
             dimensionFields.classList.add('hidden');
             weightField.classList.remove('hidden');
-        } else if (selectedProduct === 'Warped Silk') {
-            dimensionFields.classList.add('hidden');
-            weightField.classList.add('hidden');
         }
 
         // Update materials list based on selected product
