@@ -28,6 +28,19 @@
       </div>
     </div>
    
+    <!-- Pending Approval Popup (initially hidden) -->
+    <div id="pending-approval-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display:none;">
+      <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4">
+        <h3 class="text-2xl font-bold text-gray-800 mb-4">Verification Pending</h3>
+        <p class="text-gray-600 mb-4">Your account verification is currently pending. Please wait for admin approval before logging in.</p>
+        <div class="flex justify-end">
+          <button id="close-pending-popup" class="py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
 
     <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Register As Member</h2>
     

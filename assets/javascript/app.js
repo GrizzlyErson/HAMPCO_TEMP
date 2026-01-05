@@ -236,11 +236,18 @@ $("#FrmRegister_Member").submit(function (e) {
                     
                     // Handle popup buttons
                     $('#login-now').off('click').on('click', function() {
-                        const memberId = $('#member-id').text();
-                        window.location.href = "login.php"                    });
+                        $('#success-popup').fadeOut(300, function() {
+                            $('#pending-approval-popup').fadeIn(300);
+                        });
+                    });
                     
                     $('#close-popup').off('click').on('click', function() {
-                        $('#success-popup').fadeOut(300);
+                        $('#success-popup').fadeOut(300, function() {
+                            $('#pending-approval-popup').fadeIn(300);
+                        });
+                    });
+
+                    $('#close-pending-popup').off('click').on('click', function() {
                         window.location.href = "login.php";
                     });
                 } else {
