@@ -67,6 +67,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (contentId === 'memberTaskRequestsContent') {
                     loadTaskRequests();
                     loadTaskCompletions();
+                } else if (contentId === 'completedTasksContent') {
+                    loadCompletedTasks();
+                } else if (contentId === 'rawMaterialsContent') {
+                    loadRawMaterials();
                 }
             }
         });
@@ -391,6 +395,138 @@ function confirmTaskCompletion(prodLineId) {
     }
 }
 
+// Load completed tasks
+function loadCompletedTasks() {
+    fetch('backend/end-points/get_completed_tasks.php')
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.querySelector('#completedTasksTable tbody');
+            if (!tableBody) return;
+
+            if (!data.success || !data.data || data.data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">No completed tasks found</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = data.data.map(task => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${task.product_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${task.member_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${task.role}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${task.measurements || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${task.weight_g || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${task.quantity || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${task.completed_date}</td>
+                </tr>
+            `).join('');
+        })
+        .catch(error => {
+            console.error('Error loading completed tasks:', error);
+            const tableBody = document.querySelector('#completedTasksTable tbody');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-red-500">Error loading completed tasks. Please try again.</td>
+                    </tr>
+                `;
+            }
+        });
+}
+
+// Load raw materials
+function loadRawMaterials() {
+    // Load raw materials table
+    fetch('backend/end-points/list_raw_material.php')
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.querySelector('#rawMaterialsTable tbody');
+            if (!tableBody) return;
+
+            if (!data || data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">No raw materials found</td>
+                    </tr>
+                `;
+            } else {
+                tableBody.innerHTML = data.map(material => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 text-sm">${material.raw_materials_name || '-'}</td>
+                        <td class="px-6 py-4 text-sm">${material.category || '-'}</td>
+                        <td class="px-6 py-4 text-sm">${material.weight || '-'}</td>
+                        <td class="px-6 py-4 text-sm">₱${parseFloat(material.unit_cost || 0).toFixed(2)}</td>
+                        <td class="px-6 py-4 text-sm">₱${parseFloat((material.weight || 0) * (material.unit_cost || 0)).toFixed(2)}</td>
+                        <td class="px-6 py-4 text-sm">${material.supplier_name || '-'}</td>
+                        <td class="px-6 py-4 text-sm">
+                            <span class="px-2 py-1 text-xs rounded-full ${material.status === 'Available' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                ${material.status || '-'}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading raw materials:', error);
+            const tableBody = document.querySelector('#rawMaterialsTable tbody');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-red-500">Error loading raw materials. Please try again.</td>
+                    </tr>
+                `;
+            }
+        });
+
+    // Load raw materials summary
+    fetch('backend/end-points/get_materials_summary.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const availableList = document.getElementById('availableRawMaterialsList');
+                const processedList = document.getElementById('processedMaterialsList');
+                const finishedList = document.getElementById('finishedProductsList');
+
+                if (availableList && data.raw_materials) {
+                    availableList.innerHTML = data.raw_materials.length > 0 ?
+                        data.raw_materials.map(m => `
+                            <div class="flex justify-between p-2 bg-gray-50 rounded">
+                                <span class="text-sm">${m.name}</span>
+                                <span class="text-sm font-medium">${m.quantity}g</span>
+                            </div>
+                        `).join('') : '<div class="text-sm text-gray-500">No raw materials</div>';
+                }
+
+                if (processedList && data.processed_materials) {
+                    processedList.innerHTML = data.processed_materials.length > 0 ?
+                        data.processed_materials.map(m => `
+                            <div class="flex justify-between p-2 bg-gray-50 rounded">
+                                <span class="text-sm">${m.name}</span>
+                                <span class="text-sm font-medium">${m.quantity}g</span>
+                            </div>
+                        `).join('') : '<div class="text-sm text-gray-500">No processed materials</div>';
+                }
+
+                if (finishedList && data.finished_products) {
+                    finishedList.innerHTML = data.finished_products.length > 0 ?
+                        data.finished_products.map(p => `
+                            <div class="flex justify-between p-2 bg-gray-50 rounded">
+                                <span class="text-sm">${p.name}</span>
+                                <span class="text-sm font-medium">${p.quantity}g</span>
+                            </div>
+                        `).join('') : '<div class="text-sm text-gray-500">No finished products</div>';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading materials summary:', error);
+        });
+}
+
 // Modal handling
 document.addEventListener('DOMContentLoaded', function() {
     const createTaskBtn = document.getElementById('createTaskBtn');
@@ -576,6 +712,12 @@ document.addEventListener('DOMContentLoaded', function() {
             </button>
             <button id="memberTaskRequestsTab" class="tab-button border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">
                 Member Task Requests
+            </button>
+            <button id="completedTasksTab" class="tab-button border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">
+                Completed Tasks
+            </button>
+            <button id="rawMaterialsTab" class="tab-button border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">
+                Raw Materials
             </button>
         </nav>
     </div>
@@ -793,6 +935,90 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
+<!-- Completed Tasks Tab Content -->
+<div id="completedTasksContent" class="tab-content hidden">
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-semibold text-gray-800">Completed Tasks</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200" id="completedTasksTable">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Measurements</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight (g)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed Date</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <!-- Data will be populated later -->
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">No completed tasks found</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Raw Materials Tab Content -->
+<div id="rawMaterialsContent" class="tab-content hidden">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <!-- Available Raw Materials -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Available Raw Materials</h3>
+            <div id="availableRawMaterialsList" class="space-y-2">
+                <div class="text-sm text-gray-500">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Processed Materials -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Processed Materials</h3>
+            <div id="processedMaterialsList" class="space-y-2">
+                <div class="text-sm text-gray-500">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Finished Products -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Finished Products</h3>
+            <div id="finishedProductsList" class="space-y-2">
+                <div class="text-sm text-gray-500">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Raw Materials Table -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Raw Materials Inventory</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200" id="rawMaterialsTable">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight (g)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Cost (₱)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value (₱)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <!-- Data will be populated later -->
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">No raw materials found</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 
 
