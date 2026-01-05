@@ -16,6 +16,9 @@ function toggleSidebar(){
     iconClose.classList.toggle('hidden');
     closeAllSubMenus()
     
+    // Add this line to toggle the rotation of the button
+    toggleButton.classList.toggle('rotated');
+
     // Remove rotate class from dropdown buttons when sidebar closes
     if(sidebar.classList.contains('close')){
       Array.from(sidebar.querySelectorAll('.dropdown-btn.rotate')).forEach(btn => {
