@@ -2057,7 +2057,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle reassign task modal
     const cancelReassignTask = document.getElementById('cancelReassignTask');
-    const submitReassignTask = document.getElementById('submitReassignTask');
+    const submitReassignTaskBtn = document.getElementById('submitReassignTask');
     const reassignTaskModal = document.getElementById('reassignTaskModal');
 
     // Hide reassign modal
@@ -2066,7 +2066,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Submit reassign form
-    submitReassignTask.addEventListener('click', function() {
+    submitReassignTaskBtn.addEventListener('click', function() {
         submitReassignTask();
     });
 
