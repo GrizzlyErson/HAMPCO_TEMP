@@ -76,27 +76,7 @@ include "components/header.php";
         </div>
     </div>
 
-    <!-- Member Work Overview -->
-    <div class="mb-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Member Work Overview</h2>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Member Productivity by Role -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-lg font-bold text-gray-800 mb-4">Productivity by Role</h3>
-                <div id="memberProductivityList" class="space-y-3">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </div>
-
-            <!-- Active Member Tasks -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-lg font-bold text-gray-800 mb-4">Top Performers</h3>
-                <div id="topPerformersList" class="space-y-3">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </div>
-        </div>
-    </div>
+    
 
     <!-- Charts Row 1 -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -175,6 +155,28 @@ include "components/header.php";
                     <div class="w-full bg-gray-200 rounded-full h-2">
                         <div id="retentionRateBar" class="bg-green-600 h-2 rounded-full" style="width: 0%"></div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Work Overview -->
+    <div class="mb-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Member Work Overview</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Member Productivity by Role -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Productivity by Role</h3>
+                <div id="memberProductivityList" class="space-y-3">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Active Member Tasks -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Top Performers</h3>
+                <div id="topPerformersList" class="space-y-3">
+                    <!-- Will be populated by JavaScript -->
                 </div>
             </div>
         </div>
