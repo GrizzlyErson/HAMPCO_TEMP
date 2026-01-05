@@ -98,31 +98,6 @@ include "components/header.php";
         </div>
     </div>
 
-    <!-- Current Member Tasks Table -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-bold text-gray-800">Active Member Tasks</h2>
-            <a href="production_line.php" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View All →</a>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700">Member</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700">Role</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700">Product Code</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700">Product</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700">Assigned</th>
-                    </tr>
-                </thead>
-                <tbody id="activeTasksBody" class="divide-y divide-gray-200">
-                    <!-- Will be populated by JavaScript -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
     <!-- Charts Row 1 -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <!-- Sales Trend Chart -->
@@ -322,7 +297,6 @@ async function loadDashboardData() {
         if (memberData.success) {
             renderMemberProductivity(memberData.productivity);
             renderTopPerformers(memberData.stats);
-            renderActiveMemberTasks(memberData.currentTasks);
         }
     } catch (error) {
         console.error('Error loading member work data:', error);
@@ -612,31 +586,5 @@ function renderTopPerformers(members) {
     `).join('');
 }
 
-function renderActiveMemberTasks(tasks) {
-    const tbody = document.getElementById('activeTasksBody');
-    if (!tbody) return;
-    
-    if (tasks.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No active tasks</td></tr>';
-        return;
-    }
-    
-    tbody.innerHTML = tasks.map(task => `
-        <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 text-sm font-medium text-gray-800">${task.member}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">
-                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">${task.role}</span>
-            </td>
-            <td class="px-6 py-4 text-sm font-medium text-gray-800">${task.productCode}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">${task.productName}</td>
-            <td class="px-6 py-4 text-sm">
-                <span class="px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(task.status)}">
-                    ${task.status.replace('_', ' ').charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ')}
-                </span>
-            </td>
-            <td class="px-6 py-4 text-sm text-gray-700">${formatDate(task.dateAssigned)}</td>
-        </tr>
-    `).join('');
-}
 </script>
 
