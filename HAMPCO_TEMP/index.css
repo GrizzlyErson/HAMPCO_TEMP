@@ -1,0 +1,85 @@
+/* Ensure full-height layout and remove default body margin */
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+}
+
+/* Hero section covers full viewport height and uses a cover image */
+.home-page .hero {
+    /* Force the hero to exactly fill the viewport height */
+    height: 100vh;
+    /* Use full available width but avoid forcing horizontal scroll */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    /* Cover image (adjust filename if you rename the file) */
+    background-image: url("img/banner.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Optional overlay so navbar text/buttons remain readable */
+.home-page .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+/* Ensure navbar and container content sit above the overlay */
+.home-page .hero .navbar,
+.home-page .hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Keep navbar transparent and spaced */
+.home-page .hero .navbar {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    background: transparent;
+}
+
+/* Logo styling */
+.home-page .brand-logo {
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: 0.5px;
+}
+
+/* Navbar logo image sizing */
+.home-page .navbar-logo {
+    height: 50px;
+    width: auto;
+    display: block;
+    margin-left: 30px;
+}
+
+/* Ensure navbar items are vertically centered */
+.home-page .hero .navbar .container-fluid {
+    align-items: center;
+}
+
+/* Custom login button color */
+.home-page .btn-login {
+    background-color: #4e7c4e;
+    color: #ffffff;
+    border: 1px solid #4e7c4e;
+    margin-right: 30px;
+    height: auto;
+    width: auto;
+    font-size: 20px;
+}
+
+.home-page .btn-login:hover,
+.home-page .btn-login:focus {
+    background-color: #42663b; /* slightly darker on hover */
+    border-color: #42663b;
+    color: #ffffff;
+}

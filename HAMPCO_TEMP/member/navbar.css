@@ -1,0 +1,432 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+:root{
+  --base-clr: #ffffffff;
+  --line-clr: #bdbdbdff;
+
+  --hover-clr: #8fdba2ff;
+  --text-clr: #000000;
+  --accent-clr: #1b8800;
+  --secondary-text-clr: #2b2b2b;
+}
+*{
+  margin: 0;
+  padding: 0;
+
+}
+html.hampco-admin-sidebar-layout-page,
+html:has(.hampco-admin-sidebar-layout){
+  position: relative !important;
+  min-height: 100% !important;
+}
+
+html{
+  font-family: Poppins, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.5rem;
+}
+/* ============================================
+   SIDEBAR ISOLATION FROM BOOTSTRAP
+   ============================================ */
+/* Isolation wrapper - completely separate from Bootstrap */
+.hampco-sidebar-isolation {
+  isolation: isolate;
+  contain: layout style paint;
+  display: block;
+  position: relative;
+  z-index: 1000;
+  font-family: Poppins, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.5rem;
+
+}
+
+/* Reset all Bootstrap styles within sidebar isolation */
+.hampco-sidebar-isolation * {
+  box-sizing: border-box !important;
+}
+
+/* Prevent Bootstrap classes from affecting sidebar */
+.hampco-sidebar-isolation .nav,
+.hampco-sidebar-isolation .navbar,
+.hampco-sidebar-isolation .navbar-nav,
+.hampco-sidebar-isolation .nav-item,
+.hampco-sidebar-isolation .nav-link,
+.hampco-sidebar-isolation .btn,
+.hampco-sidebar-isolation .card,
+.hampco-sidebar-isolation .container,
+.hampco-sidebar-isolation .row,
+.hampco-sidebar-isolation .col {
+  all: unset !important;
+  display: revert !important;
+}
+
+.hampco-sidebar-isolation nav,
+.hampco-sidebar-isolation ul,
+.hampco-sidebar-isolation li,
+.hampco-sidebar-isolation a,
+.hampco-sidebar-isolation button,
+.hampco-sidebar-isolation span {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  font-size: inherit !important;
+  font-family: inherit !important;
+  line-height: inherit !important;
+  vertical-align: baseline !important;
+  text-decoration: none !important;
+  background: none !important;
+}
+
+/* Override Bootstrap wrapper styles */
+.hampco-admin-sidebar-layout #wrapper {
+  display: contents !important;
+
+}
+
+.hampco-admin-sidebar-layout{
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  height: auto !important;
+  background-color: var(--base-clr) !important;
+  color: var(--text-clr) !important;
+  display: grid !important;
+  grid-template-columns: auto 1fr !important;
+}
+
+/* Sidebar styles - scoped to isolation container */
+.hampco-sidebar-isolation #sidebar{
+  box-sizing: border-box !important;
+  height: 100vh !important;
+  width: 250px !important;
+  padding: 5px 1em !important;
+  background-color: var(--base-clr) !important;
+  border-right: 1px solid var(--line-clr) !important;
+  box-shadow: 0 0 5px rgba(0,0,0,1) !important;
+  position: sticky !important;
+  top: 0 !important;
+  align-self: start !important;
+  transition: width 300ms ease-in-out, padding 300ms ease-in-out !important;
+  overflow: hidden !important;
+  text-wrap: nowrap !important;
+  flex-shrink: 0 !important;
+  blur: 50% !important;
+}
+.hampco-sidebar-isolation #sidebar.close{
+  padding: 5px !important;
+  width: 60px !important;
+}
+/* Hide text labels when sidebar is collapsed */
+.hampco-sidebar-isolation #sidebar.close a span,
+.hampco-sidebar-isolation #sidebar.close .dropdown-btn span{
+  opacity: 0 !important;
+  width: 0 !important;
+  max-width: 0 !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  transition: opacity 200ms ease, width 200ms ease, max-width 200ms ease !important;
+}
+.hampco-sidebar-isolation #sidebar.close .logo{
+  opacity: 0 !important;
+  width: 0 !important;
+  max-width: 0 !important;
+  overflow: hidden !important;
+  transition: opacity 200ms ease, width 200ms ease, max-width 200ms ease !important;
+  padding: 0 !important;
+}
+/* Show text labels when sidebar is open */
+.hampco-sidebar-isolation #sidebar:not(.close) a span,
+.hampco-sidebar-isolation #sidebar:not(.close) .dropdown-btn span{
+  opacity: 1 !important;
+  width: auto !important;
+  max-width: none !important;
+  transition: opacity 200ms ease 100ms, width 200ms ease 100ms, max-width 200ms ease 100ms !important;
+}
+.hampco-sidebar-isolation #sidebar:not(.close) .logo{
+  opacity: 1 !important;
+  width: auto !important;
+  max-width: none !important;
+  transition: opacity 200ms ease 100ms, width 200ms ease 100ms, max-width 200ms ease 100ms !important;
+}
+/* Hide dropdown arrow when collapsed */
+.hampco-sidebar-isolation #sidebar.close .dropdown-btn svg:last-child{
+  opacity: 0 !important;
+  width: 0 !important;
+  max-width: 0 !important;
+  overflow: hidden !important;
+  transition: opacity 200ms ease, width 200ms ease, max-width 200ms ease !important;
+}
+/* Show dropdown arrow when open */
+.hampco-sidebar-isolation #sidebar:not(.close) .dropdown-btn svg:last-child{
+  opacity: 1 !important;
+  width: 24px !important;
+  max-width: 24px !important;
+  transition: opacity 200ms ease 100ms, width 200ms ease 100ms, max-width 200ms ease 100ms !important;
+}
+/* Center items when collapsed */
+.hampco-sidebar-isolation #sidebar.close a,
+.hampco-sidebar-isolation #sidebar.close .dropdown-btn{
+  justify-content: center !important;
+  gap: 0 !important;
+  padding-left: .85em !important;
+  padding-right: .85em !important;
+}
+/* Hide logo image when collapsed */
+.hampco-sidebar-isolation #sidebar.close .logo img{
+  display: none !important;
+}
+
+.hampco-sidebar-isolation #sidebar ul{
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.hampco-sidebar-isolation #sidebar > ul > li:first-child{
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 16px !important;
+  transition: all 300ms ease-in-out !important;
+}
+/* When collapsed, center the toggle button */
+.hampco-sidebar-isolation #sidebar.close > ul > li:first-child{
+  justify-content: center !important;
+}
+.hampco-sidebar-isolation #sidebar > ul > li:first-child .logo{
+  font-weight: 600 !important;
+}
+.hampco-sidebar-isolation #sidebar ul li.active a{
+  color: var(--accent-clr) !important;
+}
+.hampco-sidebar-isolation #sidebar ul li.active a svg{
+  fill: var(--accent-clr) !important;
+}
+/* New rules for Font Awesome icons */
+.hampco-sidebar-isolation #sidebar i {
+  color: var(--text-clr) !important;
+}
+.hampco-sidebar-isolation #sidebar ul li.active a i{
+  color: var(--accent-clr) !important;
+}
+
+.hampco-sidebar-isolation #sidebar a,
+.hampco-sidebar-isolation #sidebar .dropdown-btn,
+.hampco-sidebar-isolation #sidebar .logo{
+  border-radius: .5em !important;
+  padding: .85em !important;
+  text-decoration: none !important;
+  color: var(--text-clr) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 1em !important;
+  background: none !important;
+  border: none !important;
+  font: inherit !important;
+  transition: gap 300ms ease-in-out !important;
+}
+.hampco-sidebar-isolation .dropdown-btn{
+  width: 100% !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+.hampco-sidebar-isolation #sidebar svg,
+.hampco-sidebar-isolation #sidebar i { /* Include Font Awesome icons */
+  flex-shrink: 0 !important;
+  fill: var(--text-clr) !important; /* For SVGs */
+  color: var(--text-clr) !important; /* For Font Awesome */
+  transition: width 200ms ease, height 200ms ease, opacity 200ms ease !important;
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+}
+/* Ensure main icons stay visible and sized during collapse */
+.hampco-sidebar-isolation #sidebar.close a svg:first-child,
+.hampco-sidebar-isolation #sidebar.close .dropdown-btn svg:first-child,
+.hampco-sidebar-isolation #sidebar.close #toggle-btn svg,
+.hampco-sidebar-isolation #sidebar.close a i, /* For Font Awesome */
+.hampco-sidebar-isolation #sidebar.close .dropdown-btn i { /* For Font Awesome */
+  width: 24px !important;
+  height: 24px !important;
+  opacity: 1 !important;
+}
+.hampco-sidebar-isolation #sidebar a span,
+.hampco-sidebar-isolation #sidebar .dropdown-btn span{
+  flex-grow: 1 !important;
+}
+.hampco-sidebar-isolation #sidebar a:hover,
+.hampco-sidebar-isolation #sidebar .dropdown-btn:hover{
+  background-color: var(--hover-clr) !important;
+}
+.hampco-sidebar-isolation #sidebar .sub-menu{
+  display: grid !important;
+  grid-template-rows: 0fr !important;
+  transition: 300ms ease-in-out !important;
+}
+/* Close sub-menus when sidebar is collapsed */
+.hampco-sidebar-isolation #sidebar.close .sub-menu{
+  grid-template-rows: 0fr !important;
+}
+.hampco-sidebar-isolation #sidebar.close .sub-menu.show{
+  grid-template-rows: 0fr !important;
+}
+.hampco-sidebar-isolation #sidebar .sub-menu > div{
+  overflow: hidden !important;
+}
+.hampco-sidebar-isolation #sidebar .sub-menu.show{
+  grid-template-rows: 1fr !important;
+}
+.hampco-sidebar-isolation .dropdown-btn svg{
+  transition: 200ms ease !important;
+}
+.hampco-sidebar-isolation .rotate svg:last-child{
+  rotate: 180deg !important;
+}
+.hampco-sidebar-isolation #sidebar .sub-menu a{
+  padding-left: 2em !important;
+}
+.hampco-sidebar-isolation #toggle-btn{
+  padding: .85em !important;
+  border: none !important;
+  border-radius: .5em !important;
+  background: none !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  font: inherit !important;
+  flex-shrink: 0 !important;
+}
+.hampco-sidebar-isolation #toggle-btn svg{
+  transition: rotate 150ms ease !important;
+  width: 24px !important;
+  height: 24px !important;
+}
+.hampco-sidebar-isolation #toggle-btn:hover{
+  background-color: var(--hover-clr) !important;
+}
+
+.hampco-admin-sidebar-layout main{
+  padding: min(30px, 7%) !important;
+  width: 100% !important;
+  flex: 1 1 auto !important;
+  overflow-x: hidden !important;
+}
+.hampco-admin-sidebar-layout main p{
+  color: var(--secondary-text-clr);
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+.hampco-admin-sidebar-layout .container{
+  border: 1px solid var(--line-clr);
+  border-radius: 1em;
+  margin-bottom: 20px;
+  padding: min(3em, 15%);
+
+  h2, p { margin-top: 1em }
+}
+
+@media(max-width: 800px){
+  .hampco-admin-sidebar-layout{
+    grid-template-columns: 1fr !important;
+  }
+  .hampco-admin-sidebar-layout main{
+    padding: 2em 1em 60px 1em !important;
+  }
+  .hampco-admin-sidebar-layout .container{
+    border: none !important;
+    padding: 0 !important;
+  }
+  .hampco-sidebar-isolation #sidebar{
+    height: 60px !important;
+    width: 100% !important;
+    border-right: none !important;
+    border-top: 1px solid var(--line-clr) !important;
+    padding: 0 !important;
+    position: fixed !important;
+    top: unset !important;
+    bottom: 0 !important;
+
+    > ul{
+      padding: 0;
+      display: grid;
+      grid-auto-columns: 60px;
+      grid-auto-flow: column;
+      align-items: center;
+      overflow-x: scroll;
+    }
+    ul li{
+      height: 100%;
+    }
+    ul a, ul .dropdown-btn{
+      width: 60px;
+      height: 60px;
+      padding: 0;
+      border-radius: 0;
+      justify-content: center;
+    }
+
+    ul li span, ul li:first-child, .dropdown-btn svg:last-child{
+      display: none;
+    }
+
+    ul li .sub-menu.show{
+      position: fixed;
+      bottom: 60px;
+      left: 0;
+      box-sizing: border-box;
+      height: 60px;
+      width: 100%;
+      background-color: var(--hover-clr);
+      border-top: 1px solid var(--line-clr);
+      display: flex;
+      justify-content: center;
+
+      > div{
+        overflow-x: auto;
+      }
+      li{
+        display: inline-flex;
+      }
+      a{
+        box-sizing: border-box;
+        padding: 1em;
+        width: auto;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+
+
+
+/* Default styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 8px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 600px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    width: fit-content;
+  }
+  .fluid-name {
+  display: block;
+  width: 100%;
+  font-size: clamp(0.75rem, 5vw, 1.5rem);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+}
+
+
+
+

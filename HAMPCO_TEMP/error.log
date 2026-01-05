@@ -1,0 +1,5 @@
+[15-Jun-2025 02:42:14 Europe/Berlin] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in C:\xampp\htdocs\hampco_memberFix\function\config.php on line 25
+[15-Jun-2025 02:42:14 Europe/Berlin] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in C:\xampp\htdocs\hampco_memberFix\function\config.php on line 26
+[15-Jun-2025 08:42:15 Asia/Manila] Dashboard data error: Unknown column 'status' in 'where clause'
+[15-Jun-2025 02:42:21 Europe/Berlin] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in C:\xampp\htdocs\hampco_memberFix\function\config.php on line 25
+[15-Jun-2025 02:42:21 Europe/Berlin] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in C:\xampp\htdocs\hampco_memberFix\function\config.php on line 26
