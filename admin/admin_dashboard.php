@@ -10,7 +10,7 @@ require_once "components/header.php";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home</title>
-  <link rel="stylesheet" href="mobile-fix.css">
+  
   <style>
     @keyframes countPulse {
       0% {

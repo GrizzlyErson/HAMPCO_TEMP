@@ -80,12 +80,7 @@
           <span>Payments</span>
         </a>
       </li>
-      <li>
-        <a href="logout.php">
-          <i class="fas fa-solid fa-sign-out-alt"></i>
-          <span>Logout</span>
-        </a>
-      </li>
+      
       <li>
         <button onclick=toggleSubMenu(this) class="dropdown-btn">
           <i class="fas fa-solid fa-warehouse"></i>
@@ -99,6 +94,12 @@
             <li><a href="raw_stock_logs.php"><i class="fas fa-solid fa-clipboard-list mr-2"></i>Raw Logs</a></li>
           </div>
         </ul>
+      </li>
+      <li>
+        <a href="logout.php">
+          <i class="fas fa-solid fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
       </li>
     </ul>
   </nav>
