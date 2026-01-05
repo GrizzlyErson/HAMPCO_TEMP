@@ -172,7 +172,7 @@ function renderStatusBadge(worker) {
         ? 'text-green-600'
         : 'text-red-600';
 
-    const label = isActive ? 'Active' : 'inactive';
+    const label = isActive ? 'Active' : 'Inactive';
 
     return `
         <span class="font-semibold ${textClass}">
