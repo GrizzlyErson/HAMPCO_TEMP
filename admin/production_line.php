@@ -707,6 +707,24 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const formData = new FormData(this);
         const selectedProduct = formData.get('product_name');
+        const assignedTo = formData.get('assigned_to');
+        const deadline = formData.get('deadline');
+        
+        // Validate required fields
+        if (!selectedProduct) {
+            alert('Please select a product');
+            return;
+        }
+        
+        if (!assignedTo) {
+            alert('Please assign this task to a member');
+            return;
+        }
+        
+        if (!deadline) {
+            alert('Please set a deadline for this task');
+            return;
+        }
         
         // Set quantity to 1 for Knotted products and Warped Silk
         if (selectedProduct === 'Knotted Liniwan' || selectedProduct === 'Knotted Bastos' || selectedProduct === 'Warped Silk') {
@@ -720,10 +738,17 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Task created successfully!');
-                document.getElementById('createTaskModal').classList.add('hidden');
-                this.reset();
-                location.reload();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Task created and assigned successfully!',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    document.getElementById('createTaskModal').classList.add('hidden');
+                    this.reset();
+                    location.reload();
+                });
             } else {
                 alert('Error: ' + data.message);
             }
@@ -1689,8 +1714,34 @@ function updateMaterialsList(productName) {
 
 // Function to fetch and display available materials and members
 function loadModalData() {
-    // Load assignable members
-    fetch('backend/end-points/get_members_by_role.php?role=all')
+    // Load initial materials list (empty or for default selected product)
+    const initialSelectedProduct = document.getElementById('product_name').value;
+    updateMaterialsList(initialSelectedProduct);
+    
+    // Load initial members (all available members if no product selected yet)
+    updateAvailableMembers('');
+}
+
+// Function to update available members based on selected product
+function updateAvailableMembers(productName) {
+    let url = 'backend/end-points/get_members_by_role.php?role=all';
+    
+    // Map product names to required roles
+    if (productName) {
+        const productRoleMap = {
+            'Piña Seda': 'weaver',
+            'Pure Piña Cloth': 'weaver',
+            'Knotted Liniwan': 'knotter',
+            'Knotted Bastos': 'knotter',
+            'Warped Silk': 'warper'
+        };
+        
+        if (productRoleMap[productName]) {
+            url = 'backend/end-points/get_members_by_role.php?role=' + productRoleMap[productName];
+        }
+    }
+    
+    fetch(url)
         .then(response => response.json())
         .then(members => {
             const assignedToSelect = document.getElementById('assigned_to');
@@ -1700,12 +1751,28 @@ function loadModalData() {
             }
             
             if (members && members.length > 0) {
-                members.forEach(member => {
-                    const option = document.createElement('option');
-                    option.value = member.id;
-                    option.textContent = `${member.fullname} (${member.role})`;
-                    assignedToSelect.appendChild(option);
-                });
+                // Filter to show only available members
+                const availableMembers = members.filter(member => member.work_status === 'Available');
+                
+                if (availableMembers.length > 0) {
+                    availableMembers.forEach((member, index) => {
+                        const option = document.createElement('option');
+                        option.value = member.id;
+                        option.textContent = `${member.fullname} (${member.role}) - Available`;
+                        assignedToSelect.appendChild(option);
+                    });
+                    
+                    // Auto-select the first available member
+                    assignedToSelect.value = availableMembers[0].id;
+                } else {
+                    // Show occupied members if no available members
+                    members.forEach(member => {
+                        const option = document.createElement('option');
+                        option.value = member.id;
+                        option.textContent = `${member.fullname} (${member.role}) - ${member.work_status}`;
+                        assignedToSelect.appendChild(option);
+                    });
+                }
             } else {
                 const option = document.createElement('option');
                 option.value = '';
@@ -1723,10 +1790,6 @@ function loadModalData() {
             option.disabled = true;
             assignedToSelect.appendChild(option);
         });
-
-    // Load initial materials list (empty or for default selected product)
-    const initialSelectedProduct = document.getElementById('product_name').value;
-    updateMaterialsList(initialSelectedProduct);
 }
 
 
@@ -1797,6 +1860,9 @@ document.addEventListener('DOMContentLoaded', function() {
     productNameSelect.addEventListener('change', function() {
         const selectedProduct = this.value;
         
+        // Update available members based on selected product
+        updateAvailableMembers(selectedProduct);
+        
         // Reset all fields
         dimensionFields.classList.add('hidden');
         weightField.classList.add('hidden');
@@ -1818,53 +1884,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Handle form submission
-    createTaskForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Validate form
-        const formData = new FormData(this);
-        const productName = formData.get('product_name');
-        const quantity = formData.get('quantity');
-        const deadline = formData.get('deadline');
-        
-        if (!productName) {
-            alert('Please select a product');
-            return;
-        }
-        
-        if (!quantity || quantity < 1) {
-            alert('Please enter a valid quantity');
-            return;
-        }
-        
-        // Submit the form
-        fetch('backend/end-points/create_task.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Show success message
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: 'Task created successfully!',
-                    showConfirmButton: false,
-                    timer: 1500
-                }).then(() => {
-                    window.location.reload();
-                });
-            } else {
-                alert('Error: ' + (data.message || 'Failed to create task'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while creating the task');
-        });
-    });
-
+    // Note: Form submission is handled in the DOMContentLoaded event listener above
+    
     // Close the dropdown menu if the user clicks outside of it
     window.addEventListener('click', function(event) {
         document.querySelectorAll('[id^="dropdown-menu-"]').forEach(dropdownMenu => {
