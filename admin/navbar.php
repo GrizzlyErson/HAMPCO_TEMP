@@ -80,6 +80,7 @@
           <span>Payments</span>
         </a>
       </li>
+      
       <li>
         <button onclick=toggleSubMenu(this) class="dropdown-btn">
           <i class="fas fa-solid fa-warehouse"></i>
@@ -94,12 +95,14 @@
           </div>
         </ul>
       </li>
+
       <li>
         <a href="logout.php">
           <i class="fas fa-solid fa-sign-out-alt"></i>
           <span>Logout</span>
         </a>
       </li>
+    
       
     </ul>
   </nav>
