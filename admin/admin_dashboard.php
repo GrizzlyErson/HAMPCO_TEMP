@@ -176,11 +176,11 @@ require_once "components/header.php";
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-uppercase mb-1">Production Items
+                                            <div class="text-xs font-weight-bold text-uppercase mb-1">Production Items (Pending)
                                             </div>
                                             <div class="row no-gutters align-items-center">
                                                 <div class="col-auto">
-                                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">0</div>
+                                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800" id="pendingProductionCount">0</div>
                                                 </div>
 
                                             </div>
@@ -1104,6 +1104,26 @@ require_once "components/header.php";
             });
     }
 
+    // Load pending production count
+    function loadPendingProductionCount() {
+        fetch('backend/end-points/get_pending_production_count.php')
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    const countElement = document.getElementById('pendingProductionCount');
+                    if (countElement) {
+                        countElement.textContent = data.pendingCount;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error loading pending production count:', error);
+            });
+    }
+
     // Load tasks on page load
     document.addEventListener('DOMContentLoaded', function() {
         loadRecentTasks();
@@ -1111,12 +1131,14 @@ require_once "components/header.php";
         loadTaskCompletionChart();
         loadActiveMembersByRole();
         loadTaskDeadlines();
+        loadPendingProductionCount();
         // Refresh every 30 seconds
         setInterval(loadRecentTasks, 30000);
         setInterval(loadMemberCreatedTasks, 30000);
         setInterval(loadTaskCompletionChart, 60000);
         setInterval(loadActiveMembersByRole, 60000);
         setInterval(loadTaskDeadlines, 60000);
+        setInterval(loadPendingProductionCount, 30000);
     });
 
     // Task Completion Chart by Role
