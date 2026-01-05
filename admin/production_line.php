@@ -570,6 +570,38 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Form submitted');
         });
     }
+
+    // Dropdown menu toggle functionality
+    document.addEventListener('click', function(e) {
+        // Check if click is on an options menu button
+        const optionsButton = e.target.closest('[id^="options-menu-"]');
+        if (optionsButton) {
+            e.preventDefault();
+            const buttonId = optionsButton.id;
+            const dropdownId = buttonId.replace('options-menu-', 'dropdown-menu-');
+            const dropdown = document.getElementById(dropdownId);
+            
+            // Close all other dropdowns
+            document.querySelectorAll('[id^="dropdown-menu-"]').forEach(menu => {
+                if (menu.id !== dropdownId) {
+                    menu.classList.add('hidden');
+                }
+            });
+            
+            // Toggle current dropdown
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+            }
+        } else {
+            // Close all dropdowns if clicking outside
+            const dropdown = e.target.closest('[id^="dropdown-menu-"]');
+            if (!dropdown) {
+                document.querySelectorAll('[id^="dropdown-menu-"]').forEach(menu => {
+                    menu.classList.add('hidden');
+                });
+            }
+        }
+    });
 });
 
 
