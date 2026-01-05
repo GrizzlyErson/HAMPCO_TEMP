@@ -37,9 +37,404 @@ while ($row = mysqli_fetch_assoc($production_result)) {
 }
 ?>
 
-
-
 <script>
+// Tab switching functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Hide all tab contents
+            tabContents.forEach(content => content.classList.add('hidden'));
+            
+            // Remove active styling from all buttons
+            tabButtons.forEach(btn => {
+                btn.classList.remove('border-indigo-500', 'text-indigo-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            // Add active styling to clicked button
+            this.classList.remove('border-transparent', 'text-gray-500');
+            this.classList.add('border-indigo-500', 'text-indigo-600');
+            
+            // Show the corresponding content
+            const contentId = this.id.replace('Tab', 'Content');
+            const content = document.getElementById(contentId);
+            if (content) {
+                content.classList.remove('hidden');
+                // Trigger any data loading if needed
+                if (contentId === 'memberTaskRequestsContent') {
+                    loadTaskRequests();
+                    loadTaskCompletions();
+                }
+            }
+        });
+    });
+
+    // Initialize the first tab as active
+    const monitoringTab = document.getElementById('monitoringTab');
+    if (monitoringTab) {
+        monitoringTab.click();
+    }
+});
+
+// Filter production items in the search
+function filterProductionItems() {
+    const searchInput = document.getElementById('searchInput');
+    const table = document.querySelector('table tbody');
+    const rows = table.querySelectorAll('tr');
+    const searchTerm = searchInput.value.toLowerCase();
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        let match = false;
+        
+        cells.forEach(cell => {
+            if (cell.textContent.toLowerCase().includes(searchTerm)) {
+                match = true;
+            }
+        });
+        
+        row.style.display = match ? '' : 'none';
+    });
+}
+
+// Show materials modal
+function showMaterialsModal(materialsData, productData) {
+    if (typeof materialsData === 'string') {
+        try {
+            materialsData = JSON.parse(materialsData);
+        } catch (e) {
+            console.error('Error parsing materials data:', e);
+            return;
+        }
+    }
+    
+    if (typeof productData === 'string') {
+        try {
+            productData = JSON.parse(productData);
+        } catch (e) {
+            console.error('Error parsing product data:', e);
+            return;
+        }
+    }
+    
+    // Create modal HTML
+    const modalContent = `
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-[1001] p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-800">Required Raw Materials</h3>
+                    <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="px-6 py-4">
+                    <p class="mb-4 text-sm text-gray-600"><strong>Product:</strong> ${productData.name || 'N/A'}</p>
+                    ${materialsData.success ? `
+                        <div class="space-y-2">
+                            ${materialsData.materials && materialsData.materials.length > 0 ? 
+                                materialsData.materials.map(material => `
+                                    <div class="flex justify-between p-2 bg-gray-50 rounded">
+                                        <span class="text-sm text-gray-700">
+                                            ${material.name}
+                                            ${material.category ? ` (${material.category})` : ''}
+                                        </span>
+                                        <span class="text-sm font-medium text-gray-800">
+                                            ${material.amount} ${material.unit}
+                                        </span>
+                                    </div>
+                                `).join('')
+                                : '<p class="text-gray-500">No materials information available</p>'
+                            }
+                        </div>
+                    ` : `<p class="text-red-600">${materialsData.message || 'Error loading materials'}</p>`}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Insert modal into DOM
+    document.body.insertAdjacentHTML('beforeend', modalContent);
+}
+
+// Assign task function
+function assignTask(prodLineId, productName, quantity) {
+    // Show the create task modal and populate it
+    const modal = document.getElementById('createTaskModal');
+    const form = document.getElementById('createTaskForm');
+    
+    if (modal) {
+        // Set product name
+        document.getElementById('product_name').value = productName;
+        
+        // Load materials and members
+        loadModalDataForCreateTask();
+        
+        // Store the production line ID for later use
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'prod_line_id';
+        hiddenInput.value = prodLineId;
+        form.appendChild(hiddenInput);
+        
+        // Show modal
+        modal.classList.remove('hidden');
+    }
+}
+
+// Delete product function
+function deleteProduct(prodLineId) {
+    if (confirm('Are you sure you want to delete this production line item?')) {
+        const formData = new FormData();
+        formData.append('prod_line_id', prodLineId);
+        
+        fetch('backend/end-points/delete_production_line.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Production line item deleted successfully');
+                location.reload();
+            } else {
+                alert('Error: ' + (data.message || 'Failed to delete'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the item');
+        });
+    }
+}
+
+// Task request functions
+function loadTaskRequests() {
+    fetch('backend/end-points/get_task_requests.php')
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.querySelector('#taskApprovalTable tbody');
+            if (!tableBody) return;
+            
+            if (!data || data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="px-6 py-4 text-center text-gray-500">No requests found</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = data.map(request => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 text-sm font-mono">${request.request_id}</td>
+                    <td class="px-6 py-4 text-sm">${request.member_name}</td>
+                    <td class="px-6 py-4 text-sm">${request.role}</td>
+                    <td class="px-6 py-4 text-sm">${request.product_type}</td>
+                    <td class="px-6 py-4 text-sm">${request.weight_g || '-'}</td>
+                    <td class="px-6 py-4 text-sm">${request.quantity || '1'}</td>
+                    <td class="px-6 py-4 text-sm">${request.request_date}</td>
+                    <td class="px-6 py-4 text-sm">
+                        <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(request.status)}">
+                            ${request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm">
+                        ${request.status === 'pending' ? `
+                            <div class="flex space-x-2">
+                                <button onclick="handleTaskRequest(${request.request_id}, 'approve')"
+                                    class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors">
+                                    Approve
+                                </button>
+                                <button onclick="handleTaskRequest(${request.request_id}, 'decline')"
+                                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm transition-colors">
+                                    Decline
+                                </button>
+                            </div>
+                        ` : '-'}
+                    </td>
+                </tr>
+            `).join('');
+        })
+        .catch(error => {
+            console.error('Error loading task requests:', error);
+            const tableBody = document.querySelector('#taskApprovalTable tbody');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="px-6 py-4 text-center text-red-500">Error loading requests. Please try again.</td>
+                    </tr>
+                `;
+            }
+        });
+}
+
+function loadTaskCompletions() {
+    fetch('backend/end-points/get_task_completions.php')
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.querySelector('#taskCompletionTable tbody');
+            if (!tableBody) return;
+            
+            if (!data || data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">No completion requests found</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = data.map(task => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 text-sm font-mono">${task.prod_line_id}</td>
+                    <td class="px-6 py-4 text-sm">${task.product_name}</td>
+                    <td class="px-6 py-4 text-sm">
+                        <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(task.status)}">
+                            ${task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm">${task.date_created}</td>
+                    <td class="px-6 py-4 text-sm">${task.member_name}</td>
+                    <td class="px-6 py-4 text-sm">
+                        ${task.status === 'submitted' ? `
+                            <button onclick="confirmTaskCompletion(${task.prod_line_id})"
+                                class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors">
+                                Confirm Task Completion
+                            </button>
+                        ` : '-'}
+                    </td>
+                </tr>
+            `).join('');
+        })
+        .catch(error => {
+            console.error('Error loading task completions:', error);
+            const tableBody = document.querySelector('#taskCompletionTable tbody');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-red-500">Error loading completion requests. Please try again.</td>
+                    </tr>
+                `;
+            }
+        });
+}
+
+function getStatusClass(status) {
+    switch (status ? status.toLowerCase() : '') {
+        case 'pending':
+            return 'bg-yellow-100 text-yellow-800';
+        case 'approved':
+            return 'bg-green-100 text-green-800';
+        case 'declined':
+            return 'bg-red-100 text-red-800';
+        case 'completed':
+            return 'bg-green-100 text-green-800';
+        case 'submitted':
+            return 'bg-blue-100 text-blue-800';
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
+}
+
+function handleTaskRequest(requestId, action) {
+    const formData = new FormData();
+    formData.append('request_id', requestId);
+    formData.append('action', action);
+
+    fetch('backend/end-points/handle_task_request.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Task request ${action}ed successfully`);
+            loadTaskRequests();
+        } else {
+            throw new Error(data.message || 'Failed to process request');
+        }
+    })
+    .catch(error => {
+        console.error('Error handling task request:', error);
+        alert('Error: ' + error.message);
+    });
+}
+
+function confirmTaskCompletion(prodLineId) {
+    if (confirm('Are you sure you want to confirm this task as completed?')) {
+        const formData = new FormData();
+        formData.append('prod_line_id', prodLineId);
+
+        fetch('backend/end-points/confirm_task_completion.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Task completion has been confirmed');
+                loadTaskCompletions();
+                loadTaskRequests();
+            } else {
+                throw new Error(data.message || 'Failed to confirm task completion');
+            }
+        })
+        .catch(error => {
+            console.error('Error confirming task completion:', error);
+            alert('Error: ' + error.message);
+        });
+    }
+}
+
+// Modal handling
+document.addEventListener('DOMContentLoaded', function() {
+    const createTaskBtn = document.getElementById('createTaskBtn');
+    const createTaskModal = document.getElementById('createTaskModal');
+    const cancelCreateTask = document.getElementById('cancelCreateTask');
+    const createTaskForm = document.getElementById('createTaskForm');
+    const productNameSelect = document.getElementById('product_name');
+
+    if (createTaskBtn && createTaskModal) {
+        createTaskBtn.addEventListener('click', function() {
+            if (createTaskForm) {
+                createTaskForm.reset();
+            }
+            createTaskModal.classList.remove('hidden');
+        });
+
+        if (cancelCreateTask) {
+            cancelCreateTask.addEventListener('click', function() {
+                createTaskModal.classList.add('hidden');
+            });
+        }
+
+        createTaskModal.addEventListener('click', function(e) {
+            if (e.target === createTaskModal) {
+                createTaskModal.classList.add('hidden');
+            }
+        });
+    }
+
+    if (productNameSelect) {
+        productNameSelect.addEventListener('change', function() {
+            updateMaterialsList(this.value);
+            loadModalDataForCreateTask();
+        });
+    }
+
+    if (createTaskForm) {
+        createTaskForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Add form submission logic here
+            console.log('Form submitted');
+        });
+    }
+});
 
 
 
@@ -179,9 +574,9 @@ while ($row = mysqli_fetch_assoc($production_result)) {
             <button id="monitoringTab" class="tab-button border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                 Production Line Monitoring
             </button>
-            
-            
-            
+            <button id="memberTaskRequestsTab" class="tab-button border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">
+                Member Task Requests
+            </button>
         </nav>
     </div>
 </div>
@@ -338,6 +733,65 @@ while ($row = mysqli_fetch_assoc($production_result)) {
     
 </div>
 
+<!-- Member Task Requests Tab Content -->
+<div id="memberTaskRequestsContent" class="tab-content hidden">
+    <!-- Task Approval Requests Table -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-semibold text-gray-800">Task Approval Requests</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200" id="taskApprovalTable">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Production ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight (g)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <!-- Data will be populated later -->
+                    <tr>
+                        <td colspan="9" class="px-6 py-4 text-center text-gray-500">No requests found</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Task Completion Confirmations Table -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-semibold text-gray-800">Task Completion Confirmations</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200" id="taskCompletionTable">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Production ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member's Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <!-- Data will be populated later -->
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">No completion requests found</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 
 
