@@ -182,6 +182,12 @@ html{
   height: calc(100vh - 80px) !important;
   overflow-y: hidden !important;
   overflow-x: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+/* Push logout to bottom */
+.hampco-sidebar-isolation #sidebar ul li:last-child{
+  margin-top: auto !important;
 }
 .hampco-sidebar-isolation #sidebar > ul > li:first-child{
   display: flex !important;
