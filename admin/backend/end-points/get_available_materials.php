@@ -1,26 +1,10 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 header('Content-Type: application/json');
-
-// Define a base path for includes
-define('BASE_PATH', realpath(__DIR__ . '/../../../'));
-
-require_once BASE_PATH . '/admin/backend/dbconnect.php';
+define('ALLOW_ACCESS', true);
+require_once '../../../function/db_connect.php';
 
 $response = ['success' => false, 'message' => '', 'materials' => []];
 $product_name = isset($_GET['product_name']) ? $_GET['product_name'] : null;
-
-// Check if the database connection is valid
-if (!isset($db) || !$db->conn) {
-    $response['message'] = "Database connection failed.";
-    echo json_encode($response);
-    exit;
-}
-
-$conn = $db->conn;
 
 try {
     if ($product_name) {
