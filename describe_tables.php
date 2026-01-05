@@ -1,6 +1,14 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 define('ALLOW_ACCESS', true);
-require_once 'function/db_connect.php';
+
+// Define a base path for includes
+define('BASE_PATH', realpath(__DIR__));
+
+require_once BASE_PATH . '/admin/backend/dbconnect.php';
 
 function describeTable($conn, $tableName) {
     $result = $conn->query("DESCRIBE `$tableName`");
@@ -24,9 +32,14 @@ function describeTable($conn, $tableName) {
     }
 }
 
-describeTable($db->conn, 'product_materials');
-describeTable($db->conn, 'raw_materials');
-describeTable($db->conn, 'processed_materials');
-
-$db->conn->close();
+// Check if the database connection is valid
+if (isset($db) && $db->conn) {
+    $conn = $db->conn;
+    describeTable($conn, 'product_materials');
+    describeTable($conn, 'raw_materials');
+    describeTable($conn, 'processed_materials');
+    $conn->close();
+} else {
+    echo "Database connection failed.";
+}
 ?>

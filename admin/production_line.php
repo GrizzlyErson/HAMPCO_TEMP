@@ -26,9 +26,7 @@ WHERE ta.status != 'completed' OR ta.status IS NULL
 ORDER BY pl.date_created DESC";
 $tasks_result = mysqli_query($db->conn, $tasks_query);
 
-// Initialize RawMaterialCalculator
-require_once 'backend/raw_material_calculator.php';
-$materialCalculator = new RawMaterialCalculator($db);
+
 
 // Get production line data
 $production_query = "SELECT pl.*, 
@@ -60,18 +58,7 @@ while ($row = mysqli_fetch_assoc($production_result)) {
 }
 ?>
 
-<!-- Materials Modal -->
-<div id="materialsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-[1000] hidden">
-    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Raw Materials Information</h2>
-            <button id="closeMaterialsModal" class="text-gray-400 hover:text-gray-600">
-                <span class="material-icons">close</span>
-            </button>
-        </div>
-        <div id="materialsContent" class="max-h-[70vh] overflow-y-auto"></div>
-    </div>
-</div>
+
 
 <script>
 
@@ -121,475 +108,21 @@ function renderMemberList(role, listId) {
         });
 }
 
-function fetchProductionLineData() {
-    // This function is no longer needed as data is fetched in PHP
-}
 
-// Function to confirm task completion
-function confirmTaskCompletion(prodLineId) {
-    Swal.fire({
-        title: 'Confirm Task Completion',
-        text: 'Are you sure you want to mark this task as completed? This action cannot be undone.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#10B981',
-        cancelButtonColor: '#EF4444',
-        confirmButtonText: 'Yes, complete it!',
-        cancelButtonText: 'Cancel'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Show loading state
-            Swal.fire({
-                title: 'Processing...',
-                text: 'Marking task as completed',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                allowEnterKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
 
-            fetch('backend/end-points/confirm_task_completion.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `prod_line_id=${prodLineId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: 'Task has been marked as completed.',
-                        showConfirmButton: false,
-                        timer: 1500
-                    }).then(() => {
-                        // Refresh the tasks table
-                        refreshTaskAssignments();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message || 'Failed to mark task as completed'
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'An error occurred while marking the task as completed'
-                });
-            });
-        }
-    });
-}
 
-// Function to refresh task assignments
-function refreshTaskAssignments() {
-    fetch('backend/end-points/get_task_assignments.php')
-        .then(response => response.json())
-        .then(response => {
-            if (!response.success) {
-                throw new Error(response.message);
-            }
-            
-            const inProgressTableBody = document.querySelector('#inProgressTasksTable tbody');
-            const completedTableBody = document.querySelector('#completedTasksTable tbody');
-            
-            if (!inProgressTableBody || !completedTableBody) return;
-            
-            inProgressTableBody.innerHTML = '';
-            completedTableBody.innerHTML = '';
 
-            let inProgressTasksFound = 0;
-            let completedTasksFound = 0;
-            
-            response.data.forEach(item => {
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50';
-                
-                const assignedMembersHtml = item.assignments.map(assignment => {
-                    if (!assignment.member_name) return '';
-                    return `
-                        <div class="flex items-center space-x-2 mb-1">
-                            <span class="font-medium">${assignment.member_name}</span>
-                            <span class="text-gray-500">(${assignment.role})</span>
-                        </div>
-                    `;
-                }).join('');
 
-                const taskStatuses = item.assignments.map(a => a.task_status);
-                let displayStatus = item.status;
-                if (taskStatuses.includes('in_progress')) {
-                    displayStatus = 'in_progress';
-                } else if (taskStatuses.includes('submitted')) {
-                    displayStatus = 'submitted';
-                } else if (taskStatuses.includes('pending')) {
-                    displayStatus = 'pending';
-                }
 
-                const statusClass = displayStatus === 'completed' ? 'bg-green-100 text-green-800' :
-                                  displayStatus === 'submitted' ? 'bg-purple-100 text-purple-800' :
-                                  displayStatus === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                                  'bg-yellow-100 text-yellow-800';
 
-                if (displayStatus === 'completed') {
-                    completedTasksFound++;
-                    row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">${item.prod_line_id}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.product_name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                                ${displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.date_created}</td>
-                        <td class="px-6 py-4 text-sm text-gray-900">
-                            ${assignedMembersHtml || 'No members assigned'}
-                        </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            ${item.assignments[0]?.completion_date ? item.assignments[0].completion_date : '-'}
-                        </td>
-                    `;
-                    completedTableBody.appendChild(row);
-                } else {
-                    inProgressTasksFound++;
-                    row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">${item.prod_line_id}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.product_name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                                ${displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.date_created}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ${assignedMembersHtml || 'No members assigned'}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            <div class="flex flex-col items-center space-y-2">
-                                ${item.assignments.map(assignment => {
-                                    if (assignment.decline_status && assignment.decline_status !== null) {
-                                        return `
-                                            <button onclick="reassignDeclinedTask('${item.raw_id}', '${assignment.task_id}', '${item.product_name}', '${assignment.decline_id}')" 
-                                                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors w-full">
-                                                Reassign Declined Task
-                                            </button>
-                                        `;
-                                    } else if (assignment.task_status === 'submitted') {
-                                        return `
-                                            <button onclick="confirmTaskCompletion('${item.raw_id}')" 
-                                                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors w-full">
-                                                Confirm Task Completion
-                                            </button>
-                                        `;
-                                    } else if (assignment.task_status === 'pending') {
-                                        return `
-                                            <button onclick="openReassignModal('${item.raw_id}', '${assignment.task_id}', '${item.product_name}', '${assignment.member_id}')" 
-                                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors w-full">
-                                                Reassign
-                                            </button>
-                                        `;
-                                    }
-                                    return '';
-                                }).join('')}
-                                ${item.assignments.filter(a => a.decline_status || a.task_status === 'submitted' || a.task_status === 'pending').length === 0 ? '-' : ''}
-                            </div>
-                        </td>
-                    `;
-                    inProgressTableBody.appendChild(row);
-                }
-            });
 
-            if (inProgressTasksFound === 0) {
-                inProgressTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                            No in-progress tasks assigned yet.
-                        </td>
-                    </tr>
-                `;
-            }
-            if (completedTasksFound === 0) {
-                completedTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                            No completed tasks found.
-                        </td>
-                    </tr>
-                `;
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching task assignments:', error);
-            const inProgressTableBody = document.querySelector('#inProgressTasksTable tbody');
-            const completedTableBody = document.querySelector('#completedTasksTable tbody');
-            if (inProgressTableBody) {
-                inProgressTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-sm text-red-600">
-                            Error loading in-progress tasks: ${error.message}
-                        </td>
-                    </tr>
-                `;
-            }
-            if (completedTableBody) {
-                completedTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-sm text-red-600">
-                            Error loading completed tasks: ${error.message}
-                        </td>
-                    </tr>
-                `;
-            }
-        });
-}
 
-// Function to refresh task approval requests
-function refreshTaskApprovalRequests() {
-    const tableBody = document.querySelector('#taskApprovalTable tbody');
-    if (!tableBody) return;
 
-    fetch('backend/end-points/get_task_requests.php')
-        .then(response => response.json())
-        .then(data => {
-            if (!Array.isArray(data) || data.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">No requests found</td>
-                    </tr>
-                `;
-                return;
-            }
 
-            tableBody.innerHTML = data.map(request => {
-                const statusClass = request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                  request.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                  'bg-red-100 text-red-800';
 
-                return `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">${request.production_id || '-'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">${request.member_name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">${request.role}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">${request.product_name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">${request.weight_g || '-'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">${request.date_created}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs rounded-full font-medium ${statusClass}">
-                                ${request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            ${request.status === 'pending' ? `
-                                <div class="flex flex-col space-y-2">
-                                    <button onclick="handleTaskRequest(${request.request_id}, 'approve')"
-                                            class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md w-full">
-                                        Approve
-                                    </button>
-                                    <button onclick="handleTaskRequest(${request.request_id}, 'reject')"
-                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md w-full">
-                                        Reject
-                                    </button>
-                                </div>
-                            ` : '-'}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        })
-        .catch(error => {
-            console.error('Error fetching task approval requests:', error);
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="8" class="px-6 py-4 text-center text-sm text-red-600">
-                        Error loading data: ${error.message}
-                    </td>
-                </tr>
-            `;
-        });
-}
 
-// Function to handle task request approval/rejection
-function handleTaskRequest(requestId, action) {
-    // Show loading state
-    Swal.fire({
-        title: 'Processing...',
-        text: `${action === 'approve' ? 'Approving' : 'Rejecting'} task request`,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        allowEnterKey: false,
-        showConfirmButton: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
 
-    // Send request to backend
-    fetch('backend/end-points/handle_task_request.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `request_id=${requestId}&action=${action}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: `Task request has been ${action}ed.`,
-                showConfirmButton: false,
-                timer: 1500
-            }).then(() => {
-                // Refresh the task requests table
-                refreshTaskApprovalRequests();
-            });
-        } else {
-            throw new Error(data.message || `Failed to ${action} task request`);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message || `Failed to ${action} task request. Please try again.`
-        });
-    });
-}
 
-// Call refreshTaskAssignments and refreshTaskApprovalRequests initially and set up periodic updates
-document.addEventListener('DOMContentLoaded', function() {
-    refreshTaskAssignments();
-    refreshTaskApprovalRequests();
-    // Update every 30 seconds
-    setInterval(refreshTaskAssignments, 30000);
-    setInterval(refreshTaskApprovalRequests, 30000);
-});
-
-function showMaterialsModal(materials, product) {
-    const modal = document.getElementById('materialsModal');
-    const content = document.getElementById('materialsContent');
-    const modalTitle = modal.querySelector('h2');
-    
-    if (!modal || !content) {
-        console.error('Modal elements not found');
-        return;
-    }
-
-    let html = '';
-
-    try {
-        const isDimensionsProduct = ['Piña Seda', 'Pure Piña Cloth'].includes(product.name);
-        const isKnottedProduct = ['Knotted Liniwan', 'Knotted Bastos'].includes(product.name);
-        const isWarpedSilk = product.name === 'Warped Silk';
-
-        // Set modal title based on product type
-        modalTitle.textContent = isDimensionsProduct ? 'Processed Materials Information' : 'Raw Materials Information';
-
-        // Product Information Section
-        html += `
-            <div class="mb-6 pb-4 border-b border-gray-200">
-                <h3 class="text-lg font-semibold mb-2">Product Information</h3>
-                <div class="grid grid-cols-1 gap-2">`;
-
-        // Always show product name
-        html += `<div><strong>Product:</strong> ${product.name}</div>`;
-
-        // Show specific details based on product type
-        if (isKnottedProduct || isWarpedSilk) {
-            // For Knotted products and Warped Silk, only show weight
-            html += `<div><strong>Weight:</strong> ${product.weight} g</div>`;
-        } else if (isDimensionsProduct) {
-            // For dimension-based products
-            html += `
-                <div><strong>Length:</strong> ${product.length} m</div>
-                <div><strong>Width:</strong> ${product.width} in</div>
-                <div><strong>Quantity:</strong> ${product.quantity} unit(s)</div>`;
-        } else {
-            // For other products
-            html += `
-                <div><strong>Weight:</strong> ${product.weight} g</div>
-                <div><strong>Quantity:</strong> ${product.quantity} unit(s)</div>`;
-        }
-
-        html += `</div></div>`;
-
-        // Materials Section - title changes based on product type
-        html += `
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold mb-2">${isDimensionsProduct ? 'Processed Materials Required' : 'Raw Materials Required'}</h3>`;
-
-        if (materials && materials.success && Array.isArray(materials.materials) && materials.materials.length > 0) {
-            html += `<div class="space-y-4">`;
-            materials.materials.forEach(material => {
-                html += `
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="flex justify-between items-center">
-                            <span class="font-medium">${material.name}${material.category ? ` (${material.category})` : ''}</span>
-                            <span class="text-lg font-semibold">${material.amount} ${material.unit}</span>
-                        </div>
-                    </div>`;
-            });
-            html += `</div>`;
-        } else {
-            html += `
-                <div class="text-gray-500 italic">
-                    ${materials.error || 'No materials information available.'}
-                </div>`;
-        }
-        html += `</div>`;
-
-        content.innerHTML = html;
-        modal.classList.remove('hidden');
-    } catch (error) {
-        console.error('Error rendering materials modal:', error);
-        content.innerHTML = `
-            <div class="text-red-600">
-                Error displaying materials information: ${error.message}
-            </div>`;
-    }
-}
-
-// Close modal handler
-document.getElementById('closeMaterialsModal')?.addEventListener('click', () => {
-    document.getElementById('materialsModal')?.classList.add('hidden');
-});
-
-function completeTask(taskId) {
-    if (confirm('Are you sure you want to mark this task as completed? This action cannot be undone.')) {
-        fetch('backend/end-points/update_task_status.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: 'task_id=' + taskId + '&status=completed'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Task marked as completed successfully!');
-                // Refresh the assigned tasks table to remove completed tasks
-                location.reload();
-            } else {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while completing the task.');
-        });
-    }
-}
 
 document.addEventListener('DOMContentLoaded', function() {
     renderMemberList('knotter', 'knotterList');
@@ -805,235 +338,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // The production line data is now fetched in PHP, so no need to fetch here
 });
 
-function updateWorkforceManagement() {
-    fetch('backend/end-points/get_members_availability.php')
-        .then(response => response.json())
-        .then(data => {
-            // Update the summary numbers directly using the data object
-            ['knotter', 'warper', 'weaver'].forEach(role => {
-                const pluralRole = role + 's'; // e.g., 'knotters'
-                if (data[pluralRole]) {
-                    document.getElementById(`${role}Total`).textContent = data[pluralRole].total;
-                    document.getElementById(`${role}Active`).textContent = data[pluralRole].available;
-                    document.getElementById(`${role}Inactive`).textContent = data[pluralRole].unavailable;
-                } else {
-                    // If data for a specific role is missing, set counts to 0
-                    document.getElementById(`${role}Total`).textContent = '0';
-                    document.getElementById(`${role}Active`).textContent = '0';
-                    document.getElementById(`${role}Inactive`).textContent = '0';
-                }
-            });
-            // The member lists are now updated by renderMemberList(), so this function
-            // should not attempt to update them. The previous code block for updating
-            // member lists will be removed.
-        })
-        .catch(error => {
-            console.error('Error fetching workforce data:', error);
-            // On error, set counts to 0
-            ['knotter', 'warper', 'weaver'].forEach(role => {
-                document.getElementById(`${role}Total`).textContent = '0';
-                document.getElementById(`${role}Active`).textContent = '0';
-                document.getElementById(`${role}Inactive`).textContent = '0';
-            });
-        });
-}
-// Call updateWorkforceManagement initially and set up periodic updates
-document.addEventListener('DOMContentLoaded', function() {
-    updateWorkforceManagement();
-    // Update every 30 seconds
-    setInterval(updateWorkforceManagement, 30000);
-});
 
-// Add this function for delete confirmation and handling
-function deleteProduct(prodLineId) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "This will delete the production item and all associated tasks. This action cannot be undone!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch('backend/end-points/delete_production_item.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    prod_line_id: prodLineId
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Deleted!',
-                        text: data.message || 'Production item has been deleted.',
-                        showConfirmButton: false,
-                        timer: 1500
-                    }).then(() => {
-                        // Refresh the page to show updated data
-                        window.location.reload();
-                    });
-                } else {
-                    throw new Error(data.message || 'Failed to delete production item');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: error.message || 'An error occurred while deleting the production item'
-                });
-            });
-        }
-    });
-}
 
-// Add event listeners for filtering and search
-document.addEventListener('DOMContentLoaded', function() {
-    const statusFilter = document.getElementById('statusFilter');
-    const searchInput = document.getElementById('searchInput');
 
-    if (statusFilter) {
-        statusFilter.addEventListener('change', function() {
-            filterTasks();
-        });
-    }
 
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            filterTasks();
-        });
-    }
-});
 
-// Function to filter production line items
-function filterProductionItems() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const rows = document.querySelectorAll('#monitoringContent table tbody tr');
-    
-    rows.forEach(row => {
-        // Skip the header row if it's included in the selection
-        if (row.querySelector('th')) return;
-        
-        const productName = row.cells[1].textContent.toLowerCase();
-        const productionId = row.cells[0].textContent.toLowerCase();
-        
-        if (productName.includes(searchTerm) || productionId.includes(searchTerm)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-}
 
-// Function to filter tasks
-function filterTasks() {
-    const statusFilter = document.getElementById('statusFilter')?.value || 'all';
-    const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
-    
-    const inProgressRows = document.querySelectorAll('#inProgressTasksTable tbody tr');
-    const completedRows = document.querySelectorAll('#completedTasksTable tbody tr');
 
-    inProgressRows.forEach(row => {
-        const statusElement = row.querySelector('td:nth-child(3) span');
-        const status = statusElement ? statusElement.textContent.trim().toLowerCase() : '';
-        const productName = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
-        
-        const statusMatch = statusFilter === 'all' || status.includes(statusFilter);
-        const searchMatch = productName.includes(searchTerm) || row.querySelector('td:nth-child(1)').textContent.toLowerCase().includes(searchTerm);
 
-        row.style.display = (statusMatch && searchMatch) ? '' : 'none';
-    });
 
-    completedRows.forEach(row => {
-        const productName = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
-        const searchMatch = productName.includes(searchTerm) || row.querySelector('td:nth-child(1)').textContent.toLowerCase().includes(searchTerm);
-        
-        // Completed tasks should only be filtered by search term, not status filter
-        // unless statusFilter explicitly asks for 'completed'
-        const statusExplicitlyCompleted = statusFilter === 'all' || statusFilter === 'completed';
 
-        row.style.display = (searchMatch && statusExplicitlyCompleted) ? '' : 'none';
-    });
-}
 
-// Call refreshTaskAssignments initially and set up periodic updates
-document.addEventListener('DOMContentLoaded', function() {
-    refreshTaskAssignments();
-    // Update every 30 seconds
-    setInterval(refreshTaskAssignments, 30000);
-});
-
-function loadTaskCompletions() {
-    fetch('backend/end-points/get_task_completions.php')
-        .then(response => response.json())
-        .then(data => {
-            const tableBody = document.querySelector('#taskCompletionTable tbody');
-            if (!data || data.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="9" class="px-6 py-4 text-center text-gray-500">No completion requests found</td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tableBody.innerHTML = data.map(task => `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">${task.production_id}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${task.member_name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${task.role}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${task.product_name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${task.weight}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${task.date_started}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${task.date_submitted || 'Not submitted'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(task.status)}">
-                            ${task.status.charAt(0).toUpperCase() + task.status.slice(1)}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
-                        ${task.status === 'in_progress' ? `
-                            <div class="flex flex-col items-center space-y-2">
-                                <button onclick="confirmTaskCompletion('${task.production_id}')"
-                                    class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors w-full">
-                                    Confirm Completion
-                                </button>
-                            </div>
-                        ` : '-'}
-                    </td>
-                </tr>
-            `).join('');
-        })
-        .catch(error => {
-            console.error('Error loading task completions:', error);
-            const tableBody = document.querySelector('#taskCompletionTable tbody');
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="9" class="px-6 py-4 text-center text-red-500">Error loading completion requests. Please try again.</td>
-                </tr>
-            `;
-        });
-}
-
-function getStatusClass(status) {
-    switch (status.toLowerCase()) {
-        case 'completed':
-            return 'bg-green-100 text-green-800';
-        case 'in_progress':
-            return 'bg-blue-100 text-blue-800';
-        case 'pending':
-            return 'bg-gray-100 text-gray-800';
-        default:
-            return 'bg-gray-100 text-gray-800';
-    }
-}
 </script>
 
 <!-- Top bar with user profile -->
@@ -1101,6 +416,14 @@ function getStatusClass(status) {
                 <div>
                     <label for="deadline" class="block text-xs font-medium text-gray-700 mb-1">Deadline</label>
                     <input type="datetime-local" id="deadline" name="deadline" min="" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                </div>
+
+                <!-- Row 5: Assigned To -->
+                <div>
+                    <label for="assigned_to" class="block text-xs font-medium text-gray-700 mb-1">Assigned To</label>
+                    <select id="assigned_to" name="assigned_to" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                        <option value="">Select a member</option>
+                    </select>
                 </div>
 
                 <!-- Row 4: Available Materials -->
@@ -1211,14 +534,37 @@ function getStatusClass(status) {
                             ?></td>
                             <td class="px-4 py-2 text-center">
                                 <button onclick='showMaterialsModal(<?php 
-                                    $calculatedMaterials = $materialCalculator->calculateMaterialsNeeded(
-                                        $item['product_name'],
-                                        $item['quantity'],
-                                        $item['length_m'],
-                                        $item['width_m'],
-                                        $item['weight_g']
-                                    );
-                                    echo htmlspecialchars(json_encode($calculatedMaterials, JSON_HEX_APOS | JSON_HEX_QUOT)); 
+                                    $productName = $item['product_name'];
+                                    $quantity = $item['quantity'];
+                                    $length = $item['length_m'];
+                                    $width = $item['width_m'];
+                                    $weight = $item['weight_g'];
+                                    
+                                    $materials = [];
+                                    if ($productName === 'Piña Seda') {
+                                        if ($length !== null) {
+                                            $requiredKnottedBastos = 15 * floatval($length) * intval($quantity);
+                                            $materials[] = ['name' => 'Knotted Bastos', 'category' => null, 'amount' => round($requiredKnottedBastos, 2), 'unit' => 'g'];
+                                            $requiredWarpedSilk = 7 * floatval($length) * intval($quantity);
+                                            $materials[] = ['name' => 'Warped Silk', 'category' => null, 'amount' => round($requiredWarpedSilk, 2), 'unit' => 'g'];
+                                        }
+                                    } else if ($productName === 'Pure Piña Cloth') {
+                                        if ($length !== null) {
+                                            $requiredKnottedLiniwan = 22 * floatval($length) * intval($quantity);
+                                            $materials[] = ['name' => 'Knotted Liniwan', 'category' => null, 'amount' => round($requiredKnottedLiniwan, 2), 'unit' => 'g'];
+                                        }
+                                    } else if ($productName === 'Knotted Liniwan' && $weight !== null) {
+                                        $requiredPinaLoose = 1.22 * floatval($weight) * intval($quantity);
+                                        $materials[] = ['name' => 'Piña Loose', 'category' => 'Liniwan/Washout', 'amount' => round($requiredPinaLoose, 2), 'unit' => 'g'];
+                                    } else if ($productName === 'Knotted Bastos' && $weight !== null) {
+                                        $requiredPinaLoose = 1.22 * floatval($weight) * intval($quantity);
+                                        $materials[] = ['name' => 'Piña Loose', 'category' => 'Bastos', 'amount' => round($requiredPinaLoose, 2), 'unit' => 'g'];
+                                    } else if ($productName === 'Warped Silk' && $weight !== null) {
+                                        $requiredSilk = 1.2 * floatval($weight) * intval($quantity);
+                                        $materials[] = ['name' => 'Silk', 'category' => null, 'amount' => round($requiredSilk, 2), 'unit' => 'g'];
+                                    }
+                                    
+                                    echo htmlspecialchars(json_encode(['success' => true, 'materials' => $materials], JSON_HEX_APOS | JSON_HEX_QUOT)); 
                                 ?>, <?php 
                                     $isKnottedProduct = in_array($item['product_name'], ['Knotted Liniwan', 'Knotted Bastos']);
                                     $isDimensionsProduct = in_array($item['product_name'], ['Piña Seda', 'Pure Piña Cloth']);
@@ -1583,153 +929,11 @@ function getStatusClass(status) {
     </div>
 </div>
 
-<!-- Reassign Task Modal -->
-<div id="reassignModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-[1000]">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Reassign Task</h3>
-            
-            <form id="reassignForm" class="space-y-4" novalidate>
-                <input type="hidden" id="reassign_prod_line_id" name="prod_line_id">
-                <input type="hidden" id="reassign_task_id" name="task_id">
-                <input type="hidden" id="reassign_product_name" name="product_name">
-                <input type="hidden" id="reassign_current_member" name="current_member_id">
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Select New Member</label>
-                    <select id="reassign_member_select" name="new_member_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                        <option value="">Loading members...</option>
-                    </select>
-                    <div class="text-xs text-red-500 hidden" id="reassignMemberError">Please select a member</div>
-                </div>
 
-                <div>
-                    <label for="reassign_deadline" class="block text-sm font-medium text-gray-700">New Deadline</label>
-                    <input type="datetime-local" id="reassign_deadline" name="deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                    <div class="text-xs text-red-500 hidden" id="reassignDeadlineError">Please set a deadline</div>
-                </div>
 
-                <div class="flex justify-end space-x-3 mt-4">
-                    <button type="button" id="cancelReassignBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
-                        Cancel
-                    </button>
-                    <button type="submit" class="bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600">
-                        Reassign Task
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
-<!-- Task Assignment Modal -->
-<div id="taskAssignmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-[1000]">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Assign Tasks</h3>
-            
-            <form id="taskAssignmentForm" class="space-y-4" novalidate>
-                <input type="hidden" id="identifier" name="identifier">
-                <input type="hidden" id="prod_line_id" name="prod_line_id">
-                <input type="hidden" id="product_details" name="product_details">
-                <input type="hidden" id="is_reassignment" name="is_reassignment" value="false">
-                <input type="hidden" id="original_task_id" name="original_task_id">
-                <input type="hidden" id="decline_notification_id" name="decline_notification_id">
-                
-                <!-- Knotter Section -->
-                <div id="knotterSection" class="space-y-2 hidden">
-                    <label class="block text-sm font-medium text-gray-700">Knotter</label>
-                    <select name="knotter_id[]" class="knotter-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                        <option value="">Select Knotter</option>
-                    </select>
-                    <div class="text-sm text-gray-500">
-                        Deadline:
-                    </div>
-                    <input type="datetime-local" name="deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                    <div class="text-xs text-red-500 hidden" id="knotterError">Please select a knotter and deadline</div>
-                </div>
-
-                <!-- Warper Section -->
-                <div id="warperSection" class="space-y-2 hidden">
-                    <label class="block text-sm font-medium text-gray-700">Warper</label>
-                    <select name="warper_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                        <option value="">Select Warper</option>
-                    </select>
-                    <div class="text-sm text-gray-500">
-                        Deadline:
-                    </div>
-                    <input type="datetime-local" name="warper_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                    <div class="text-xs text-red-500 hidden" id="warperError">Please select a warper and deadline</div>
-                </div>
-
-                <!-- Weaver Section -->
-                <div id="weaverSection" class="space-y-2 hidden">
-                    <label class="block text-sm font-medium text-gray-700">Weaver</label>
-                    <select name="weaver_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                        <option value="">Select Weaver</option>
-                    </select>
-                    <div class="text-sm text-gray-500">
-                        Deadline:
-                    </div>
-                    <input type="datetime-local" name="weaver_deadline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                    <div class="text-xs text-red-500 hidden" id="weaverError">Please select a weaver and deadline</div>
-                </div>
-
-                <div class="flex justify-end space-x-3 mt-4">
-                    <button type="button" id="cancelTaskBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
-                        Cancel
-                    </button>
-                    <button type="submit" class="bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600">
-                        Assign Tasks
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 <?php include "components/footer.php"; ?>
-
-<style>
-    /* Action dropdown menu */
-    [id^="dropdown-menu-"] {
-        z-index: 99999 !important;
-        position: absolute !important;
-        transform: translateZ(99999px);
-        will-change: transform;
-    }
-    
-    /* Task dropdown menu */
-    [id^="task-dropdown-"] {
-        z-index: 9999 !important;
-        position: absolute !important;
-        transform: translateZ(9999px);
-        will-change: transform;
-    }
-    
-    /* Dropdown toggle buttons */
-    [id^="options-menu-"],
-    [id^="task-options-"] {
-        position: relative;
-        z-index: 1;
-    }
-    
-    /* Ensure dropdown stays on top of other elements */
-    .relative {
-        position: relative;
-    }
-    
-    /* Make sure the dropdown container has a higher stacking context */
-    .dropdown-container {
-        position: relative;
-        z-index: 1;
-    }
-    
-    /* Ensure dropdown items are clickable */
-    [role="menu"] {
-        z-index: 99999 !important;
-    }
-</style>
 
 <!-- Load scripts after the DOM is ready -->
 <script src="assets/js/app.js"></script>
@@ -1804,197 +1008,62 @@ function updateMaterialsList(productName) {
 // Function to fetch and display available materials and members
 // Function to fetch and display available members for the Create Task modal
 function loadModalDataForCreateTask() {
-    // Get the currently selected product
     const selectedProduct = document.getElementById('product_name').value;
+    const assignedToSelect = document.getElementById('assigned_to');
     
-    // Map product names to required roles for testing
-    const productRoleMap = {
-        'Piña Seda': 'weaver',
-        'Pure Piña Cloth': 'weaver',
-        'Knotted Liniwan': 'knotter',
-        'Knotted Bastos': 'knotter',
-        'Warped Silk': 'warper'
-    };
-    
-    // Get the role based on selected product
-    const role = selectedProduct && productRoleMap[selectedProduct] ? productRoleMap[selectedProduct] : 'all';
-    
-    // Load assignable members filtered by role
-    const url = `backend/end-points/get_members_by_role.php?role=${encodeURIComponent(role)}`;
-    
-    fetch(url)
-        .then(response => response.json())
-        .then(members => {
-            const assignedToSelect = document.getElementById('assigned_to');
-            // Clear existing options except the first one
-            while (assignedToSelect.options.length > 1) {
-                assignedToSelect.remove(1);
-            }
-            
-            if (members && members.length > 0) {
-                members.forEach(member => {
-                    const option = document.createElement('option');
-                    option.value = member.id;
-                    option.textContent = `${member.fullname} (${member.role})`;
-                    assignedToSelect.appendChild(option);
-                });
-            } else {
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = 'No members available';
-                option.disabled = true;
-                assignedToSelect.appendChild(option);
-            }
-        })
-        .catch(error => {
-            console.error('Error loading members for create task modal:', error);
-            const assignedToSelect = document.getElementById('assigned_to');
-            const option = document.createElement('option');
-            option.value = '';
-            option.textContent = 'Error loading members';
-            option.disabled = true;
-            assignedToSelect.appendChild(option);
-        });
+    // Clear existing options
+    assignedToSelect.innerHTML = '<option value="">Loading...</option>';
 
-    // Load initial materials list (empty or for default selected product)
-    const initialSelectedProduct = document.getElementById('product_name').value;
-    updateMaterialsList(initialSelectedProduct);
-} 
-
-// Function to fetch and display available members for the Task Assignment modal
-function loadAssignmentModalData(productName = null) {
-    // Get product name from form if not provided
-    if (!productName) {
-        const productDetailsInput = document.getElementById('product_details');
-        if (productDetailsInput) {
-            productName = productDetailsInput.value;
-        }
+    if (!selectedProduct) {
+        assignedToSelect.innerHTML = '<option value="">Select a product first</option>';
+        return;
     }
 
-    // Map product names to required roles
+    // Map product to the required role
     const productRoleMap = {
-        'Piña Seda': ['weaver'],
-        'Pure Piña Cloth': ['weaver'],
-        'Knotted Liniwan': ['knotter'],
-        'Knotted Bastos': ['knotter'],
-        'Warped Silk': ['warper']
+        'Piña Seda': 'Weaver',
+        'Pure Piña Cloth': 'Weaver',
+        'Knotted Liniwan': 'Knotter',
+        'Knotted Bastos': 'Knotter',
+        'Warped Silk': 'Warper'
     };
 
-    // Get the roles based on selected product
-    const requiredRoles = productName && productRoleMap[productName] ? productRoleMap[productName] : ['knotter', 'warper', 'weaver'];
+    const requiredRole = productRoleMap[selectedProduct];
 
-    // Get all role-specific select elements in the taskAssignmentForm
-    const knotterSelect = document.querySelector('#taskAssignmentForm select[name="knotter_id[]"]');
-    const warperSelect = document.querySelector('#taskAssignmentForm select[name="warper_id"]');
-    const weaverSelect = document.querySelector('#taskAssignmentForm select[name="weaver_id"]');
-
-    // Clear existing options, keeping the first "Select" option
-    [knotterSelect, warperSelect, weaverSelect].forEach(select => {
-        if (select) {
-            while (select.options.length > 1) {
-                select.remove(1);
-            }
-        }
-    });
-
-    // Load members for each required role
-    requiredRoles.forEach(role => {
-        const url = `backend/end-points/get_members_by_role.php?role=${role}`;
-        
-        fetch(url)
-            .then(response => response.json())
-            .then(members => {
-                if (members && members.length > 0) {
-                    members.forEach(member => {
-                        const option = document.createElement('option');
-                        option.value = member.id;
-                        option.textContent = `${member.fullname} (${member.work_status})`;
-                        
-                        // Add to the correct role's select field
-                        if (member.role.toLowerCase() === 'knotter' && knotterSelect) {
-                            knotterSelect.appendChild(option.cloneNode(true));
-                        } else if (member.role.toLowerCase() === 'warper' && warperSelect) {
-                            warperSelect.appendChild(option.cloneNode(true));
-                        } else if (member.role.toLowerCase() === 'weaver' && weaverSelect) {
-                            weaverSelect.appendChild(option.cloneNode(true));
-                        }
-                    });
-                }
-            })
-            .catch(error => {
-                console.error(`Error loading ${role} members:`, error);
-            });
-    });
-} 
-
-// Function to set minimum date for deadline (today)
-function setMinDeadlineDate(inputElement) {
-    const now = new Date();
-    // Format: YYYY-MM-DDTHH:MM
-    const minDate = now.toISOString().slice(0, 16);
-    if (inputElement) {
-        inputElement.min = minDate;
-        if (!inputElement.value) { // Only set default if no value exists
-            const defaultDeadline = new Date(now.setDate(now.getDate() + 7)).toISOString().slice(0, 16);
-            inputElement.value = defaultDeadline;
-        }
-    }
-}
-
-// Function to open reassign modal for pending tasks
-function openReassignModal(prodLineId, taskId, productName, currentMemberId) {
-    const modal = document.getElementById('reassignModal');
-    
-    if (!modal) {
-        console.error('Reassign modal not found');
+    if (!requiredRole) {
+        assignedToSelect.innerHTML = '<option value="">No members for this product</option>';
         return;
     }
     
-    // Set the form data
-    document.getElementById('reassign_prod_line_id').value = prodLineId;
-    document.getElementById('reassign_task_id').value = taskId;
-    document.getElementById('reassign_product_name').value = productName;
-    document.getElementById('reassign_current_member').value = currentMemberId;
-    
-    // Load members filtered by product
-    let url = 'backend/end-points/get_members_by_role.php?role=all';
-    url += `&product_name=${encodeURIComponent(productName)}`;
-    
-    const memberSelect = document.getElementById('reassign_member_select');
-    memberSelect.innerHTML = '<option value="">Select a member</option>';
-    
-    fetch(url)
+    // Fetch members with the specific role
+    fetch(`backend/end-points/get_members_by_role.php?role=${requiredRole}`)
         .then(response => response.json())
         .then(members => {
-            if (members && members.length > 0) {
+            assignedToSelect.innerHTML = '<option value="">Select a member</option>';
+            if (Array.isArray(members) && members.length > 0) {
                 members.forEach(member => {
-                    if (member.id != currentMemberId) { // Don't show current member
+                    if (member.work_status === 'Available') {
                         const option = document.createElement('option');
                         option.value = member.id;
                         option.textContent = `${member.fullname} (${member.role})`;
-                        memberSelect.appendChild(option);
+                        assignedToSelect.appendChild(option);
                     }
                 });
             } else {
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = 'No other members available';
-                option.disabled = true;
-                memberSelect.appendChild(option);
+                assignedToSelect.innerHTML = `<option value="">No available ${requiredRole.toLowerCase()}s found</option>`;
             }
         })
         .catch(error => {
-            console.error('Error loading members:', error);
-            memberSelect.innerHTML = '<option value="">Error loading members</option>';
+            console.error('Error fetching members:', error);
+            assignedToSelect.innerHTML = '<option value="">Error loading members</option>';
         });
-    
-    // Set deadline input
-    const deadlineInput = document.getElementById('reassign_deadline');
-    setMinDeadlineDate(deadlineInput);
-    
-    // Show the modal
-    modal.classList.remove('hidden');
 }
+
+
+
+
+
+
 
 // Initialize the create task form
 // Initialize search functionality for assigned tasks
