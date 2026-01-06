@@ -191,7 +191,7 @@ try {
             UPDATE task_assignments 
             SET status = 'in_progress', 
                 updated_at = NOW()
-            WHERE id = ? AND member_id = ? AND status = 'pending'
+            WHERE id = ? AND member_id = ? AND status IN ('pending', 'reassigned')
         ");
 
         if (!$update_task) {
@@ -268,7 +268,7 @@ try {
                 decline_status = 'pending', /* Set decline status to pending */
                 decline_reason = ?, /* Set decline reason */
                 updated_at = NOW() 
-            WHERE id = ? AND member_id = ? AND status = 'pending'
+            WHERE id = ? AND member_id = ? AND status IN ('pending', 'reassigned')
         ";
         logError("Decline SQL query", ['query' => $update_task_sql, 'bind_params' => [$decline_reason, $task_id, $member_id]]);
 
