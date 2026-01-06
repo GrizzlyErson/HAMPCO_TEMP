@@ -6,7 +6,7 @@ require_once '../../../function/db_connect.php';
 $response = ["success" => false, "data" => [], "message" => "Unknown error."];
 
 try {
-    // Get all production lines with their assignments (admin-assigned tasks)
+    // Get all production lines with their assignments (admin-assigned tasks) - excluding completed
     $sql = "SELECT DISTINCT
         pl.prod_line_id,
         pl.product_name,
@@ -26,6 +26,7 @@ try {
     FROM production_line pl
     LEFT JOIN task_assignments ta ON pl.prod_line_id = ta.prod_line_id
     LEFT JOIN user_member um ON ta.member_id = um.id
+    WHERE ta.status != 'completed' OR ta.status IS NULL
     GROUP BY pl.prod_line_id
     
     UNION ALL
@@ -48,7 +49,8 @@ try {
         NULL as decline_reasons
     FROM member_self_tasks mst
     LEFT JOIN user_member um ON mst.member_id = um.id
-    WHERE NOT EXISTS (
+    WHERE mst.status != 'completed'
+    AND NOT EXISTS (
         SELECT 1 FROM production_line pl WHERE CAST(mst.production_id AS UNSIGNED) = pl.prod_line_id
     )
     GROUP BY mst.production_id
@@ -77,7 +79,7 @@ try {
                     $decline_reasons = $row['decline_reasons'] ? explode(',', $row['decline_reasons']) : [];
         
                     // Format production ID to match monitoring tab format
-                    $display_id = 'PL' . str_pad($row['prod_line_id'], 4, '0', STR_PAD_LEFT);
+                    $display_id = $row['prod_line_id'];
                     
                     $assignments = [];
                     $max_index = max(count($task_ids), count($member_ids), count($roles), count($task_statuses), count($deadlines), count($completion_dates), count($member_names), count($member_roles), count($decline_statuses), count($decline_reasons));
