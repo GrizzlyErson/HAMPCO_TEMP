@@ -1,4 +1,5 @@
 <?php
+ob_start();
 session_start();
 require_once '../../../function/connection.php';
 
@@ -386,4 +387,5 @@ try {
     $response['message'] = $e->getMessage();
 }
 
+ob_clean();
 echo json_encode($response); 
