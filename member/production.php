@@ -241,7 +241,6 @@ $member_role = strtolower($member['role']);
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total (₱)</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Paid</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                     <?php endif; ?>
                                 </tr>
                             </thead>
@@ -1299,14 +1298,6 @@ function loadBalanceSummary() {
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">${item.date_paid || '-'}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                ${item.payment_status === 'Pending' ? `
-                                    <div class="flex space-x-2">
-                                        <button onclick="processPayment(${item.id})" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors">Pay</button>
-                                        <button onclick="adjustPayment(${item.id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm transition-colors">Adjust</button>
-                                    </div>
-                                ` : '-'}
-                            </td>
                         </tr>
                     `;
                 } else {
