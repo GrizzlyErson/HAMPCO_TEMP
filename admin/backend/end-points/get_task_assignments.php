@@ -27,7 +27,6 @@ try {
     LEFT JOIN task_assignments ta ON pl.prod_line_id = ta.prod_line_id
     LEFT JOIN user_member um ON ta.member_id = um.id
     GROUP BY pl.prod_line_id
-    ORDER BY pl.date_created DESC
     
     UNION ALL
     
@@ -53,7 +52,8 @@ try {
         SELECT 1 FROM production_line pl WHERE CAST(mst.production_id AS UNSIGNED) = pl.prod_line_id
     )
     GROUP BY mst.production_id
-    ORDER BY mst.date_created DESC";
+    
+    ORDER BY date_created DESC";
             
             $result = $conn->query($sql);
             
