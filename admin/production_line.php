@@ -1036,17 +1036,17 @@ function deleteProduct(prodLineId) {
 
 // Add event listeners for filtering and search
 document.addEventListener('DOMContentLoaded', function() {
-    const statusFilter = document.getElementById('statusFilter');
-    const searchInput = document.getElementById('searchInput');
+    const tasksStatusFilter = document.getElementById('tasksStatusFilter');
+    const tasksSearchInput = document.getElementById('tasksSearchInput');
 
-    if (statusFilter) {
-        statusFilter.addEventListener('change', function() {
+    if (tasksStatusFilter) {
+        tasksStatusFilter.addEventListener('change', function() {
             filterTasks();
         });
     }
 
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
+    if (tasksSearchInput) {
+        tasksSearchInput.addEventListener('input', function() {
             filterTasks();
         });
     }
@@ -1074,26 +1074,37 @@ function filterProductionItems() {
 
 // Function to filter tasks
 function filterTasks() {
-    const statusFilter = document.getElementById('statusFilter')?.value || 'all';
-    const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const statusFilter = document.getElementById('tasksStatusFilter')?.value || 'all';
+    const searchTerm = (document.getElementById('tasksSearchInput')?.value || '').toLowerCase().trim();
     
     const inProgressRows = document.querySelectorAll('#inProgressTasksTable tbody tr');
     const completedRows = document.querySelectorAll('#completedTasksTable tbody tr');
 
     inProgressRows.forEach(row => {
-        const statusElement = row.querySelector('td:nth-child(3) span');
+        const statusElement = row.querySelector('td:nth-child(4) span');
         const status = statusElement ? statusElement.textContent.trim().toLowerCase() : '';
-        const productName = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
+        const productionId = (row.querySelector('td:nth-child(1)')?.textContent || '').trim().toLowerCase();
+        const productName = (row.querySelector('td:nth-child(2)')?.textContent || '').trim().toLowerCase();
+        const memberNames = (row.querySelector('td:nth-child(6)')?.textContent || '').trim().toLowerCase();
         
         const statusMatch = statusFilter === 'all' || status.includes(statusFilter);
-        const searchMatch = productName.includes(searchTerm) || row.querySelector('td:nth-child(1)').textContent.toLowerCase().includes(searchTerm);
+        const searchMatch = !searchTerm || 
+                          productionId.includes(searchTerm) || 
+                          productName.includes(searchTerm) || 
+                          memberNames.includes(searchTerm);
 
         row.style.display = (statusMatch && searchMatch) ? '' : 'none';
     });
 
     completedRows.forEach(row => {
-        const productName = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
-        const searchMatch = productName.includes(searchTerm) || row.querySelector('td:nth-child(1)').textContent.toLowerCase().includes(searchTerm);
+        const productionId = (row.querySelector('td:nth-child(1)')?.textContent || '').trim().toLowerCase();
+        const productName = (row.querySelector('td:nth-child(2)')?.textContent || '').trim().toLowerCase();
+        const memberNames = (row.querySelector('td:nth-child(5)')?.textContent || '').trim().toLowerCase();
+        
+        const searchMatch = !searchTerm || 
+                          productionId.includes(searchTerm) || 
+                          productName.includes(searchTerm) || 
+                          memberNames.includes(searchTerm);
         
         // Completed tasks should only be filtered by search term, not status filter
         // unless statusFilter explicitly asks for 'completed'
@@ -1770,7 +1781,7 @@ function updateEditFormFieldsVisibility(selectedProduct) {
                 </div>
                 <div class="flex items-center space-x-4">
                     <div class="relative w-64 z-10">
-                        <input type="text" id="searchInput" placeholder="Search tasks..." class="pl-10 pr-4 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <input type="text" id="tasksSearchInput" placeholder="Search tasks..." class="pl-10 pr-4 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
@@ -1778,8 +1789,8 @@ function updateEditFormFieldsVisibility(selectedProduct) {
                         </div>
                     </div>
                     <div class="w-48 z-10">
-                        <label for="statusFilter" class="sr-only">Filter by Status</label>
-                        <select id="statusFilter" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <label for="tasksStatusFilter" class="sr-only">Filter by Status</label>
+                        <select id="tasksStatusFilter" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                             <option value="all">All Status</option>
                             <option value="pending">Pending</option>
                             <option value="in_progress">In Progress</option>
