@@ -527,7 +527,7 @@ $(document).ready(function() {
 
                                                 </td>
 
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm flex flex-col space-y-2">
 
                                                     ${task.status === 'pending' ? `
 
