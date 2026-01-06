@@ -187,7 +187,27 @@
         <form id="AddProductForm">
             <div class="mb-4">
                 <label class="block text-sm font-medium mb-1">Name</label>
-                <input type="text" name="rm_name" class="w-full border rounded p-2" placeholder="" required>
+                <input type="text" name="rm_name" class="w-full border rounded p-2" placeholder="Enter product name manually" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Or choose from inventory</label>
+                <select id="product_inventory_dropdown" class="w-full border rounded p-2">
+                    <option value="">Select a product from inventory</option>
+                    <optgroup label="Raw materials">
+                        <option value="Piña loose (liniwan)">Piña loose (liniwan)</option>
+                        <option value="Piña loose (bastos)">Piña loose (bastos)</option>
+                        <option value="Silk">Silk</option>
+                    </optgroup>
+                    <optgroup label="Processed">
+                        <option value="Knotted liniwan">Knotted liniwan</option>
+                        <option value="Knotted bastos">Knotted bastos</option>
+                        <option value="Warped silk">Warped silk</option>
+                    </optgroup>
+                    <optgroup label="Finished products">
+                        <option value="Piña seda">Piña seda</option>
+                        <option value="Pure piña cloth">Pure piña cloth</option>
+                    </optgroup>
+                </select>
             </div>
             <div class="mb-4">
                 <label class="block text-sm font-medium mb-1">Description</label>
@@ -246,6 +266,14 @@
         // Add Product button click
         $('#AddProduct').on('click', function(){
             $('#AddProductModal').fadeIn();
+        });
+
+        // Hnadle product dropdown change
+        $('#AddProductModal').on('change', '#product_inventory_dropdown', function() {
+            var selectedValue = $(this).val();
+            if (selectedValue) {
+                $('#AddProductModal input[name="rm_name"]').val(selectedValue);
+            }
         });
 
         // Close modal button
