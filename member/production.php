@@ -328,7 +328,7 @@ $member_role = strtolower($member['role']);
     </div>
 </div>
 
-<script src="js/self-tasks.js"></script>
+
 <script>
 $(document).ready(function() {
     // Handle tab switching
@@ -585,11 +585,37 @@ $(document).ready(function() {
     createTaskForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // Get form data
-        const formData = {
-            product_name: document.getElementById('productName').value,
-            weight: parseFloat(document.getElementById('weight').value)
-        };
+        const formData = {};
+
+        if (memberRole === 'knotter' || memberRole === 'warper') {
+            const productNameElement = document.getElementById('productName');
+            const weightElement = document.getElementById('weight');
+            
+            if (productNameElement) {
+                formData.product_name = productNameElement.value;
+            }
+            if (weightElement) {
+                formData.weight = parseFloat(weightElement.value);
+            }
+        } else if (memberRole === 'weaver') {
+            const productNameElement = document.getElementById('productName');
+            const lengthElement = document.getElementById('length');
+            const widthElement = document.getElementById('width');
+            const quantityElement = document.getElementById('quantity');
+
+            if (productNameElement) {
+                formData.product_name = productNameElement.value;
+            }
+            if (lengthElement) {
+                formData.length = parseFloat(lengthElement.value);
+            }
+            if (widthElement) {
+                formData.width = parseFloat(widthElement.value);
+            }
+            if (quantityElement) {
+                formData.quantity = parseFloat(quantityElement.value);
+            }
+        }
 
         // Validate form data
         if (!formData.product_name || !formData.weight) {
@@ -1065,9 +1091,9 @@ function submitTask(prodLineId, $button) {
             .then(response => response.json())
             .then(data => {
                 // Update statistics
-                document.getElementById('totalEarnings').textContent = '₱' + data.total_earnings.toFixed(2);
-                document.getElementById('completedTasksCount').textContent = data.completed_tasks;
-                document.getElementById('pendingPayments').textContent = '₱' + data.pending_payments.toFixed(2);
+                document.getElementById('totalEarnings').textContent = '₱' + parseFloat(data.total_earnings || 0).toFixed(2);
+                document.getElementById('completedTasksCount').textContent = data.completed_tasks || 0;
+                document.getElementById('pendingPayments').textContent = '₱' + parseFloat(data.pending_payments || 0).toFixed(2);
 
                 // Update table
                 const tableBody = document.getElementById('earningsTableBody');
@@ -1200,8 +1226,8 @@ function loadBalanceSummary() {
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap text-sm">${item.product_name || '-'}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">${item.weight_g || '-'}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">₱${parseFloat(item.unit_rate).toFixed(2)}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">₱${parseFloat(item.total_amount).toFixed(2)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">₱${parseFloat(item.unit_rate || 0).toFixed(2)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">₱${parseFloat(item.total_amount || 0).toFixed(2)}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <span class="px-2 py-1 text-xs rounded-full ${
                                     item.payment_status === 'Paid' ? 'bg-green-100 text-green-800' : 
