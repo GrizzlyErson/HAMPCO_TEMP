@@ -27,14 +27,18 @@ if (!isset($data['product_name']) || !isset($data['weight'])) {
 }
 
 try {
+    // Generate a unique production ID
+    $production_id = uniqid('PL', true);
+
     // Insert the task
     $stmt = $db->conn->prepare("
         INSERT INTO member_self_tasks 
-        (member_id, product_name, weight_g, status) 
-        VALUES (?, ?, ?, 'pending')
+        (production_id, member_id, product_name, weight_g, status) 
+        VALUES (?, ?, ?, ?, 'pending')
     ");
 
-    $stmt->bind_param("isd", 
+    $stmt->bind_param("sisd",
+        $production_id,
         $member_id,
         $data['product_name'],
         $data['weight']

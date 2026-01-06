@@ -590,7 +590,7 @@ $(document).ready(function() {
                                         Start
                                     </button>
                                 ` : task.status === 'in_progress' ? `
-                                    <button onclick="submitSelfTask('${task.production_id}')" 
+                                    <button onclick="submitTask('${task.production_id}')" 
                                     class="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm py-2 px-4 rounded">
                                     Submit
                                 </button>
