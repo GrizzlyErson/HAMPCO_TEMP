@@ -134,13 +134,7 @@ $member_role = strtolower($member['role']);
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Production ID</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
-                                <?php if (in_array($member_role, ['knotter', 'warper'])): ?>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight (g)</th>
-                                <?php else: // weaver ?>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Length (m)</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Width (in)</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                                <?php endif; ?>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Raw Materials</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Created</th>
@@ -150,7 +144,7 @@ $member_role = strtolower($member['role']);
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200" id="selfAssignedTasksBody">
                             <tr>
-                                <td colspan="<?php echo in_array($member_role, ['knotter', 'warper']) ? '8' : '10'; ?>" class="px-6 py-4 text-center text-gray-500">No tasks available</td>
+                                <td colspan="8" class="px-6 py-4 text-center text-gray-500">No tasks available</td>
                             </tr>
                         </tbody>
                     </table>
@@ -395,7 +389,7 @@ $(document).ready(function() {
     function loadSelfAssignedTasks() {
         const tableBody = $('#selfAssignedTasksBody');
         const memberRole = '<?php echo strtolower($member_role); ?>';
-        const colspan = (memberRole === 'knotter' || memberRole === 'warper') ? 8 : 10;
+        const colspan = 8; // Fixed colspan for all roles since we only have 8 columns
         
         // Show loading state
         tableBody.html(`<tr><td colspan="${colspan}" class="px-6 py-4 text-center text-gray-500">Loading tasks...</td></tr>`);
@@ -417,13 +411,9 @@ $(document).ready(function() {
                         
                         let details_cell = '';
                         if (memberRole === 'knotter' || memberRole === 'warper') {
-                            details_cell = `<td class="px-6 py-4 text-sm text-gray-900">${task.weight_g}</td>`;
+                            details_cell = `<td class="px-6 py-4 text-sm text-gray-900">${task.weight_g || '-'}</td>`;
                         } else { // weaver
-                            details_cell = `
-                                <td class="px-6 py-4 text-sm text-gray-900">${task.length_m || '-'}</td>
-                                <td class="px-6 py-4 text-sm text-gray-900">${task.width_in || '-'}</td>
-                                <td class="px-6 py-4 text-sm text-gray-900">${task.quantity || '-'}</td>
-                            `;
+                            details_cell = `<td class="px-6 py-4 text-sm text-gray-900">${task.weight_g || '-'}</td>`;
                         }
 
                         return `
