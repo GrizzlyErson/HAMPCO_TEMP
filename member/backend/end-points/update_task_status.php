@@ -52,6 +52,10 @@ try {
         throw new Exception('Database connection failed');
     }
 
+    // Initialize global class for StockOut functionality
+    $global_db = new global_class();
+
+
     $member_id = $_SESSION['id'];
 
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -136,10 +140,6 @@ try {
         } catch (Exception $e) {
             throw new Exception("Insufficient materials: " . $e->getMessage());
         }
-
-        // Get global class for StockOut functionality
-        require_once __DIR__ . "/../class.php";
-        $global_db = new global_class();
 
         // Get raw material IDs and deduct from inventory
         foreach ($materials['materials'] as $material) {
