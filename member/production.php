@@ -272,7 +272,7 @@ $member_role = strtolower($member['role']);
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="weight">
                         Weight (g)
                     </label>
-                    <input type="number" id="weight" name="weight" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <input type="number" id="weight" name="weight" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" required>
                 </div>
                 <?php elseif ($member_role === 'warper'): ?>
                 <!-- Fields for Warper -->
@@ -286,7 +286,7 @@ $member_role = strtolower($member['role']);
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="weight">
                         Weight (g)
                     </label>
-                    <input type="number" id="weight" name="weight" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <input type="number" id="weight" name="weight" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" required>
                 </div>
                 <?php else: ?>
                 <!-- Fields for Weaver -->
@@ -301,22 +301,10 @@ $member_role = strtolower($member['role']);
                     </select>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="length">
-                        Length (m)
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="weight">
+                        Weight (g)
                     </label>
-                    <input type="number" id="length" name="length" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="width">
-                        Width (in)
-                    </label>
-                    <input type="number" id="width" name="width" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="quantity">
-                        Quantity
-                    </label>
-                    <input type="number" id="quantity" name="quantity" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <input type="number" id="weight" name="weight" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" required>
                 </div>
                 <?php endif; ?>
                 <div class="flex justify-end space-x-3 mt-6">
@@ -603,35 +591,26 @@ $(document).ready(function() {
         e.preventDefault();
         
         const memberRole = '<?php echo strtolower($member_role); ?>';
-        let formData;
+        const productNameElement = document.getElementById('productName');
+        const weightElement = document.getElementById('weight');
         
-        if (memberRole === 'knotter' || memberRole === 'warper') {
-            const weightVal = parseFloat(document.getElementById('weight').value);
-            if (!document.getElementById('productName').value || isNaN(weightVal)) {
-                Swal.fire({ icon: 'error', title: 'Error', text: 'Please fill in all required fields. Product name and weight must be filled.' });
-                return;
-            }
-            formData = {
-                product_name: document.getElementById('productName').value,
-                weight: weightVal,
-                length: 0,
-                width: 0,
-                quantity: 0
-            };
-        } else { // weaver
-            const lengthVal = parseFloat(document.getElementById('length').value);
-            if (!document.getElementById('productName').value || isNaN(lengthVal)) {
-                Swal.fire({ icon: 'error', title: 'Error', text: 'Please fill in product name and length.' });
-                return;
-            }
-            formData = {
-                product_name: document.getElementById('productName').value,
-                weight: 0,
-                length: lengthVal,
-                width: parseFloat(document.getElementById('width').value) || 0,
-                quantity: parseInt(document.getElementById('quantity').value, 10) || 0
-            };
+        const productName = productNameElement.value;
+        const weight = parseFloat(weightElement.value);
+        
+        // Validate required fields
+        if (!productName || isNaN(weight)) {
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Error', 
+                text: 'Please fill in all required fields. Product name and weight must be filled.' 
+            });
+            return;
         }
+        
+        const formData = {
+            product_name: productName,
+            weight: weight
+        };
 
         console.log('Submitting form data:', formData); // For debugging
 

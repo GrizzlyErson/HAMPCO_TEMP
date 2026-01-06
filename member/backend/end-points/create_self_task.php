@@ -22,29 +22,24 @@ if (!$data || empty($data['product_name'])) {
 try {
     $stmt = $db->conn->prepare("
         INSERT INTO member_self_tasks 
-        (member_id, product_name, weight_g, length_m, width_in, quantity, status) 
-        VALUES (?, ?, ?, ?, ?, ?, 'pending')
+        (member_id, product_name, weight_g, status) 
+        VALUES (?, ?, ?, 'pending')
     ");
 
-    $weight = $data['weight'] ?? null;
-    $length = $data['length'] ?? null;
-    $width = $data['width'] ?? null;
-    $quantity = $data['quantity'] ?? null;
+    $weight = isset($data['weight']) ? (float)$data['weight'] : 0;
+    $product_name = $data['product_name'];
 
-    $stmt->bind_param("isdddi",
+    $stmt->bind_param("isd",
         $member_id,
-        $data['product_name'],
-        $weight,
-        $length,
-        $width,
-        $quantity
+        $product_name,
+        $weight
     );
 
     if ($stmt->execute()) {
         $task_id = $stmt->insert_id;
         
         $stmt = $db->conn->prepare("
-            SELECT * 
+            SELECT production_id, product_name, weight_g, status, date_created, date_submitted 
             FROM member_self_tasks 
             WHERE id = ?
         ");
@@ -59,7 +54,7 @@ try {
             'task' => $task
         ]);
     } else {
-        throw new Exception("Failed to create task");
+        throw new Exception("Failed to create task: " . $stmt->error);
     }
 } catch (Exception $e) {
     echo json_encode([
