@@ -157,7 +157,7 @@ function confirmTaskCompletion(prodLineId) {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: `prod_line_id=${prodLineId}`
+                body: `production_id=${prodLineId}`
             })
             .then(response => response.json())
             .then(data => {

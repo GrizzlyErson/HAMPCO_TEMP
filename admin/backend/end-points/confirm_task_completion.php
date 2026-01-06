@@ -141,7 +141,7 @@ try {
                 throw new Exception("Failed to update task status: " . $update_task->error);
             }
 
-            // Update member_self_tasks status
+            // Update member_self_tasks status (triggers payment_records creation)
             $update_self_task = $db->prepare("
                 UPDATE member_self_tasks 
                 SET status = 'completed'
@@ -157,7 +157,7 @@ try {
                 throw new Exception("Failed to update self task status: " . $update_self_task->error);
             }
         } else {
-            // Update task_assignments for regular assigned tasks
+            // Update task_assignments for regular assigned tasks (should trigger payment_records creation)
             $update_task = $db->prepare("
                 UPDATE task_assignments 
                 SET status = 'completed', updated_at = NOW()
@@ -171,6 +171,95 @@ try {
             $update_task->bind_param("s", $production_id);
             if (!$update_task->execute()) {
                 throw new Exception("Failed to update task status: " . $update_task->error);
+            }
+
+            // Manually create payment record if trigger didn't fire (backup method)
+            // First, check if payment record already exists
+            $check_payment = $db->prepare("
+                SELECT id FROM payment_records 
+                WHERE member_id = ? AND production_id = ? AND is_self_assigned = 0
+            ");
+
+            if (!$check_payment) {
+                throw new Exception("Failed to check payment records: " . $db->error);
+            }
+
+            $check_payment->bind_param("is", $task['member_id'], $production_id);
+            if (!$check_payment->execute()) {
+                throw new Exception("Failed to execute payment check: " . $check_payment->error);
+            }
+
+            $payment_exists = $check_payment->get_result()->fetch_assoc();
+
+            if (!$payment_exists) {
+                // Get production line details for payment calculation
+                $get_pl_details = $db->prepare("
+                    SELECT product_name, length_m, width_m, weight_g, quantity 
+                    FROM production_line 
+                    WHERE prod_line_id = ?
+                ");
+
+                if (!$get_pl_details) {
+                    throw new Exception("Failed to prepare production line query: " . $db->error);
+                }
+
+                $get_pl_details->bind_param("s", $production_id);
+                if (!$get_pl_details->execute()) {
+                    throw new Exception("Failed to get production line details: " . $get_pl_details->error);
+                }
+
+                $pl_details = $get_pl_details->get_result()->fetch_assoc();
+
+                if ($pl_details) {
+                    // Calculate unit rate based on product
+                    $unit_rate = 0.00;
+                    switch ($pl_details['product_name']) {
+                        case 'Knotted Liniwan':
+                            $unit_rate = 50.00;
+                            break;
+                        case 'Knotted Bastos':
+                            $unit_rate = 50.00;
+                            break;
+                        case 'Warped Silk':
+                            $unit_rate = 19.00;
+                            break;
+                        case 'Piña Seda':
+                        case 'Pure Piña Cloth':
+                            $unit_rate = 550.00;
+                            break;
+                    }
+
+                    // Calculate quantity
+                    $quantity = ($pl_details['product_name'] === 'Piña Seda' || $pl_details['product_name'] === 'Pure Piña Cloth') 
+                        ? $pl_details['quantity'] 
+                        : 1;
+
+                    // Calculate total amount based on product type
+                    $total_amount = 0.00;
+                    if ($pl_details['weight_g'] > 0) {
+                        $total_amount = $pl_details['weight_g'] * $unit_rate;
+                    } elseif ($pl_details['length_m'] > 0 && $pl_details['width_m'] > 0) {
+                        $total_amount = $pl_details['length_m'] * $pl_details['width_m'] * $unit_rate;
+                    } else {
+                        $total_amount = $quantity * $unit_rate;
+                    }
+
+                    // Insert payment record
+                    $insert_payment = $db->prepare("
+                        INSERT INTO payment_records 
+                        (member_id, production_id, length_m, width_m, weight_g, quantity, unit_rate, total_amount, is_self_assigned, payment_status, date_created)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 'Pending', NOW())
+                    ");
+
+                    if (!$insert_payment) {
+                        throw new Exception("Failed to prepare payment insert: " . $db->error);
+                    }
+
+                    $insert_payment->bind_param("isddddi", $task['member_id'], $production_id, $pl_details['length_m'], $pl_details['width_m'], $pl_details['weight_g'], $quantity, $unit_rate, $total_amount);
+                    if (!$insert_payment->execute()) {
+                        throw new Exception("Failed to create payment record: " . $insert_payment->error);
+                    }
+                }
             }
         }
 
