@@ -343,7 +343,10 @@ function refreshTaskAssignments() {
                         const isWeightProduct = ['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'].includes(fullItemData.product_name);
 
                         if (isDimensionsProduct) {
-                            unitDisplay = `${fullItemData.quantity} pc(s)`;
+                            const length = fullItemData.length_m ? `${fullItemData.length_m}m` : 'N/A';
+                            const width = fullItemData.width_m ? `${fullItemData.width_m}in` : 'N/A';
+                            const quantity = fullItemData.quantity ? `${fullItemData.quantity}pc(s)` : 'N/A';
+                            unitDisplay = `L:${length}<br>W:${width}<br>Q:${quantity}`;
                         } else if (isWeightProduct) {
                             unitDisplay = `${fullItemData.weight_g} g`;
                         } else {
@@ -1171,6 +1174,90 @@ function getStatusClass(status) {
             return 'bg-gray-100 text-gray-800';
     }
 }
+
+// Function to open the Edit Product Modal
+function editProduct(prodLineId) {
+    const editProductModal = document.getElementById('editProductModal');
+    const editProductForm = document.getElementById('editProductForm');
+    
+    // Clear previous form data and reset visibility
+    editProductForm.reset();
+    document.getElementById('edit_prod_line_id').value = prodLineId;
+    document.getElementById('editDimensionFields').classList.add('hidden');
+    document.getElementById('editWeightField').classList.add('hidden');
+    document.getElementById('editQuantityField').classList.add('hidden'); // Ensure it's hidden by default
+
+    // Show loading state
+    Swal.fire({
+        title: 'Loading...',
+        text: 'Fetching product details',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        allowEnterKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // Fetch product details
+    fetch(`backend/end-points/get_production_item_details.php?prod_line_id=${prodLineId}`)
+        .then(response => response.json())
+        .then(data => {
+            Swal.close(); // Close loading swal
+            if (data.success) {
+                const item = data.data;
+                document.getElementById('edit_product_name').value = item.product_name;
+                document.getElementById('edit_length').value = item.length_m;
+                document.getElementById('edit_width').value = item.width_m;
+                document.getElementById('edit_weight').value = item.weight_g;
+                document.getElementById('edit_quantity').value = item.quantity;
+
+                // Trigger change event to update fields visibility
+                updateEditFormFieldsVisibility(item.product_name);
+                
+                editProductModal.classList.remove('hidden');
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Failed to fetch product details.'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.close();
+            console.error('Error fetching product details:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred while fetching product details.'
+            });
+        });
+}
+
+// Helper function to update visibility of fields in edit modal
+function updateEditFormFieldsVisibility(selectedProduct) {
+    const editDimensionFields = document.getElementById('editDimensionFields');
+    const editWeightField = document.getElementById('editWeightField');
+    const editQuantityField = document.getElementById('editQuantityField');
+
+    editDimensionFields.classList.add('hidden');
+    editWeightField.classList.add('hidden');
+    editQuantityField.classList.add('hidden'); // Default hidden
+
+    if (['Piña Seda', 'Pure Piña Cloth'].includes(selectedProduct)) {
+        editDimensionFields.classList.remove('hidden');
+        editQuantityField.classList.remove('hidden'); // Quantity for dimension products
+    } else if (['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'].includes(selectedProduct)) {
+        editWeightField.classList.remove('hidden');
+        // Quantity remains hidden for weight-based products, as quantity is implicitly 1
+    } else {
+        // For other products, show quantity by default
+        editQuantityField.classList.remove('hidden');
+    }
+}
+
 </script>
 
 <!-- Top bar with user profile -->
@@ -1264,6 +1351,75 @@ function getStatusClass(status) {
                     </button>
                     <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         Create Task
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div id="editProductModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-[1000] p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Edit Production Item</h3>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6 overflow-y-auto flex-1">
+            <form id="editProductForm" class="space-y-4">
+                <input type="hidden" id="edit_prod_line_id" name="prod_line_id">
+                
+                <!-- Row 1: Product Name -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="col-span-2">
+                        <label for="edit_product_name" class="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                        <select id="edit_product_name" name="product_name" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                            <option value="">Select a product</option>
+                            <option value="Piña Seda">Piña Seda</option>
+                            <option value="Pure Piña Cloth">Pure Piña Cloth</option>
+                            <option value="Knotted Liniwan">Knotted Liniwan</option>
+                            <option value="Knotted Bastos">Knotted Bastos</option>
+                            <option value="Warped Silk">Warped Silk</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Row 2: Dimensions / Weight -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Length and Width Fields -->
+                    <div id="editDimensionFields" class="col-span-2 grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="edit_length" class="block text-xs font-medium text-gray-700 mb-1">Length (m)</label>
+                            <input type="number" id="edit_length" name="length" step="0.001" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                        </div>
+                        <div>
+                            <label for="edit_width" class="block text-xs font-medium text-gray-700 mb-1">Width (in)</label>
+                            <input type="number" id="edit_width" name="width" step="0.001" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                        </div>
+                    </div>
+                    
+                    <!-- Weight Field -->
+                    <div id="editWeightField" class="hidden">
+                        <label for="edit_weight" class="block text-xs font-medium text-gray-700 mb-1">Weight (g)</label>
+                        <input type="number" id="edit_weight" name="weight" step="0.001" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                    </div>
+                    
+                    <!-- Quantity -->
+                    <div id="editQuantityField">
+                        <label for="edit_quantity" class="block text-xs font-medium text-gray-700 mb-1">Quantity</label>
+                        <input type="number" id="edit_quantity" name="quantity" min="1" value="1" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+                    <button type="button" id="cancelEditProduct" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Save Changes
                     </button>
                 </div>
             </form>
@@ -2306,6 +2462,112 @@ document.addEventListener('DOMContentLoaded', function() {
     submitReassignTaskBtn.addEventListener('click', function() {
         submitReassignTask();
     });
+
+    // Handle Edit Product Modal
+    const cancelEditProductBtn = document.getElementById('cancelEditProduct');
+    const editProductNameSelect = document.getElementById('edit_product_name');
+    const editProductForm = document.getElementById('editProductForm');
+    const editProductModal = document.getElementById('editProductModal');
+
+    // Hide edit modal
+    if (cancelEditProductBtn) {
+        cancelEditProductBtn.addEventListener('click', function() {
+            editProductModal.classList.add('hidden');
+        });
+    }
+
+    // Toggle fields based on product type in edit modal
+    if (editProductNameSelect) {
+        editProductNameSelect.addEventListener('change', function() {
+            updateEditFormFieldsVisibility(this.value);
+        });
+    }
+
+    // Handle Edit Product Form submission
+    if (editProductForm) {
+        editProductForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const selectedProduct = formData.get('product_name');
+            
+            // Client-side validation (basic example)
+            if (!selectedProduct) {
+                Swal.fire('Error', 'Please select a product', 'error');
+                return;
+            }
+            
+            // Set quantity to 1 for Knotted products and Warped Silk if not explicitly set
+            if (['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'].includes(selectedProduct)) {
+                if (!formData.get('weight')) {
+                    Swal.fire('Error', 'Weight is required for this product type.', 'error');
+                    return;
+                }
+                formData.set('quantity', '1'); // Quantity is implicitly 1 for these
+            } else if (['Piña Seda', 'Pure Piña Cloth'].includes(selectedProduct)) {
+                if (!formData.get('length') || !formData.get('width') || !formData.get('quantity')) {
+                    Swal.fire('Error', 'Length, Width, and Quantity are required for this product type.', 'error');
+                    return;
+                }
+            } else {
+                 if (!formData.get('quantity')) {
+                    Swal.fire('Error', 'Quantity is required for this product type.', 'error');
+                    return;
+                }
+            }
+
+
+            // Show loading state
+            Swal.fire({
+                title: 'Saving...',
+                text: 'Updating product details',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            fetch('backend/end-points/update_production_item.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                Swal.close();
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Production item updated successfully!',
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        editProductModal.classList.add('hidden');
+                        // Since production_items are defined in PHP, a full reload is needed to update the monitoring table.
+                        // Ideally, we'd have a refreshProductionItems() function to call here.
+                        location.reload(); 
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Failed to update production item.'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.close();
+                console.error('Error updating production item:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while updating the production item.'
+                });
+            });
+        });
+    }
 
     // Handle form submission
     // Note: Form submission is handled in the DOMContentLoaded event listener above
