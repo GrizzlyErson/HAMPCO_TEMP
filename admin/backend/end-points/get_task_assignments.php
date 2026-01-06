@@ -32,7 +32,7 @@ try {
     UNION ALL
     
     SELECT DISTINCT
-        CAST(mst.production_id AS UNSIGNED) as prod_line_id,
+        mst.id as prod_line_id,
         mst.product_name,
         mst.status,
         mst.date_created,
@@ -53,7 +53,7 @@ try {
     AND NOT EXISTS (
         SELECT 1 FROM production_line pl WHERE CAST(mst.production_id AS UNSIGNED) = pl.prod_line_id
     )
-    GROUP BY mst.production_id
+    GROUP BY mst.id
     
     ORDER BY date_created DESC";
             
@@ -79,7 +79,7 @@ try {
                     $decline_reasons = $row['decline_reasons'] ? explode(',', $row['decline_reasons']) : [];
         
                     // Format production ID to match monitoring tab format
-                    $display_id = $row['prod_line_id'];
+                    $display_id = 'PL' . str_pad($row['prod_line_id'], 4, '0', STR_PAD_LEFT);
                     
                     $assignments = [];
                     $max_index = max(count($task_ids), count($member_ids), count($roles), count($task_statuses), count($deadlines), count($completion_dates), count($member_names), count($member_roles), count($decline_statuses), count($decline_reasons));
