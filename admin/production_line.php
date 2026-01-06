@@ -258,6 +258,10 @@ function refreshTaskAssignments() {
                     completedTableBody.appendChild(row);
                 } else {
                     inProgressTasksFound++;
+                    // Check if task has a decline reason
+                    const hasDecline = item.assignments[0]?.decline_status === 'pending' || item.assignments[0]?.decline_status === 'responded';
+                    const declineReason = item.assignments[0]?.decline_reason ? item.assignments[0].decline_reason : 'No reason provided';
+                    
                     row.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">${item.prod_line_id}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.product_name}</td>
@@ -278,10 +282,16 @@ function refreshTaskAssignments() {
                                         ${displayStatus !== 'submitted' ? 'disabled' : ''}>
                                         Confirm
                                     </button>
-                                    <button onclick="openReassignModal('${item.raw_id}', '${item.product_name}', ${item.assignments[0]?.task_id || 0}, '${item.assignments[0]?.member_name || ''}', '${item.assignments[0]?.role || ''}')"
-                                        class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md transition-colors w-full text-xs">
-                                        Reassign
-                                    </button>
+                                    ${hasDecline ? `
+                                        <button onclick="openDeclineReasonModal('${declineReason.replace(/'/g, "\\'")}')"
+                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md transition-colors w-full text-xs">
+                                            View Decline Reason
+                                        </button>
+                                        <button onclick="openReassignModal('${item.raw_id}', '${item.product_name}', ${item.assignments[0]?.task_id || 0}, '${item.assignments[0]?.member_name || ''}', '${item.assignments[0]?.role || ''}')"
+                                            class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md transition-colors w-full text-xs">
+                                            Reassign
+                                        </button>
+                                    ` : ''}
                                 </div>
                             ` : ''}
                         </td>
@@ -1096,6 +1106,30 @@ function getStatusClass(status) {
     </div>
 </div>
 
+<!-- Decline Reason Modal -->
+<div id="declineReasonModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-[1000] p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Task Decline Reason</h3>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6">
+            <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                <p class="text-sm text-gray-700" id="declineReasonText">Loading...</p>
+            </div>
+        </div>
+        
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
+            <button type="button" id="closeDeclineReasonModal" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Reassign Task Modal -->
 <div id="reassignTaskModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-[1000] p-4">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
@@ -1769,6 +1803,30 @@ function updateMaterialsList(productName) {
                 '<div class="text-sm text-red-600">Error loading materials. Please try again.</div>';
         });
 }
+
+// Function to open decline reason modal
+function openDeclineReasonModal(reason) {
+    const modal = document.getElementById('declineReasonModal');
+    document.getElementById('declineReasonText').textContent = reason;
+    modal.classList.remove('hidden');
+}
+
+// Function to close decline reason modal
+document.addEventListener('DOMContentLoaded', function() {
+    const closeDeclineBtn = document.getElementById('closeDeclineReasonModal');
+    if (closeDeclineBtn) {
+        closeDeclineBtn.addEventListener('click', function() {
+            document.getElementById('declineReasonModal').classList.add('hidden');
+        });
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('declineReasonModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.add('hidden');
+        }
+    });
+});
 
 // Function to open reassign modal
 function openReassignModal(prodLineId, productName, taskId, currentMember, currentRole) {
