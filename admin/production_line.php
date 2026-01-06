@@ -188,6 +188,30 @@ function confirmTaskCompletion(prodLineId) {
     });
 }
 
+// Smart cache for real-time updates to avoid unnecessary DOM updates
+const dataCache = {
+    taskAssignments: null,
+    taskRequests: null,
+    
+    hasTaskAssignmentsChanged(newData) {
+        if (!this.taskAssignments) return true;
+        return JSON.stringify(this.taskAssignments) !== JSON.stringify(newData);
+    },
+    
+    hasTaskRequestsChanged(newData) {
+        if (!this.taskRequests) return true;
+        return JSON.stringify(this.taskRequests) !== JSON.stringify(newData);
+    },
+    
+    updateTaskAssignments(data) {
+        this.taskAssignments = JSON.parse(JSON.stringify(data));
+    },
+    
+    updateTaskRequests(data) {
+        this.taskRequests = JSON.parse(JSON.stringify(data));
+    }
+};
+
 // Function to refresh task assignments
 function refreshTaskAssignments() {
     fetch('backend/end-points/get_task_assignments.php')
@@ -196,6 +220,14 @@ function refreshTaskAssignments() {
             if (!response.success) {
                 throw new Error(response.message);
             }
+            
+            // Check if data has changed before updating DOM
+            if (!dataCache.hasTaskAssignmentsChanged(response.data)) {
+                console.log('Task assignments data unchanged, skipping DOM update');
+                return;
+            }
+            
+            dataCache.updateTaskAssignments(response.data);
             
             const inProgressTableBody = document.querySelector('#inProgressTasksTable tbody');
             const completedTableBody = document.querySelector('#completedTasksTable tbody');
@@ -352,6 +384,14 @@ function refreshTaskApprovalRequests() {
     fetch('backend/end-points/get_task_requests.php')
         .then(response => response.json())
         .then(data => {
+            // Check if data has changed before updating DOM
+            if (!dataCache.hasTaskRequestsChanged(data)) {
+                console.log('Task requests data unchanged, skipping DOM update');
+                return;
+            }
+            
+            dataCache.updateTaskRequests(data);
+            
             if (!Array.isArray(data) || data.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
@@ -459,13 +499,39 @@ function handleTaskRequest(requestId, action) {
     });
 }
 
+// Function to manually refresh all tables
+function manualRefreshAllTables() {
+    console.log('Manual refresh triggered');
+    refreshTaskAssignments();
+    refreshTaskApprovalRequests();
+    Swal.fire({
+        icon: 'success',
+        title: 'Refreshing...',
+        text: 'Tables are being updated',
+        timer: 1500,
+        showConfirmButton: false
+    });
+}
+
+// Real-time update controller
+const updateController = {
+    intervals: {},
+    startRealTimeUpdates() {
+        // Update every 5 seconds for real-time experience
+        this.intervals.tasks = setInterval(refreshTaskAssignments, 5000);
+        this.intervals.requests = setInterval(refreshTaskApprovalRequests, 5000);
+    },
+    stopRealTimeUpdates() {
+        Object.values(this.intervals).forEach(interval => clearInterval(interval));
+    }
+};
+
 // Call refreshTaskAssignments and refreshTaskApprovalRequests initially and set up periodic updates
 document.addEventListener('DOMContentLoaded', function() {
     refreshTaskAssignments();
     refreshTaskApprovalRequests();
-    // Update every 30 seconds
-    setInterval(refreshTaskAssignments, 30000);
-    setInterval(refreshTaskApprovalRequests, 30000);
+    // Start real-time updates
+    updateController.startRealTimeUpdates();
 });
 
 function showMaterialsModal(materials, product) {
@@ -587,11 +653,12 @@ document.addEventListener('DOMContentLoaded', function() {
     renderMemberList('knotter', 'knotterList');
     renderMemberList('warper', 'warperList');
     renderMemberList('weaver', 'weaverList');
-    setInterval(() => {
+    // Real-time member list updates every 5 seconds
+    updateController.intervals.members = setInterval(() => {
         renderMemberList('knotter', 'knotterList');
         renderMemberList('warper', 'warperList');
         renderMemberList('weaver', 'weaverList');
-    }, 30000);
+    }, 5000);
     refreshTaskAssignments();
     
     // Get the active tab from URL or localStorage
@@ -812,8 +879,8 @@ function updateWorkforceManagement() {
 // Call updateWorkforceManagement initially and set up periodic updates
 document.addEventListener('DOMContentLoaded', function() {
     updateWorkforceManagement();
-    // Update every 30 seconds
-    setInterval(updateWorkforceManagement, 30000);
+    // Real-time workforce updates every 5 seconds
+    updateController.intervals.workforce = setInterval(updateWorkforceManagement, 5000);
 });
 
 // Add this function for delete confirmation and handling
@@ -939,7 +1006,7 @@ function filterTasks() {
 document.addEventListener('DOMContentLoaded', function() {
     refreshTaskAssignments();
     // Update every 30 seconds
-    setInterval(refreshTaskAssignments, 30000);
+    // Real-time updates handled by updateController
 });
 
 function loadTaskCompletions() {
@@ -1187,20 +1254,38 @@ function getStatusClass(status) {
 <!-- Tabs -->
 <div class="mb-6">
     <div class="border-b border-gray-200">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <button id="monitoringTab" class="tab-button border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                Production Line Monitoring
-            </button>
-            <button id="tasksTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                Assigned Tasks
-            </button>
-            <button id="memberTaskRequestsTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                Member Task Requests
-            </button>
-            <button id="workforceTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                Workforce Management
-            </button>
-        </nav>
+        <div class="flex justify-between items-center">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <button id="monitoringTab" class="tab-button border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    Production Line Monitoring
+                </button>
+                <button id="tasksTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    Assigned Tasks
+                </button>
+                <button id="memberTaskRequestsTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    Member Task Requests
+                </button>
+                <button id="workforceTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    Workforce Management
+                </button>
+            </nav>
+            <!-- Live Update Indicator with Manual Refresh -->
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 py-2 px-3 bg-green-50 rounded-md border border-green-200">
+                    <div class="relative flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                    </div>
+                    <span class="text-xs font-medium text-green-700">Live (5s)</span>
+                </div>
+                <button onclick="manualRefreshAllTables()" title="Manually refresh all tables" class="py-2 px-3 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-md transition-colors flex items-center space-x-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
