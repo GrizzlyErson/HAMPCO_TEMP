@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 0); // Disable display of errors in output
+error_reporting(E_ALL & ~E_NOTICE); // Log all errors except notices
+
 session_start();
 require_once '../../../function/connection.php';
 
