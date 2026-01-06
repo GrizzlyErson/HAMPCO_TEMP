@@ -54,7 +54,15 @@ $member_role = strtolower($member['role']);
         <div class="tab-pane show active" id="assigned" role="tabpanel">
             <!-- New Tasks Available Table -->
             <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">New Tasks Available</h3>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">New Tasks Available</h3>
+                    <button id="refreshNewTasksBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
                 <div class="overflow-x-auto">
                     <table id="newTasksTable" class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -803,14 +811,16 @@ $(document).ready(function() {
     loadNewTasks();
     loadAssignedTasks();
     
-    // setInterval(() => {
-    //     loadNewTasks();
-    //     loadAssignedTasks();
-    //     const savedTab = localStorage.getItem('activeProductionTab');
-    //     if (savedTab === 'created') {
-    //         loadSelfAssignedTasks();
-    //     }
-    // }, 5000);
+    // Add refresh button click handler
+    document.getElementById('refreshNewTasksBtn').addEventListener('click', function() {
+        const btn = this;
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        loadNewTasks().then(() => {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        });
+    });
 
 
     // Handle submit button clicks using jQuery delegation
@@ -1037,7 +1047,9 @@ function acceptTask(taskId) {
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-                        window.location.reload();
+                        // Refresh the tables without full page reload
+                        loadNewTasks();
+                        loadAssignedTasks();
                     });
                 } else {
                     throw new Error(data.message || 'Failed to accept task');
@@ -1116,7 +1128,9 @@ function declineTask(taskId) {
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-                        window.location.reload();
+                        // Refresh the tables without full page reload
+                        loadNewTasks();
+                        loadAssignedTasks();
                     });
                 } else {
                     throw new Error(data.message || 'Failed to decline task');

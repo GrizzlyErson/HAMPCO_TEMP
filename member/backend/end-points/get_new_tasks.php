@@ -12,8 +12,9 @@ if (!isset($_SESSION['id'])) {
 $db = new Database();
 $member_id = $_SESSION['id'];
 
-// Get new tasks (tasks specifically assigned to this member but not yet accepted)
-$new_tasks_query = "SELECT DISTINCT
+// Get new tasks (tasks specifically assigned to this member with pending status)
+// This includes newly reassigned tasks with pending status
+$new_tasks_query = "SELECT 
     pl.prod_line_id,
     pl.product_name,
     pl.length_m,
@@ -21,23 +22,16 @@ $new_tasks_query = "SELECT DISTINCT
     pl.weight_g,
     pl.quantity,
     pl.status as prod_status,
-    MIN(ta.status) as task_status,
-    MIN(ta.deadline) as deadline,
-    MIN(ta.id) as task_id
+    ta.status as task_status,
+    ta.deadline,
+    ta.id as task_id,
+    ta.role,
+    ta.created_at
     FROM production_line pl
     JOIN task_assignments ta ON pl.prod_line_id = ta.prod_line_id
     WHERE ta.member_id = ? 
-    AND ta.status = 'pending'
-    AND pl.status NOT IN ('completed', 'submitted')
-    AND NOT EXISTS (
-        SELECT 1 
-        FROM task_assignments ta2 
-        WHERE ta2.prod_line_id = pl.prod_line_id 
-        AND ta2.member_id = ta.member_id 
-        AND ta2.status IN ('in_progress', 'completed', 'submitted', 'declined')
-    )
-    GROUP BY pl.prod_line_id
-    ORDER BY pl.date_created DESC";
+    AND ta.status IN ('pending', 'reassigned')
+    ORDER BY ta.created_at DESC";
 
 $stmt = $db->conn->prepare($new_tasks_query);
 $stmt->bind_param("i", $member_id);

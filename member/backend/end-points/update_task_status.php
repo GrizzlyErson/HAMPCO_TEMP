@@ -83,7 +83,7 @@ try {
         SELECT ta.*, pl.prod_line_id, pl.product_name, pl.weight_g, pl.length_m, pl.width_m, pl.quantity
         FROM task_assignments ta
         JOIN production_line pl ON ta.prod_line_id = pl.prod_line_id
-        WHERE ta.id = ? AND ta.member_id = ? AND ta.status = 'pending'
+        WHERE ta.id = ? AND ta.member_id = ? AND ta.status IN ('pending', 'reassigned')
     ");
 
     if (!$check_task) {
