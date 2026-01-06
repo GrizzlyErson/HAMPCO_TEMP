@@ -6,12 +6,13 @@ require_once '../../../function/db_connect.php';
 $response = ["success" => false, "data" => [], "message" => "Unknown error."];
 
 try {
-    // Get all production lines with their assignments (both regular and self-assigned)
+    // Get all production lines with their assignments (admin-assigned tasks)
     $sql = "SELECT DISTINCT
         pl.prod_line_id,
         pl.product_name,
         pl.status,
         pl.date_created,
+        'production_line' as source,
         GROUP_CONCAT(ta.id) as task_ids,
         GROUP_CONCAT(ta.member_id) as member_ids,
         GROUP_CONCAT(ta.role) as roles,
@@ -26,14 +27,16 @@ try {
     LEFT JOIN task_assignments ta ON pl.prod_line_id = ta.prod_line_id
     LEFT JOIN user_member um ON ta.member_id = um.id
     GROUP BY pl.prod_line_id
+    ORDER BY pl.date_created DESC
     
     UNION ALL
     
     SELECT DISTINCT
-        mst.production_id as prod_line_id,
+        CAST(mst.production_id AS UNSIGNED) as prod_line_id,
         mst.product_name,
         mst.status,
         mst.date_created,
+        'member_self_tasks' as source,
         GROUP_CONCAT(mst.id) as task_ids,
         GROUP_CONCAT(mst.member_id) as member_ids,
         GROUP_CONCAT(um.role) as roles,
@@ -46,11 +49,11 @@ try {
         NULL as decline_reasons
     FROM member_self_tasks mst
     LEFT JOIN user_member um ON mst.member_id = um.id
-    LEFT JOIN production_line pl ON CAST(mst.production_id AS UNSIGNED) = pl.prod_line_id
-    WHERE pl.prod_line_id IS NULL
+    WHERE NOT EXISTS (
+        SELECT 1 FROM production_line pl WHERE CAST(mst.production_id AS UNSIGNED) = pl.prod_line_id
+    )
     GROUP BY mst.production_id
-    
-    ORDER BY date_created DESC";
+    ORDER BY mst.date_created DESC";
             
             $result = $conn->query($sql);
             
@@ -100,9 +103,11 @@ try {
                         'product_name' => $row['product_name'],
                         'status' => $row['status'],
                         'date_created' => $formatted_date,
-                        'assignments' => $assignments
+                        'assignments' => $assignments,
+                        'source' => $row['source']
                     ];
-                }        $response["success"] = true;
+                }
+        $response["success"] = true;
         $response["data"] = $data;
         $response["message"] = "Task assignments data fetched successfully.";
     } else {
