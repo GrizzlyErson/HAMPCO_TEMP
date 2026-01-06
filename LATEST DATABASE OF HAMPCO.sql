@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 29, 2025 at 09:31 PM
+-- Generation Time: Jan 06, 2026 at 07:51 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -172,10 +172,15 @@ INSERT INTO `member_self_tasks` (`id`, `production_id`, `member_id`, `product_na
 (52, 'PL0021', 1, 'Knotted Bastos', 15.00, 'completed', 'pending', NULL, '2025-07-31 14:30:36', '2025-07-31 14:31:34'),
 (53, 'PL0022', 2, 'Warped Silk', 20.00, 'completed', 'pending', NULL, '2025-07-31 14:33:29', '2025-07-31 14:33:55'),
 (54, 'PL0023', 1, 'Knotted Bastos', 10.00, 'completed', 'pending', NULL, '2025-07-31 21:28:48', '2025-07-31 21:29:28'),
-(70, 'PL0029', 5, 'Knotted Bastos', 123.00, 'submitted', 'pending', NULL, '2025-11-27 19:29:32', '2025-11-29 19:25:54'),
+(70, 'PL0029', 5, 'Knotted Bastos', 123.00, 'completed', 'pending', NULL, '2025-11-27 19:29:32', '2025-11-29 19:25:54'),
 (71, 'PL0030', 5, 'Knotted Liniwan', 321.00, 'submitted', 'pending', NULL, '2025-11-27 19:40:11', '2025-11-27 19:50:40'),
 (72, 'PL0031', 5, 'Knotted Liniwan', 123.00, 'submitted', 'pending', NULL, '2025-11-27 21:36:06', '2025-11-27 21:40:14'),
-(73, 'PL0032', 5, 'Knotted Liniwan', 12.00, 'pending', 'pending', NULL, '2025-11-27 21:40:31', NULL);
+(73, 'PL0032', 5, 'Knotted Liniwan', 12.00, 'completed', 'pending', NULL, '2025-11-27 21:40:31', '2025-11-30 06:42:06'),
+(75, 'PL0033', 5, 'Knotted Liniwan', 123.00, 'pending', 'pending', NULL, '2025-11-30 19:23:45', NULL),
+(76, 'PL0034', 5, 'Knotted Liniwan', 123.00, 'pending', 'pending', NULL, '2026-01-06 03:07:44', NULL),
+(77, 'PL0035', 5, 'Knotted Bastos', 123.00, 'submitted', 'pending', NULL, '2026-01-06 03:18:23', '2026-01-06 03:26:12'),
+(78, 'PL0036', 5, 'Knotted Bastos', 1212.00, 'completed', 'pending', NULL, '2026-01-06 03:23:41', '2026-01-06 03:26:08'),
+(79, 'PL0037', 5, 'Knotted Liniwan', 123423.00, 'pending', 'pending', NULL, '2026-01-06 03:42:37', NULL);
 
 --
 -- Triggers `member_self_tasks`
@@ -336,7 +341,8 @@ INSERT INTO `orders` (`order_id`, `order_user_id`, `full_name`, `contact_number`
 (21, 7, 'Erson Hayes', '09475633165', '123123', 'COD', NULL, NULL, 599.00, 'Pending', '2025-11-29 19:47:18', '2025-11-29 19:47:18'),
 (25, 7, 'Erson Hayes', '09475633165', '123', 'COD', NULL, NULL, 1721.00, 'Pending', '2025-11-29 19:53:05', '2025-11-29 19:53:05'),
 (26, 7, 'Erson Hayes', '09475633165', '123', 'COD', NULL, NULL, 3594.00, 'Delivered', '2025-11-29 19:55:59', '2025-11-29 19:56:11'),
-(27, 7, 'Erson Hayes', '09475633165', '123123', 'COD', NULL, NULL, 1797.00, 'Pending', '2025-11-29 19:59:33', '2025-11-29 19:59:33');
+(27, 7, 'Erson Hayes', '09475633165', '123123', 'COD', NULL, NULL, 1797.00, 'Pending', '2025-11-29 19:59:33', '2025-11-29 19:59:33'),
+(45, 7, '123', '123', '123123', 'COD', NULL, NULL, 123.00, 'Pending', '2026-01-05 13:15:23', '2026-01-05 13:15:23');
 
 -- --------------------------------------------------------
 
@@ -370,7 +376,8 @@ INSERT INTO `order_items` (`order_item_id`, `order_id`, `prod_id`, `product_name
 (28, 25, 19, NULL, 1, 123.00, 123.00, '2025-11-29 19:53:05'),
 (29, 25, 17, NULL, 1, 599.00, 599.00, '2025-11-29 19:53:05'),
 (30, 26, 17, NULL, 6, 599.00, 3594.00, '2025-11-29 19:55:59'),
-(31, 27, 17, NULL, 3, 599.00, 1797.00, '2025-11-29 19:59:33');
+(31, 27, 17, NULL, 3, 599.00, 1797.00, '2025-11-29 19:59:33'),
+(49, 45, 19, NULL, 1, 123.00, 123.00, '2026-01-05 13:15:23');
 
 -- --------------------------------------------------------
 
@@ -421,7 +428,12 @@ INSERT INTO `payment_records` (`id`, `member_id`, `product_id`, `production_id`,
 (45, 5, NULL, '93', 0.000, 0.000, 12.000, 1, 50.00, 600.00, 'Paid', '2025-08-01 12:01:23', '2025-08-01 03:51:09', 0),
 (46, 2, NULL, '88', 0.000, 0.000, 11.000, 1, 19.00, 209.00, 'Pending', NULL, '2025-11-24 12:44:56', 0),
 (47, 5, NULL, '100', 0.000, 0.000, 12.000, 1, 50.00, 600.00, 'Paid', '2025-11-26 14:32:00', '2025-11-25 03:59:45', 0),
-(48, 5, NULL, 'PL0025', NULL, NULL, 1234.000, 1, 50.00, 61700.00, 'Paid', '2025-11-30 04:00:12', '2025-11-24 15:08:21', 1);
+(48, 5, NULL, 'PL0025', NULL, NULL, 1234.000, 1, 50.00, 61700.00, 'Paid', '2025-11-30 04:00:12', '2025-11-24 15:08:21', 1),
+(49, 5, NULL, 'PL0032', NULL, NULL, 12.000, 1, 50.00, 600.00, 'Pending', NULL, '2025-11-30 06:42:06', 1),
+(50, 5, NULL, 'PL0029', NULL, NULL, 123.000, 1, 50.00, 6150.00, 'Pending', NULL, '2025-11-29 19:25:54', 1),
+(51, 5, NULL, '133', 0.000, 0.000, 123.000, 1, 50.00, 6150.00, 'Pending', NULL, '2025-11-30 20:22:15', 0),
+(52, 5, NULL, '133', 0.000, 0.000, 123.000, 1, 50.00, 6150.00, 'Pending', NULL, '2025-11-30 20:22:15', 0),
+(53, 5, NULL, 'PL0036', NULL, NULL, 1212.000, 1, 50.00, 60600.00, 'Paid', '2026-01-06 13:57:31', '2026-01-06 03:26:08', 1);
 
 -- --------------------------------------------------------
 
@@ -497,9 +509,9 @@ CREATE TABLE `processed_materials` (
 --
 
 INSERT INTO `processed_materials` (`id`, `processed_materials_name`, `weight`, `status`, `updated_at`) VALUES
-(1, 'Knotted Bastos', 987.000, 'Available', '2025-07-31 21:29:41'),
-(2, 'Knotted Liniwan', 2464.000, 'Available', '2025-11-25 05:00:36'),
-(3, 'Warped Silk', 1075.000, 'Available', '2025-11-24 12:44:56'),
+(1, 'Knotted Bastos', 2430.000, 'Available', '2026-01-06 06:40:55'),
+(2, 'Knotted Liniwan', 2475.000, 'Available', '2025-11-30 23:09:20'),
+(3, 'Warped Silk', 1068.000, 'Available', '2026-01-06 06:40:55'),
 (4, 'Piña Seda', 0.000, 'Available', '2025-07-31 12:38:32');
 
 -- --------------------------------------------------------
@@ -534,9 +546,9 @@ INSERT INTO `product` (`prod_id`, `prod_category_id`, `prod_name`, `prod_image`,
 (14, 3, 'TEST', 'prod_69241972ebdfa.png', 7, 999999.00, 'TESTING', 0),
 (15, 2, 'BARONG GEISLER', 'prod_692455a2a2bea.jpg', 0, 123.00, 'SABAW', 0),
 (16, 3, 'TEST', 'prod_692458c655dfd.jpg', 22, 123.00, 'TESTING', 0),
-(17, 3, 'Bastos', 'prod_69257970d9854.png', 0, 599.00, 'Bastos', 1),
+(17, 3, 'Bastos', 'prod_69257970d9854.png', 12, 599.00, 'Bastos', 1),
 (18, 1, 'Banana Outfit', 'prod_692b4ed1382f0.jpg', 11, 999.00, '123', 1),
-(19, 2, 'TEST', 'prod_692b4ee95a1eb.jpg', 122, 123.00, '123', 1);
+(19, 2, 'TEST', 'prod_692b4ee95a1eb.jpg', 121, 123.00, '123', 1);
 
 -- --------------------------------------------------------
 
@@ -628,7 +640,95 @@ INSERT INTO `production_line` (`prod_line_id`, `product_name`, `length_m`, `widt
 (102, 'Warped Silk', 0.000, 0.000, 123.000, 1, '2025-11-26 05:21:21', 'in_progress'),
 (103, 'Piña Seda', 123.000, 123.000, 0.000, 123, '2025-11-26 05:21:29', 'in_progress'),
 (106, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-11-27 21:39:33', 'pending'),
-(107, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-11-27 21:39:33', 'pending');
+(107, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-11-27 21:39:33', 'pending'),
+(108, 'Piña Seda', 30.000, 30.000, 0.000, 1, '2025-11-29 21:16:31', 'pending'),
+(109, 'Piña Seda', 30.000, 30.000, 0.000, 1, '2025-11-29 21:16:31', 'pending'),
+(110, 'Piña Seda', 30.000, 30.000, 0.000, 1, '2025-11-29 21:16:31', 'pending'),
+(111, 'Piña Seda', 30.000, 30.000, 0.000, 1, '2025-11-29 21:16:31', 'pending'),
+(112, 'Piña Seda', 30.000, 30.000, 0.000, 1, '2025-11-29 21:16:31', 'pending'),
+(113, 'Piña Seda', 30.000, 30.000, 0.000, 1, '2025-11-29 21:16:31', 'pending'),
+(114, 'Piña Seda', 30.000, 30.000, 0.000, 1, '2025-11-29 21:16:31', 'pending'),
+(115, 'Piña Seda', 30.000, 30.000, 0.000, 1, '2025-11-29 21:16:31', 'pending'),
+(116, 'Piña Seda', 12.000, 12.000, 0.000, 1, '2025-11-29 21:17:36', 'in_progress'),
+(117, 'Piña Seda', 12.000, 12.000, 0.000, 1, '2025-11-29 21:17:36', 'pending'),
+(118, 'Piña Seda', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:23:01', 'in_progress'),
+(119, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:55:07', 'pending'),
+(120, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:55:07', 'pending'),
+(121, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:55:07', 'pending'),
+(122, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:55:07', 'pending'),
+(123, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:55:07', 'pending'),
+(124, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:55:07', 'pending'),
+(125, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:55:08', 'in_progress'),
+(126, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:55:08', 'in_progress'),
+(127, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:55:08', 'pending'),
+(128, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:55:08', 'pending'),
+(130, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:55:08', 'pending'),
+(131, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:55:08', 'pending'),
+(132, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2025-11-29 21:55:08', 'pending'),
+(133, 'Knotted Bastos', 0.000, 0.000, 123.000, 1, '2025-11-29 22:21:30', 'in_progress'),
+(134, 'Knotted Bastos', 0.000, 0.000, 123.000, 1, '2025-11-29 22:21:30', 'pending'),
+(135, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-11-30 17:52:06', 'pending'),
+(136, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-11-30 17:52:06', 'pending'),
+(137, 'Knotted Liniwan', 0.000, 0.000, 12321.000, 1, '2025-11-30 19:38:43', 'in_progress'),
+(138, 'Knotted Liniwan', 0.000, 0.000, 12321.000, 1, '2025-11-30 19:38:43', 'in_progress'),
+(139, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-11-30 22:45:47', 'pending'),
+(140, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-11-30 22:45:47', 'pending'),
+(141, 'Piña Seda', 23.000, 23.000, 0.000, 12, '2025-11-30 22:52:05', 'pending'),
+(142, 'Knotted Liniwan', 0.000, 0.000, 12.000, 1, '2025-11-30 22:55:37', 'pending'),
+(143, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-11-30 22:59:21', 'pending'),
+(144, 'Knotted Bastos', 0.000, 0.000, 123.000, 1, '2025-11-30 23:02:14', 'pending'),
+(145, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-11-30 23:09:20', 'pending'),
+(146, 'Knotted Bastos', 0.000, 0.000, 12.000, 1, '2025-11-30 23:13:15', 'pending'),
+(147, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-11-30 23:23:32', 'pending'),
+(148, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-11-30 23:23:32', 'pending'),
+(149, 'Knotted Bastos', 0.000, 0.000, 123.000, 1, '2025-11-30 23:26:52', 'pending'),
+(150, 'Knotted Bastos', 0.000, 0.000, 123.000, 1, '2025-11-30 23:26:52', 'pending'),
+(151, 'Knotted Bastos', 0.000, 0.000, 123.000, 1, '2025-12-01 00:04:54', 'pending'),
+(152, 'Knotted Bastos', 0.000, 0.000, 123.000, 1, '2025-12-01 00:04:54', 'pending'),
+(153, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-12-01 00:06:50', 'pending'),
+(154, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-12-01 00:06:50', 'pending'),
+(155, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-12-01 00:06:50', 'pending'),
+(156, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-12-01 00:06:50', 'pending'),
+(157, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-12-01 00:12:29', 'pending'),
+(158, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-12-01 00:12:29', 'pending'),
+(159, 'Knotted Bastos', 0.000, 0.000, 123.000, 1, '2025-12-01 00:12:56', 'pending'),
+(160, 'Knotted Bastos', 0.000, 0.000, 123.000, 1, '2025-12-01 00:12:56', 'pending'),
+(161, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1, '2025-12-01 00:18:59', 'pending'),
+(162, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1, '2025-12-01 00:18:59', 'pending'),
+(163, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-12-01 00:25:55', 'pending'),
+(164, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-12-01 00:25:55', 'pending'),
+(165, 'Pure Piña Cloth', 2213.000, 213.000, 0.000, 12, '2025-12-01 00:33:22', 'pending'),
+(166, 'Pure Piña Cloth', 2213.000, 213.000, 0.000, 12, '2025-12-01 00:33:22', 'pending'),
+(167, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-12-01 00:47:54', 'pending'),
+(168, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-12-01 00:47:54', 'pending'),
+(169, 'Knotted Liniwan', 0.000, 0.000, 34.000, 1, '2025-12-01 00:55:23', 'pending'),
+(171, 'Knotted Liniwan', 0.000, 0.000, 10.000, 1, '2025-12-01 13:43:12', 'pending'),
+(172, 'Knotted Liniwan', 0.000, 0.000, 10.000, 1, '2025-12-01 13:43:12', 'pending'),
+(173, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-12-01 13:44:03', 'pending'),
+(174, 'Knotted Liniwan', 12.000, 12.000, 123.000, 112, '2025-12-01 13:44:03', 'pending'),
+(175, 'Knotted Bastos', 0.000, 0.000, 12.000, 1, '2025-12-01 13:48:46', 'pending'),
+(176, 'Knotted Bastos', 12.000, 12.000, 12.000, 1, '2025-12-01 13:48:46', 'pending'),
+(177, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-12-01 13:50:13', 'in_progress'),
+(178, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2025-12-01 13:50:13', 'pending'),
+(179, 'Knotted Liniwan', 0.000, 0.000, 213.000, 1, '2025-12-01 13:55:28', 'in_progress'),
+(180, 'Knotted Liniwan', 0.000, 0.000, 213.000, 1, '2025-12-01 13:55:28', 'pending'),
+(181, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2026-01-05 08:21:08', 'pending'),
+(182, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1123, '2026-01-05 08:21:08', 'pending'),
+(183, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2026-01-05 11:25:23', 'pending'),
+(184, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2026-01-05 11:25:23', 'pending'),
+(185, 'Knotted Bastos', 0.000, 0.000, 123.000, 1, '2026-01-05 11:33:00', 'pending'),
+(186, 'Knotted Bastos', 0.000, 0.000, 123.000, 1, '2026-01-05 11:33:00', 'pending'),
+(187, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1, '2026-01-05 11:41:15', 'pending'),
+(188, 'Piña Seda', 123.000, 123.000, 0.000, 1123, '2026-01-05 11:44:05', 'pending'),
+(189, 'Pure Piña Cloth', 123.000, 123.000, 0.000, 1, '2026-01-05 11:44:15', 'pending'),
+(190, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2026-01-05 11:44:24', 'pending'),
+(191, 'Knotted Bastos', 0.000, 0.000, 123.000, 1, '2026-01-05 11:44:34', 'pending'),
+(192, 'Warped Silk', 0.000, 0.000, 123.000, 1, '2026-01-05 11:48:31', 'pending'),
+(193, 'Knotted Liniwan', 0.000, 0.000, 123.000, 1, '2026-01-06 06:26:14', 'pending'),
+(194, 'Piña Seda', 123.000, 123.000, 0.000, 1123, '2026-01-06 06:30:21', 'pending'),
+(195, 'Piña Seda', 123.000, 123.000, 0.000, 1123, '2026-01-06 06:30:43', 'pending'),
+(196, 'Knotted Bastos', 0.000, 0.000, 1.000, 1, '2026-01-06 06:40:29', 'pending'),
+(197, 'Piña Seda', 1.000, 1.000, 0.000, 1, '2026-01-06 06:40:49', 'in_progress');
 
 -- --------------------------------------------------------
 
@@ -672,7 +772,13 @@ CREATE TABLE `product_materials` (
 
 INSERT INTO `product_materials` (`id`, `product_name`, `material_type`, `material_name`, `material_qty`, `created_at`) VALUES
 (1, 'Plain and design', 'raw', 'Piña Cloth', 1.500, '2025-11-23 16:27:30'),
-(2, 'Barong tagalog', 'raw', 'Piña Cloth', 2.000, '2025-11-23 16:27:30');
+(2, 'Barong tagalog', 'raw', 'Piña Cloth', 2.000, '2025-11-23 16:27:30'),
+(3, 'Piña Seda', 'processed', 'Knotted Bastos', 15.000, '2026-01-05 00:11:36'),
+(4, 'Piña Seda', 'processed', 'Warped Silk', 7.000, '2026-01-05 00:11:36'),
+(5, 'Pure Piña Cloth', 'processed', 'Knotted Liniwan', 22.000, '2026-01-05 00:11:36'),
+(6, 'Knotted Liniwan', 'raw', 'Piña Loose', 1.220, '2026-01-05 00:11:36'),
+(7, 'Knotted Bastos', 'raw', 'Piña Loose', 1.220, '2026-01-05 00:11:36'),
+(8, 'Warped Silk', 'raw', 'Silk', 1.200, '2026-01-05 00:11:36');
 
 -- --------------------------------------------------------
 
@@ -733,7 +839,8 @@ INSERT INTO `product_stock` (`pstock_id`, `pstock_user_id`, `pstock_prod_id`, `p
 (33, 7, '19', 'Stock Out', 1, '123 -> 122', '2025-11-29 19:53:05'),
 (34, 7, '17', 'Stock Out', 1, '10 -> 9', '2025-11-29 19:53:05'),
 (35, 7, '17', 'Stock Out', 6, '9 -> 3', '2025-11-29 19:55:59'),
-(36, 7, '17', 'Stock Out', 3, '3 -> 0', '2025-11-29 19:59:33');
+(36, 7, '17', 'Stock Out', 3, '3 -> 0', '2025-11-29 19:59:33'),
+(37, 7, '19', 'Stock Out', 1, '122 -> 121', '2026-01-05 13:15:23');
 
 -- --------------------------------------------------------
 
@@ -757,10 +864,8 @@ CREATE TABLE `raw_materials` (
 --
 
 INSERT INTO `raw_materials` (`id`, `raw_materials_name`, `category`, `rm_quantity`, `rm_unit`, `rm_status`, `supplier_name`, `unit_cost`) VALUES
-(14, 'Piña Loose', 'Bastos', 98393.260, 'gram', 'Available', 'Ryan', 0.00),
-(15, 'Piña Loose', 'Liniwan/Washout', 95954.480, 'gram', 'Available', 'Ryan', 0.00),
-(16, 'Silk', '', 99749.200, 'gram', 'Available', 'Ryan', 0.00),
-(17, 'Silk', '', 123.000, 'gram', 'Available', 'mang berting', 0.00),
+(14, 'Piña Loose', 'Bastos', 96609.500, 'gram', 'Available', 'Ryan', 0.00),
+(15, 'Piña Loose', 'Liniwan/Washout', 80498.300, 'gram', 'Available', 'Ryan', 0.00),
 (19, 'Silk', '', 123.000, 'gram', 'Available', '123123', 123.00);
 
 -- --------------------------------------------------------
@@ -917,7 +1022,16 @@ INSERT INTO `stock_history` (`stock_id`, `stock_user_type`, `stock_raw_id`, `sto
 (159, 'member', 15, 5, 'Stock Out', 14.64, '96510.800 -> 96496.160', '2025-11-24 14:48:18', 0),
 (160, 'member', 15, 5, 'Stock Out', 391.62, '96496.15999999999 -> 96104.540', '2025-11-27 19:40:42', 0),
 (161, 'member', 15, 5, 'Stock Out', 150.06, '96104.54 -> 95954.480', '2025-11-27 21:38:28', 0),
-(162, 'member', 14, 5, 'Stock Out', 150.06, '98543.31999999999 -> 98393.260', '2025-11-27 21:40:24', 0);
+(162, 'member', 14, 5, 'Stock Out', 150.06, '98543.31999999999 -> 98393.260', '2025-11-27 21:40:24', 0),
+(163, 'member', 15, 5, 'Stock Out', 14.64, '95954.48 -> 95939.840', '2025-11-30 01:34:33', 0),
+(164, 'member', 14, 5, 'Stock Out', 150.06, '98393.260 -> 98243.200', '2025-11-30 06:59:38', 0),
+(165, 'member', 15, 5, 'Stock Out', 15031.62, '95939.840 -> 80908.220', '2025-11-30 21:24:07', 0),
+(166, 'member', 15, 5, 'Stock Out', 150.06, '80908.220 -> 80758.160', '2025-12-01 13:51:25', 0),
+(167, 'member', 14, 5, 'Stock Out', 150.06, '98238.2 -> 98088.140', '2026-01-06 03:19:29', 0),
+(168, 'member', 14, 5, 'Stock Out', 1478.64, '98088.14 -> 96609.500', '2026-01-06 03:24:23', 0),
+(169, 'member', 15, 5, 'Stock Out', 259.86, '80758.160 -> 80498.300', '2026-01-06 03:37:33', 0),
+(170, 'member', 1, 14, 'Stock Out', 15.00, '2445.000 -> 2430.000', '2026-01-06 06:40:55', 1),
+(171, 'member', 3, 14, 'Stock Out', 7.00, '1075.000 -> 1068.000', '2026-01-06 06:40:55', 1);
 
 -- --------------------------------------------------------
 
@@ -985,7 +1099,12 @@ INSERT INTO `task_approval_requests` (`id`, `production_id`, `member_id`, `membe
 (63, 'PL0029', 5, 'jenrose  mon', 'knotter', 'Knotted Bastos', 123.00, 1, '2025-11-27 19:29:32', NULL, 'approved'),
 (64, 'PL0030', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 321.00, 1, '2025-11-27 19:40:11', NULL, 'approved'),
 (65, 'PL0031', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 123.00, 1, '2025-11-27 21:36:06', NULL, 'approved'),
-(66, 'PL0032', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 12.00, 1, '2025-11-27 21:40:31', NULL, 'approved');
+(66, 'PL0032', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 12.00, 1, '2025-11-27 21:40:31', NULL, 'approved'),
+(68, 'PL0033', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 123.00, 1, '2025-11-30 19:23:45', NULL, 'approved'),
+(69, 'PL0034', 5, 'jenrose  mon123', 'knotter', 'Knotted Liniwan', 123.00, 1, '2026-01-06 03:07:44', NULL, 'approved'),
+(70, 'PL0035', 5, 'jenrose  mon123', 'knotter', 'Knotted Bastos', 123.00, 1, '2026-01-06 03:18:23', NULL, 'approved'),
+(71, 'PL0036', 5, 'jenrose  mon123', 'knotter', 'Knotted Bastos', 1212.00, 1, '2026-01-06 03:23:41', NULL, 'approved'),
+(72, 'PL0037', 5, 'jenrose  mon123', 'knotter', 'Knotted Liniwan', 123423.00, 1, '2026-01-06 03:42:37', NULL, 'approved');
 
 --
 -- Triggers `task_approval_requests`
@@ -1091,7 +1210,29 @@ INSERT INTO `task_assignments` (`id`, `prod_line_id`, `member_id`, `role`, `stat
 (127, 99, 4, 'weaver', 'pending', 0, '2025-11-29', '2025-11-24 13:01:49', '2025-11-24 13:01:49'),
 (128, 100, 5, 'knotter', 'completed', 0, '2025-12-03', '2025-11-24 13:39:18', '2025-11-25 03:59:45'),
 (129, 103, 4, 'weaver', 'pending', 0, '2025-11-28', '2025-11-27 20:21:54', '2025-11-27 20:21:54'),
-(130, 102, 2, 'warper', 'pending', 0, '2025-12-04', '2025-11-27 21:33:44', '2025-11-27 21:33:44');
+(130, 102, 2, 'warper', 'pending', 0, '2025-12-04', '2025-11-27 21:33:44', '2025-11-27 21:33:44'),
+(132, 118, 4, 'weaver', 'pending', 0, '2025-11-24', '2025-11-29 21:53:35', '2025-11-29 21:53:35'),
+(133, 116, 4, 'weaver', 'pending', 0, '2025-12-02', '2025-11-29 21:54:20', '2025-11-29 21:54:20'),
+(134, 125, 4, 'weaver', 'pending', 0, '2025-11-30', '2025-11-29 21:55:54', '2025-11-29 21:55:54'),
+(136, 126, 4, 'weaver', 'pending', 0, '2025-11-30', '2025-11-29 21:57:14', '2025-11-29 21:57:14'),
+(137, 133, 5, 'knotter', 'completed', 0, '2025-12-04', '2025-11-30 06:59:19', '2025-11-30 20:22:15'),
+(138, 133, 5, 'knotter', 'completed', 0, '2025-12-04', '2025-11-30 06:59:19', '2025-11-30 20:22:15'),
+(139, 137, 5, 'knotter', 'in_progress', 0, '2025-12-04', '2025-11-30 19:39:29', '2025-11-30 21:24:07'),
+(140, 138, 5, 'knotter', 'declined', 0, '2025-12-02', '2025-11-30 21:24:48', '2026-01-06 03:37:45'),
+(141, 177, 5, 'knotter', 'in_progress', 0, '2025-12-03', '2025-12-01 13:50:34', '2025-12-01 13:51:25'),
+(142, 179, 1, 'knotter', 'pending', 0, '2026-01-11', '2025-12-02 06:23:36', '2026-01-04 23:53:47'),
+(143, 179, 5, 'knotter', 'submitted', 0, '2026-01-02', '2025-12-02 06:23:36', '2026-01-06 05:50:53'),
+(144, 187, 14, 'weaver', 'pending', 0, '2026-01-12', '2026-01-05 11:41:15', '2026-01-05 11:41:15'),
+(145, 188, 14, 'weaver', 'pending', 0, '2026-01-12', '2026-01-05 11:44:05', '2026-01-05 11:44:05'),
+(146, 189, 14, 'weaver', 'pending', 0, '2026-01-12', '2026-01-05 11:44:15', '2026-01-05 11:44:15'),
+(147, 190, 9, 'knotter', 'pending', 0, '2026-01-12', '2026-01-05 11:44:24', '2026-01-05 11:44:24'),
+(148, 191, 1, 'knotter', 'pending', 0, '2026-01-12', '2026-01-05 11:44:34', '2026-01-05 14:16:28'),
+(149, 192, 2, 'warper', 'pending', 0, '2026-01-12', '2026-01-05 11:48:31', '2026-01-05 11:55:36'),
+(150, 193, 1, 'knotter', 'declined', 0, '2026-01-13', '2026-01-06 06:26:14', '2026-01-06 06:27:50'),
+(151, 194, 14, 'weaver', 'pending', 0, '2026-01-13', '2026-01-06 06:30:21', '2026-01-06 06:30:21'),
+(152, 195, 14, 'weaver', 'declined', 0, '2026-01-13', '2026-01-06 06:30:43', '2026-01-06 06:41:24'),
+(153, 196, 5, 'knotter', 'pending', 0, '2026-01-13', '2026-01-06 06:40:29', '2026-01-06 06:40:29'),
+(154, 197, 14, 'weaver', 'in_progress', 0, '2026-01-13', '2026-01-06 06:40:49', '2026-01-06 06:40:55');
 
 --
 -- Triggers `task_assignments`
@@ -1191,11 +1332,19 @@ INSERT INTO `task_completion_confirmations` (`id`, `production_id`, `member_id`,
 (67, 'PL0023', 1, 'jenny rose montille', 'knotter', 'Knotted Bastos', 10.00, '2025-08-01 05:29:08', '2025-08-01 05:29:28', 'completed', '2025-07-31 21:29:08', '2025-07-31 21:29:41'),
 (76, 'PL0030', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 321.00, '2025-11-28 03:40:25', '2025-11-28 03:50:40', 'submitted', '2025-11-27 19:40:25', '2025-11-27 19:50:40'),
 (77, 'PL0030', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 321.00, '2025-11-28 03:40:42', '2025-11-28 03:50:40', 'submitted', '2025-11-27 19:40:42', '2025-11-27 19:50:40'),
-(78, 'PL0029', 5, 'jenrose  mon', 'knotter', 'Knotted Bastos', 123.00, '2025-11-28 03:59:56', '2025-11-30 03:25:54', 'submitted', '2025-11-27 19:59:56', '2025-11-29 19:25:54'),
+(78, 'PL0029', 5, 'jenrose  mon', 'knotter', 'Knotted Bastos', 123.00, '2025-11-28 03:59:56', '2025-11-30 03:25:54', 'completed', '2025-11-27 19:59:56', '2025-11-30 17:55:53'),
 (79, 'PL0031', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 123.00, '2025-11-28 05:38:00', '2025-11-28 05:40:14', 'submitted', '2025-11-27 21:38:00', '2025-11-27 21:40:14'),
 (80, 'PL0031', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 123.00, '2025-11-28 05:38:28', '2025-11-28 05:40:14', 'submitted', '2025-11-27 21:38:28', '2025-11-27 21:40:14'),
-(81, 'PL0029', 5, 'jenrose  mon', 'knotter', 'Knotted Bastos', 123.00, '2025-11-28 05:40:24', '2025-11-30 03:25:54', 'submitted', '2025-11-27 21:40:24', '2025-11-29 19:25:54'),
-(82, 'PL0032', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 12.00, '2025-11-28 05:41:08', NULL, 'in_progress', '2025-11-27 21:41:08', '2025-11-27 21:41:08');
+(81, 'PL0029', 5, 'jenrose  mon', 'knotter', 'Knotted Bastos', 123.00, '2025-11-28 05:40:24', '2025-11-30 03:25:54', 'completed', '2025-11-27 21:40:24', '2025-11-30 17:55:53'),
+(82, 'PL0032', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 12.00, '2025-11-28 05:41:08', '2025-11-30 14:42:06', 'completed', '2025-11-27 21:41:08', '2025-11-30 17:53:58'),
+(83, 'PL0032', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 12.00, '2025-11-30 09:34:33', '2025-11-30 14:42:06', 'completed', '2025-11-30 01:34:33', '2025-11-30 17:53:58'),
+(84, 'PL0033', 5, 'jenrose  mon', 'knotter', 'Knotted Liniwan', 123.00, '2025-12-01 04:22:10', NULL, 'in_progress', '2025-11-30 20:22:10', '2025-11-30 20:22:10'),
+(85, 'PL0034', 5, 'jenrose  mon123', 'knotter', 'Knotted Liniwan', 123.00, '2026-01-06 11:07:54', NULL, 'in_progress', '2026-01-06 03:07:54', '2026-01-06 03:07:54'),
+(86, 'PL0035', 5, 'jenrose  mon123', 'knotter', 'Knotted Bastos', 123.00, '2026-01-06 11:18:31', '2026-01-06 11:26:12', 'submitted', '2026-01-06 03:18:31', '2026-01-06 03:26:12'),
+(87, 'PL0035', 5, 'jenrose  mon123', 'knotter', 'Knotted Bastos', 123.00, '2026-01-06 11:19:29', '2026-01-06 11:26:12', 'submitted', '2026-01-06 03:19:29', '2026-01-06 03:26:12'),
+(88, 'PL0036', 5, 'jenrose  mon123', 'knotter', 'Knotted Bastos', 1212.00, '2026-01-06 11:24:01', '2026-01-06 11:26:08', 'completed', '2026-01-06 03:24:01', '2026-01-06 03:27:51'),
+(89, 'PL0036', 5, 'jenrose  mon123', 'knotter', 'Knotted Bastos', 1212.00, '2026-01-06 11:24:23', '2026-01-06 11:26:08', 'completed', '2026-01-06 03:24:23', '2026-01-06 03:27:51'),
+(90, 'PL0037', 5, 'jenrose  mon123', 'knotter', 'Knotted Liniwan', 123423.00, '2026-01-06 11:44:12', NULL, 'in_progress', '2026-01-06 03:44:12', '2026-01-06 03:44:12');
 
 -- --------------------------------------------------------
 
@@ -1217,6 +1366,15 @@ CREATE TABLE `task_decline_notifications` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `task_decline_notifications`
+--
+
+INSERT INTO `task_decline_notifications` (`id`, `task_assignment_id`, `prod_line_id`, `member_id`, `member_reason`, `admin_message`, `status`, `declined_at`, `admin_message_at`, `member_ack_at`, `created_at`, `updated_at`) VALUES
+(2, 140, 138, 5, 'cute kase ako', NULL, 'pending', '2026-01-06 03:37:45', NULL, NULL, '2026-01-06 03:37:45', '2026-01-06 03:37:45'),
+(3, 150, 193, 5, 'BINAHA KAMI', NULL, 'pending', '2026-01-06 06:26:42', NULL, NULL, '2026-01-06 06:26:42', '2026-01-06 06:26:42'),
+(4, 152, 195, 14, 'KULANG DAW YUNG MATERIALS ANTE', NULL, 'pending', '2026-01-06 06:41:24', NULL, NULL, '2026-01-06 06:41:24', '2026-01-06 06:41:24');
 
 -- --------------------------------------------------------
 
@@ -1261,7 +1419,7 @@ CREATE TABLE `user_customer` (
 
 INSERT INTO `user_customer` (`customer_id`, `customer_fullname`, `customer_email`, `customer_phone`, `customer_password`, `customer_status`, `customer_address`) VALUES
 (6, 'Joshua Anderson Padilla', 'jcustom@gmail.com', '09454454741', '$2y$10$Ehvc1AwmVnjhfMT.arbdEuseTS2l9bR9P0eQRjpDOXHHh7eZ9Shx6', 1, NULL),
-(7, 'johnny bravo', 'asejo.32@gmail.com', '09475316387', '$2y$10$X4aw./fN6jeUgY96ekA3GuG5u0QWLztn6CmGhcET/pbLutYL.tQyy', 1, 'bahay'),
+(7, 'johnny bravo', 'asejo.32@gmail.com', '09475316387', '$2y$10$tCmYP3KwwNjEJ69PrLXHoe9cVwB2reFAlR/FrvCRB5.DgGRZ7sMIi', 1, 'bahay'),
 (8, 'johnny sins', 'asejo.32@gmail.comp', '2345346356534', '$2y$10$by5dyptWPzIL5wOzrXxjWOoKnmQZjXE1SrSZ55QI/xS70G7CCZA8.', 1, NULL),
 (9, 'johnny sins', 'asejojeff975@gmail.com', '12312312312312', '$2y$10$VwVepjPdAIT0F5ij0rYthu3Ah4CyuzL.t8134NTprc9UicBnPDGm6', 1, NULL);
 
@@ -1293,8 +1451,13 @@ INSERT INTO `user_member` (`id`, `id_number`, `fullname`, `email`, `phone`, `rol
 (1, 'KNO-2025-001', 'jenny rose montille', 'jenny@gmail.com', '123456789', 'knotter', 'female', '$2y$10$lmMac2q73h6u0Eg5DT5ktOOe2r48L3pYo/xmQJmRKhoZlC6CgsQM2', 1, 'available', '2025-07-02 05:54:12'),
 (2, 'WAR-2025-001', 'thea 213', '213@gmail.com', '123456789', 'warper', 'female', '$2y$10$IIAht6dF37swUgccBmDEmuTxAMSTFR69L14m7CgsskgAlE7s0fune', 1, 'available', '2025-07-02 05:55:48'),
 (4, 'WEA-2025-001', 'bem nov pornel', '1234@gmail.com', '123456789', 'weaver', 'female', '$2y$10$.sGlAXAGBCdzVccPHFezIOQAodpEHxvJPtRjjBEqrLwGzXdjADzz2', 1, 'available', '2025-07-17 07:33:30'),
-(5, 'KNO-2025-002', 'jenrose  mon', 'jen123@gmail.com', '12345678', 'knotter', 'female', '$2y$10$PGlUQf.FC9MaLDDrRRTy2uYHTeBmhtAJDnUWn55A.3h./eOGTlW4q', 1, 'available', '2025-08-01 03:42:50'),
-(9, 'KNO-2025-004', 'asdasdasd asdasdas', 'dasdasdasd@gmail.copm234', '123123123123123', 'knotter', 'female', '$2y$10$ZjL06EOXw2/ok4TSlkD4ZOUuCqqs98L/TTQemr2lrvsXT6W/y382y', 1, 'available', '2025-11-23 06:47:15');
+(5, 'KNO-2025-002', 'jenrose  mon123', 'jen123@gmail.com', '7867867867856', 'knotter', 'female', '$2y$10$PGlUQf.FC9MaLDDrRRTy2uYHTeBmhtAJDnUWn55A.3h./eOGTlW4q', 1, 'available', '2025-08-01 03:42:50'),
+(9, 'KNO-2025-004', 'asdasdasd asdasdas', 'dasdasdasd@gmail.copm234', '123123123123123', 'knotter', 'female', '$2y$10$ZjL06EOXw2/ok4TSlkD4ZOUuCqqs98L/TTQemr2lrvsXT6W/y382y', 1, 'available', '2025-11-23 06:47:15'),
+(12, 'WAR-2025-002', 'Erson Hayes', 'jeffersonasejo@yahoo.com', '09475633165', 'warper', 'male', '$2y$10$mKNIKarGSHAritjKNB5ue.Kdm1U/RfSC9VqDoTbUr7jRSsNkbrbr6', 0, 'available', '2025-11-30 18:39:58'),
+(13, 'WAR-2026-001', 'Erson Hayes', 'erer@yahoo.com', '09475633165', 'warper', 'male', '$2y$10$LjFHu4dmmkhnJsQY.HDd9e763eCRCA/bJLgrdRaeG.s/8dfamsbie', 1, 'available', '2026-01-04 23:56:43'),
+(14, 'WEA-2026-001', 'john b', 'jljamero.32@gmail.com', '09475633165', 'weaver', 'male', '$2y$10$RVOrCTKKlKkOx3q47I2vA.3c.ACcHjvAnqAXdU3y.V/fI7LvsYoDe', 1, 'available', '2026-01-04 23:57:56'),
+(15, 'KNO-2026-001', 'j sur baygon', '123123123@gmail.com', '09475633165', 'knotter', 'male', '$2y$10$kbLeuC0RDKfIwz0q49BfeuLnn0OhsOYLcPI7eP2A/RW8pBOkSPP96', 0, 'available', '2026-01-05 12:13:39'),
+(16, 'WEA-2026-002', 'johnny bravo', '123123@123.com', '12312312', 'weaver', 'female', '$2y$10$PtIAj2ikU1UOggkIzAtIueCtiC7egP9aCurtkSf/wVqCzWXcJKnqu', 0, 'available', '2026-01-06 03:50:20');
 
 -- --------------------------------------------------------
 
@@ -1525,7 +1688,7 @@ ALTER TABLE `weaver`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `customer_messages`
@@ -1543,25 +1706,25 @@ ALTER TABLE `finished_products`
 -- AUTO_INCREMENT for table `member_self_tasks`
 --
 ALTER TABLE `member_self_tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
 -- AUTO_INCREMENT for table `payment_records`
 --
 ALTER TABLE `payment_records`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
 -- AUTO_INCREMENT for table `processed_materials`
@@ -1579,7 +1742,7 @@ ALTER TABLE `product`
 -- AUTO_INCREMENT for table `production_line`
 --
 ALTER TABLE `production_line`
-  MODIFY `prod_line_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=108;
+  MODIFY `prod_line_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=198;
 
 --
 -- AUTO_INCREMENT for table `product_category`
@@ -1591,7 +1754,7 @@ ALTER TABLE `product_category`
 -- AUTO_INCREMENT for table `product_materials`
 --
 ALTER TABLE `product_materials`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `product_raw_materials`
@@ -1603,7 +1766,7 @@ ALTER TABLE `product_raw_materials`
 -- AUTO_INCREMENT for table `product_stock`
 --
 ALTER TABLE `product_stock`
-  MODIFY `pstock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `pstock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `raw_materials`
@@ -1615,7 +1778,7 @@ ALTER TABLE `raw_materials`
 -- AUTO_INCREMENT for table `stock_history`
 --
 ALTER TABLE `stock_history`
-  MODIFY `stock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=163;
+  MODIFY `stock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=172;
 
 --
 -- AUTO_INCREMENT for table `task`
@@ -1627,25 +1790,25 @@ ALTER TABLE `task`
 -- AUTO_INCREMENT for table `task_approval_requests`
 --
 ALTER TABLE `task_approval_requests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
 
 --
 -- AUTO_INCREMENT for table `task_assignments`
 --
 ALTER TABLE `task_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=132;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=155;
 
 --
 -- AUTO_INCREMENT for table `task_completion_confirmations`
 --
 ALTER TABLE `task_completion_confirmations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=91;
 
 --
 -- AUTO_INCREMENT for table `task_decline_notifications`
 --
 ALTER TABLE `task_decline_notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `user_admin`
@@ -1663,7 +1826,7 @@ ALTER TABLE `user_customer`
 -- AUTO_INCREMENT for table `user_member`
 --
 ALTER TABLE `user_member`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `weaver`
