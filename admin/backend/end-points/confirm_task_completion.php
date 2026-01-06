@@ -31,37 +31,92 @@ try {
     $db->begin_transaction();
 
     try {
-        // Get task completion details - check task_assignments, member_self_tasks, and task_completion_confirmations
-        $get_task = $db->prepare("
-            SELECT 
-                COALESCE(mst.production_id, ta.prod_line_id) as production_id,
-                COALESCE(mst.product_name, pl.product_name) as product_name,
-                COALESCE(mst.weight_g, pl.weight_g) as weight,
-                COALESCE(mst.member_id, ta.member_id) as member_id,
-                um.role,
-                CASE 
-                    WHEN mst.production_id IS NOT NULL THEN 'self_assigned'
-                    ELSE 'regular_assigned'
-                END as task_type,
-                mst.status as mst_status,
-                ta.status as ta_status,
-                COALESCE(mst.length_m, pl.length_m) as length_m,
-                COALESCE(mst.width_in, pl.width_m) as width_m,
-                COALESCE(mst.quantity, pl.quantity) as quantity
-            FROM user_member um
-            LEFT JOIN member_self_tasks mst ON um.id = mst.member_id AND (mst.production_id = ? OR CAST(mst.production_id AS UNSIGNED) = ?) AND mst.status IN ('submitted', 'in_progress')
-            LEFT JOIN task_assignments ta ON um.id = ta.member_id AND ta.prod_line_id = ? AND ta.status = 'submitted'
-            LEFT JOIN production_line pl ON (ta.prod_line_id = pl.prod_line_id OR CAST(mst.production_id AS UNSIGNED) = pl.prod_line_id)
-            WHERE (mst.production_id = ? OR ta.prod_line_id = ?)
-            AND um.id = COALESCE(mst.member_id, ta.member_id)
+        // First, check if this is a member_self_task or a regular task_assignment
+        $check_source = $db->prepare("
+            SELECT 'self_assigned' as source
+            FROM member_self_tasks
+            WHERE production_id = ? AND status IN ('submitted', 'in_progress')
+            
+            UNION
+            
+            SELECT 'regular_assigned' as source
+            FROM task_assignments ta
+            JOIN production_line pl ON ta.prod_line_id = pl.prod_line_id
+            WHERE ta.prod_line_id = ? AND ta.status = 'submitted'
+            
             LIMIT 1
         ");
 
-        if (!$get_task) {
-            throw new Exception("Failed to prepare task query: " . $db->error);
+        if (!$check_source) {
+            throw new Exception("Failed to prepare source check query: " . $db->error);
         }
 
-        $get_task->bind_param("sssss", $production_id, $production_id, $production_id, $production_id, $production_id);
+        $check_source->bind_param("ss", $production_id, $production_id);
+        if (!$check_source->execute()) {
+            throw new Exception("Failed to check task source: " . $check_source->error);
+        }
+
+        $source_result = $check_source->get_result();
+        $source_row = $source_result->fetch_assoc();
+        
+        if (!$source_row) {
+            error_log("Task source not found for production_id: " . $production_id);
+            throw new Exception("Task not found or not submitted. Production ID: " . $production_id);
+        }
+
+        $task_type = $source_row['source'];
+        error_log("Found task source: " . $task_type . " for production_id: " . $production_id);
+
+        // Now get the full task details based on source
+        if ($task_type === 'self_assigned') {
+            $get_task = $db->prepare("
+                SELECT 
+                    mst.production_id,
+                    mst.product_name,
+                    mst.weight_g,
+                    mst.length_m,
+                    mst.width_in,
+                    mst.quantity,
+                    mst.member_id,
+                    um.role,
+                    'self_assigned' as task_type
+                FROM member_self_tasks mst
+                LEFT JOIN user_member um ON mst.member_id = um.id
+                WHERE mst.production_id = ? AND mst.status IN ('submitted', 'in_progress')
+                LIMIT 1
+            ");
+            
+            if (!$get_task) {
+                throw new Exception("Failed to prepare self-assigned task query: " . $db->error);
+            }
+            
+            $get_task->bind_param("s", $production_id);
+        } else {
+            $get_task = $db->prepare("
+                SELECT 
+                    ta.prod_line_id as production_id,
+                    pl.product_name,
+                    pl.weight_g,
+                    pl.length_m,
+                    pl.width_m,
+                    pl.quantity,
+                    ta.member_id,
+                    um.role,
+                    'regular_assigned' as task_type
+                FROM task_assignments ta
+                JOIN production_line pl ON ta.prod_line_id = pl.prod_line_id
+                LEFT JOIN user_member um ON ta.member_id = um.id
+                WHERE ta.prod_line_id = ? AND ta.status = 'submitted'
+                LIMIT 1
+            ");
+            
+            if (!$get_task) {
+                throw new Exception("Failed to prepare regular task query: " . $db->error);
+            }
+            
+            $get_task->bind_param("s", $production_id);
+        }
+
         if (!$get_task->execute()) {
             throw new Exception("Failed to get task details: " . $get_task->error);
         }
