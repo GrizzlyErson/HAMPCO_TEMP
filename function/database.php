@@ -10,7 +10,7 @@ class Database {
     public function __construct() {
         $this->connectMySQLi();
         $this->connectPDO();
-        $this->run_migrations();
+        // $this->run_migrations();
     }
 
     private function run_migrations() {
@@ -35,7 +35,9 @@ class Database {
         $this->conn = new mysqli($this->host, $this->username, $this->password, $this->dbname);
         if ($this->conn->connect_error) {
             error_log("MySQLi Connection failed: " . $this->conn->connect_error);
-            die("Connection failed. Please try again later.");
+            echo json_encode(['success' => false, 'message' => 'Database connection failed. Please try again later.']);
+            exit;
+
         }
     }
 
@@ -46,7 +48,9 @@ class Database {
             $this->pdo->exec("SET NAMES utf8");
         } catch(PDOException $e) {
             error_log("PDO Connection failed: " . $e->getMessage());
-            die("Connection failed. Please try again later.");
+            echo json_encode(['success' => false, 'message' => 'Database connection failed. Please try again later.']);
+            exit;
+
         }
     }
 
