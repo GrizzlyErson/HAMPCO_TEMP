@@ -73,8 +73,8 @@ try {
                     tdn.declined_at,
                     tdn.admin_message_at
                 FROM task_decline_notifications tdn
-                JOIN production_line pl ON tdn.prod_line_id = pl.prod_line_id
-                JOIN user_member um ON tdn.member_id = um.id
+                LEFT JOIN production_line pl ON tdn.prod_line_id = pl.prod_line_id
+                LEFT JOIN user_member um ON tdn.member_id = um.id
             ";
 
             if ($statusFilter !== 'all') {
@@ -98,6 +98,14 @@ try {
             while ($row = $result->fetch_assoc()) {
                 $declines[] = $row;
             }
+            $stmt->close();
+
+            echo json_encode([
+                'success' => true,
+                'declines' => $declines,
+                'count' => count($declines)
+            ]);
+            break;
             $stmt->close();
 
             echo json_encode([

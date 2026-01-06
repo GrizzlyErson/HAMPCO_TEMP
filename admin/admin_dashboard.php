@@ -558,11 +558,14 @@ require_once "components/header.php";
                     fetch('backend/end-points/task_declines.php?action=list&status=all')
                         .then(r => {
                             console.log('Get declined tasks response status:', r.status);
+                            if (!r.ok) {
+                                throw new Error(`HTTP error! status: ${r.status}`);
+                            }
                             return r.json();
                         })
                         .catch(e => {
                             console.error('Error fetching declined tasks:', e);
-                            return { declines: [] };
+                            return { success: false, declines: [], error: e.message };
                         })
                 ])
                 .then(([memberData, notifData, declineData]) => {

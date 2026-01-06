@@ -12,7 +12,7 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['user_type']) || $_SESSION['user
 $db = new global_class();
 
 try {
-    // Query to get all task requests with member details, excluding approved tasks
+    // Query to get all task requests with member details, excluding approved/rejected tasks
     $query = "SELECT 
         tar.id as request_id,
         tar.production_id,
@@ -26,6 +26,7 @@ try {
         um.role
     FROM task_approval_requests tar
     JOIN user_member um ON tar.member_id = um.id
+    WHERE tar.status = 'pending'
     ORDER BY tar.date_created DESC";
 
     $result = mysqli_query($db->conn, $query);
