@@ -92,7 +92,13 @@ try {
     }
     
     // Use call_user_func_array to bind parameters dynamically
-    call_user_func_array([$stmt, 'bind_param'], array_merge([$bind_types], $bind_params));
+    // The bind_param method requires parameters to be passed by reference.
+    // We need to create an array of references for the values.
+    $refs = [];
+    foreach ($bind_params as $key => $value) {
+        $refs[$key] = &$bind_params[$key];
+    }
+    call_user_func_array([$stmt, 'bind_param'], array_merge([$bind_types], $refs));
 
     if ($stmt->execute()) {
         $task_id = $stmt->insert_id;
