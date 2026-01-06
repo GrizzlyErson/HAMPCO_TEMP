@@ -13,19 +13,21 @@ $db = new global_class();
 
 try {
     // Query to get all task requests with member details, excluding approved/rejected tasks
+    // Left join with member_self_tasks to get product_name if it's not available in task_approval_requests
     $query = "SELECT 
         tar.id as request_id,
         tar.production_id,
         tar.member_id,
-        tar.product_name,
-        tar.weight_g,
-        tar.quantity,
+        COALESCE(tar.product_name, mst.product_name) as product_name,
+        COALESCE(tar.weight_g, mst.weight_g) as weight_g,
+        COALESCE(tar.quantity, mst.quantity) as quantity,
         tar.date_created,
         tar.status,
         um.fullname as member_name,
         um.role
     FROM task_approval_requests tar
     JOIN user_member um ON tar.member_id = um.id
+    LEFT JOIN member_self_tasks mst ON tar.production_id = mst.production_id AND tar.member_id = mst.member_id
     WHERE tar.status = 'pending'
     ORDER BY tar.date_created DESC";
 

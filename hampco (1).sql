@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 06, 2026 at 04:47 PM
+-- Generation Time: Jan 06, 2026 at 07:26 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -79,18 +79,19 @@ CREATE TABLE `finished_products` (
   `length_m` decimal(10,3) NOT NULL,
   `width_m` decimal(10,3) NOT NULL,
   `quantity` int(11) NOT NULL,
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `unit_cost` decimal(10,2) DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `finished_products`
 --
 
-INSERT INTO `finished_products` (`id`, `product_name`, `length_m`, `width_m`, `quantity`, `updated_at`) VALUES
-(1, 'Knotted Liniwan', 0.000, 0.000, 1, '2025-07-18 08:40:19'),
-(2, 'Piña Seda', 1.000, 30.000, 7, '2025-07-27 14:07:15'),
-(3, 'Piña Seda', 1.000, 30.000, 1, '2025-07-18 09:18:59'),
-(4, 'Pure Piña Cloth', 1.000, 30.000, 2, '2025-07-18 10:10:07');
+INSERT INTO `finished_products` (`id`, `product_name`, `length_m`, `width_m`, `quantity`, `updated_at`, `unit_cost`) VALUES
+(1, 'Knotted Liniwan', 0.000, 0.000, 1, '2025-07-18 08:40:19', 0.00),
+(2, 'Piña Seda', 1.000, 30.000, 7, '2026-01-06 18:15:07', 542.00),
+(3, 'Piña Seda', 1.000, 30.000, 1, '2025-07-18 09:18:59', 0.00),
+(4, 'Pure Piña Cloth', 1.000, 30.000, 2, '2026-01-06 18:15:22', 550.00);
 
 -- --------------------------------------------------------
 
@@ -139,7 +140,7 @@ CREATE TABLE `member_self_tasks` (
   `member_id` int(11) NOT NULL,
   `product_name` enum('Knotted Liniwan','Knotted Bastos','Warped Silk','Piña Seda','Pure Piña Cloth') NOT NULL,
   `weight_g` decimal(10,2) NOT NULL,
-  `status` enum('pending','in_progress','submitted','completed') NOT NULL DEFAULT 'pending',
+  `status` enum('pending','in_progress','submitted','rejected') NOT NULL DEFAULT 'pending',
   `approval_status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `raw_materials` text DEFAULT NULL,
   `date_created` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -154,35 +155,35 @@ CREATE TABLE `member_self_tasks` (
 --
 
 INSERT INTO `member_self_tasks` (`id`, `production_id`, `member_id`, `product_name`, `weight_g`, `status`, `approval_status`, `raw_materials`, `date_created`, `date_submitted`, `length_m`, `width_in`, `quantity`) VALUES
-(32, 'PL0003', 1, 'Knotted Liniwan', 12.00, 'completed', 'pending', NULL, '2025-07-29 11:21:10', '2025-07-29 11:21:29', NULL, NULL, NULL),
-(33, 'PL0004', 1, 'Knotted Bastos', 12.00, 'completed', 'pending', NULL, '2025-07-29 11:25:07', '2025-07-29 11:25:21', NULL, NULL, NULL),
-(35, 'PL0005', 1, 'Knotted Liniwan', 12.00, 'completed', 'pending', NULL, '2025-07-29 11:38:16', '2025-07-29 11:38:46', NULL, NULL, NULL),
-(36, 'PL0006', 2, 'Warped Silk', 12.00, 'completed', 'pending', NULL, '2025-07-29 11:40:12', '2025-07-29 11:40:26', NULL, NULL, NULL),
-(37, 'PL0007', 1, 'Knotted Liniwan', 12.00, 'completed', 'pending', NULL, '2025-07-30 12:30:06', '2025-07-30 12:32:55', NULL, NULL, NULL),
-(39, 'PL0008', 1, 'Knotted Bastos', 1.00, 'completed', 'pending', NULL, '2025-07-30 12:34:14', '2025-07-30 12:34:27', NULL, NULL, NULL),
-(40, 'PL0009', 1, 'Knotted Bastos', 13.00, 'completed', 'pending', NULL, '2025-07-30 12:40:48', '2025-07-30 12:40:58', NULL, NULL, NULL),
-(41, 'PL0010', 1, 'Knotted Liniwan', 2.00, 'completed', 'pending', NULL, '2025-07-30 12:45:08', '2025-07-30 12:45:18', NULL, NULL, NULL),
-(42, 'PL0011', 1, 'Knotted Bastos', 4.00, 'completed', 'pending', NULL, '2025-07-30 12:50:21', '2025-07-30 12:50:31', NULL, NULL, NULL),
-(43, 'PL0012', 1, 'Knotted Liniwan', 12.00, 'completed', 'pending', NULL, '2025-07-30 12:54:20', '2025-07-30 12:54:31', NULL, NULL, NULL),
-(44, 'PL0013', 1, 'Knotted Bastos', 2.00, 'completed', 'pending', NULL, '2025-07-30 12:56:27', '2025-07-30 12:56:39', NULL, NULL, NULL),
-(45, 'PL0014', 1, 'Knotted Bastos', 3.00, 'completed', 'pending', NULL, '2025-07-30 12:57:03', '2025-07-30 12:57:15', NULL, NULL, NULL),
-(46, 'PL0015', 1, 'Knotted Liniwan', 5.00, 'completed', 'pending', NULL, '2025-07-30 13:00:50', '2025-07-30 13:01:00', NULL, NULL, NULL),
-(47, 'PL0016', 1, 'Knotted Bastos', 1.00, 'completed', 'pending', NULL, '2025-07-31 02:58:15', '2025-07-31 02:58:28', NULL, NULL, NULL),
-(48, 'PL0017', 1, 'Knotted Bastos', 4.00, 'completed', 'pending', NULL, '2025-07-31 03:02:27', '2025-07-31 03:02:37', NULL, NULL, NULL),
-(49, 'PL0018', 2, 'Warped Silk', 12.00, 'completed', 'pending', NULL, '2025-07-31 03:27:52', '2025-07-31 03:28:12', NULL, NULL, NULL),
-(50, 'PL0019', 1, 'Knotted Bastos', 15.00, 'completed', 'pending', NULL, '2025-07-31 12:39:41', '2025-07-31 12:40:02', NULL, NULL, NULL),
-(51, 'PL0020', 1, 'Knotted Liniwan', 15.00, 'completed', 'pending', NULL, '2025-07-31 13:37:00', '2025-07-31 13:37:24', NULL, NULL, NULL),
-(52, 'PL0021', 1, 'Knotted Bastos', 15.00, 'completed', 'pending', NULL, '2025-07-31 14:30:36', '2025-07-31 14:31:34', NULL, NULL, NULL),
-(53, 'PL0022', 2, 'Warped Silk', 20.00, 'completed', 'pending', NULL, '2025-07-31 14:33:29', '2025-07-31 14:33:55', NULL, NULL, NULL),
-(54, 'PL0023', 1, 'Knotted Bastos', 10.00, 'completed', 'pending', NULL, '2025-07-31 21:28:48', '2025-07-31 21:29:28', NULL, NULL, NULL),
-(70, 'PL0029', 5, 'Knotted Bastos', 123.00, 'completed', 'pending', NULL, '2025-11-27 19:29:32', '2025-11-29 19:25:54', NULL, NULL, NULL),
+(32, 'PL0003', 1, 'Knotted Liniwan', 12.00, '', 'pending', NULL, '2025-07-29 11:21:10', '2025-07-29 11:21:29', NULL, NULL, NULL),
+(33, 'PL0004', 1, 'Knotted Bastos', 12.00, '', 'pending', NULL, '2025-07-29 11:25:07', '2025-07-29 11:25:21', NULL, NULL, NULL),
+(35, 'PL0005', 1, 'Knotted Liniwan', 12.00, '', 'pending', NULL, '2025-07-29 11:38:16', '2025-07-29 11:38:46', NULL, NULL, NULL),
+(36, 'PL0006', 2, 'Warped Silk', 12.00, '', 'pending', NULL, '2025-07-29 11:40:12', '2025-07-29 11:40:26', NULL, NULL, NULL),
+(37, 'PL0007', 1, 'Knotted Liniwan', 12.00, '', 'pending', NULL, '2025-07-30 12:30:06', '2025-07-30 12:32:55', NULL, NULL, NULL),
+(39, 'PL0008', 1, 'Knotted Bastos', 1.00, '', 'pending', NULL, '2025-07-30 12:34:14', '2025-07-30 12:34:27', NULL, NULL, NULL),
+(40, 'PL0009', 1, 'Knotted Bastos', 13.00, '', 'pending', NULL, '2025-07-30 12:40:48', '2025-07-30 12:40:58', NULL, NULL, NULL),
+(41, 'PL0010', 1, 'Knotted Liniwan', 2.00, '', 'pending', NULL, '2025-07-30 12:45:08', '2025-07-30 12:45:18', NULL, NULL, NULL),
+(42, 'PL0011', 1, 'Knotted Bastos', 4.00, '', 'pending', NULL, '2025-07-30 12:50:21', '2025-07-30 12:50:31', NULL, NULL, NULL),
+(43, 'PL0012', 1, 'Knotted Liniwan', 12.00, '', 'pending', NULL, '2025-07-30 12:54:20', '2025-07-30 12:54:31', NULL, NULL, NULL),
+(44, 'PL0013', 1, 'Knotted Bastos', 2.00, '', 'pending', NULL, '2025-07-30 12:56:27', '2025-07-30 12:56:39', NULL, NULL, NULL),
+(45, 'PL0014', 1, 'Knotted Bastos', 3.00, '', 'pending', NULL, '2025-07-30 12:57:03', '2025-07-30 12:57:15', NULL, NULL, NULL),
+(46, 'PL0015', 1, 'Knotted Liniwan', 5.00, '', 'pending', NULL, '2025-07-30 13:00:50', '2025-07-30 13:01:00', NULL, NULL, NULL),
+(47, 'PL0016', 1, 'Knotted Bastos', 1.00, '', 'pending', NULL, '2025-07-31 02:58:15', '2025-07-31 02:58:28', NULL, NULL, NULL),
+(48, 'PL0017', 1, 'Knotted Bastos', 4.00, '', 'pending', NULL, '2025-07-31 03:02:27', '2025-07-31 03:02:37', NULL, NULL, NULL),
+(49, 'PL0018', 2, 'Warped Silk', 12.00, '', 'pending', NULL, '2025-07-31 03:27:52', '2025-07-31 03:28:12', NULL, NULL, NULL),
+(50, 'PL0019', 1, 'Knotted Bastos', 15.00, '', 'pending', NULL, '2025-07-31 12:39:41', '2025-07-31 12:40:02', NULL, NULL, NULL),
+(51, 'PL0020', 1, 'Knotted Liniwan', 15.00, '', 'pending', NULL, '2025-07-31 13:37:00', '2025-07-31 13:37:24', NULL, NULL, NULL),
+(52, 'PL0021', 1, 'Knotted Bastos', 15.00, '', 'pending', NULL, '2025-07-31 14:30:36', '2025-07-31 14:31:34', NULL, NULL, NULL),
+(53, 'PL0022', 2, 'Warped Silk', 20.00, '', 'pending', NULL, '2025-07-31 14:33:29', '2025-07-31 14:33:55', NULL, NULL, NULL),
+(54, 'PL0023', 1, 'Knotted Bastos', 10.00, '', 'pending', NULL, '2025-07-31 21:28:48', '2025-07-31 21:29:28', NULL, NULL, NULL),
+(70, 'PL0029', 5, 'Knotted Bastos', 123.00, '', 'pending', NULL, '2025-11-27 19:29:32', '2025-11-29 19:25:54', NULL, NULL, NULL),
 (71, 'PL0030', 5, 'Knotted Liniwan', 321.00, 'submitted', 'pending', NULL, '2025-11-27 19:40:11', '2025-11-27 19:50:40', NULL, NULL, NULL),
 (72, 'PL0031', 5, 'Knotted Liniwan', 123.00, 'submitted', 'pending', NULL, '2025-11-27 21:36:06', '2025-11-27 21:40:14', NULL, NULL, NULL),
-(73, 'PL0032', 5, 'Knotted Liniwan', 12.00, 'completed', 'pending', NULL, '2025-11-27 21:40:31', '2025-11-30 06:42:06', NULL, NULL, NULL),
+(73, 'PL0032', 5, 'Knotted Liniwan', 12.00, '', 'pending', NULL, '2025-11-27 21:40:31', '2025-11-30 06:42:06', NULL, NULL, NULL),
 (75, 'PL0033', 5, 'Knotted Liniwan', 123.00, 'pending', 'pending', NULL, '2025-11-30 19:23:45', NULL, NULL, NULL, NULL),
 (76, 'PL0034', 5, 'Knotted Liniwan', 123.00, 'pending', 'pending', NULL, '2026-01-06 03:07:44', NULL, NULL, NULL, NULL),
-(77, 'PL0035', 5, 'Knotted Bastos', 123.00, 'completed', 'pending', NULL, '2026-01-06 03:18:23', '2026-01-06 03:26:12', NULL, NULL, NULL),
-(78, 'PL0036', 5, 'Knotted Bastos', 1212.00, 'completed', 'pending', NULL, '2026-01-06 03:23:41', '2026-01-06 03:26:08', NULL, NULL, NULL),
+(77, 'PL0035', 5, 'Knotted Bastos', 123.00, '', 'pending', NULL, '2026-01-06 03:18:23', '2026-01-06 03:26:12', NULL, NULL, NULL),
+(78, 'PL0036', 5, 'Knotted Bastos', 1212.00, '', 'pending', NULL, '2026-01-06 03:23:41', '2026-01-06 03:26:08', NULL, NULL, NULL),
 (79, 'PL0037', 5, 'Knotted Liniwan', 123423.00, 'pending', 'pending', NULL, '2026-01-06 03:42:37', NULL, NULL, NULL, NULL),
 (100, 'PL0040', 14, '', 12.00, 'pending', 'pending', NULL, '2026-01-06 13:48:53', NULL, 1.00, 1.00, 1),
 (101, 'PL0041', 14, '', 1.00, 'pending', 'pending', NULL, '2026-01-06 13:51:18', NULL, 1.00, 1.00, 1),
@@ -192,19 +193,24 @@ INSERT INTO `member_self_tasks` (`id`, `production_id`, `member_id`, `product_na
 (105, 'PL0045', 14, '', 0.00, 'pending', 'pending', NULL, '2026-01-06 14:55:31', NULL, 1.00, 1.00, 1),
 (106, 'PL0046', 14, '', 0.00, 'pending', 'pending', NULL, '2026-01-06 14:56:27', NULL, 1.00, 1.00, 1),
 (107, 'PL0047', 14, '', 0.00, 'pending', 'pending', NULL, '2026-01-06 14:56:28', NULL, 1.00, 1.00, 1),
-(108, 'PL0048', 14, '', 0.00, 'pending', 'pending', NULL, '2026-01-06 14:56:30', NULL, 1.00, 1.00, 1),
 (109, 'PL0049', 14, '', 0.00, 'pending', 'pending', NULL, '2026-01-06 14:58:16', NULL, 1.00, 1.00, 1),
 (110, 'PL0050', 14, '', 0.00, 'pending', 'pending', NULL, '2026-01-06 14:59:09', NULL, 1.00, 1.00, 1),
 (111, 'PL0051', 5, 'Knotted Liniwan', 1.00, 'pending', 'pending', NULL, '2026-01-06 14:59:30', NULL, NULL, NULL, NULL),
 (112, 'PL0052', 5, 'Knotted Liniwan', 1.00, 'pending', 'pending', NULL, '2026-01-06 15:00:31', NULL, 0.00, 0.00, 0),
 (113, 'PL0053', 14, '', 0.00, 'pending', 'pending', NULL, '2026-01-06 15:11:38', NULL, 1.00, 1.00, 1),
-(114, 'PL0054', 14, '', 0.00, 'pending', 'pending', NULL, '2026-01-06 15:11:44', NULL, 1.00, 1.00, 1),
-(115, 'PL0055', 14, '', 0.00, 'pending', 'pending', NULL, '2026-01-06 15:12:52', NULL, 1.00, 1.00, 1),
-(116, 'PL0056', 14, '', 0.00, 'pending', 'pending', NULL, '2026-01-06 15:19:24', NULL, 1.00, 1.00, 1),
-(117, 'PL0057', 14, '', 0.00, 'pending', 'pending', NULL, '2026-01-06 15:19:27', NULL, 1.00, 1.00, 1),
+(114, 'PL0054', 14, '', 0.00, 'rejected', 'pending', NULL, '2026-01-06 15:11:44', NULL, 1.00, 1.00, 1),
+(117, 'PL0057', 14, '', 0.00, 'rejected', 'pending', NULL, '2026-01-06 15:19:27', NULL, 1.00, 1.00, 1),
 (121, 'PL0061', 5, 'Knotted Liniwan', 1.00, 'pending', 'pending', NULL, '2026-01-06 15:21:51', NULL, NULL, NULL, NULL),
-(123, 'PL0063', 14, '', 0.00, 'pending', 'pending', NULL, '2026-01-06 15:28:28', NULL, 1.00, 1.00, 1),
-(124, 'PL0064', 14, 'Piña Seda', 0.00, 'pending', 'pending', NULL, '2026-01-06 15:41:14', NULL, 1.00, 1.00, 1);
+(123, 'PL0063', 14, '', 0.00, 'rejected', 'pending', NULL, '2026-01-06 15:28:28', NULL, 1.00, 1.00, 1),
+(124, 'PL0064', 14, 'Piña Seda', 0.00, 'pending', 'pending', NULL, '2026-01-06 15:41:14', NULL, 1.00, 1.00, 1),
+(125, 'PL0065', 14, 'Pure Piña Cloth', 0.00, 'rejected', 'pending', NULL, '2026-01-06 16:43:16', NULL, 1.00, 1.00, 1),
+(126, 'PL0066', 14, 'Piña Seda', 0.00, 'rejected', 'pending', NULL, '2026-01-06 16:43:33', NULL, 1.00, 1.00, 1),
+(127, 'PL0067', 14, 'Piña Seda', 0.00, 'rejected', 'pending', NULL, '2026-01-06 16:51:20', NULL, 1.00, 1.00, 1),
+(128, 'PL0068', 5, 'Knotted Liniwan', 1.00, 'rejected', 'pending', NULL, '2026-01-06 16:52:11', NULL, NULL, NULL, NULL),
+(129, 'PL0069', 14, 'Piña Seda', 0.00, 'rejected', 'pending', NULL, '2026-01-06 16:53:19', NULL, 1.00, 1.00, 1),
+(130, 'PL0070', 14, 'Piña Seda', 0.00, 'pending', 'pending', NULL, '2026-01-06 17:03:33', NULL, 1.00, 1.00, 1),
+(131, 'PL0071', 14, 'Piña Seda', 0.00, 'pending', 'pending', NULL, '2026-01-06 17:06:14', NULL, 1.00, 1.00, 1),
+(132, 'PL0072', 14, 'Piña Seda', 0.00, 'pending', 'pending', NULL, '2026-01-06 17:13:57', NULL, 1.00, 1.00, 1);
 
 --
 -- Triggers `member_self_tasks`
@@ -528,18 +534,19 @@ CREATE TABLE `processed_materials` (
   `processed_materials_name` varchar(60) NOT NULL,
   `weight` decimal(10,3) NOT NULL DEFAULT 0.000,
   `status` varchar(60) NOT NULL DEFAULT 'Available',
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `unit_cost` decimal(10,2) DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `processed_materials`
 --
 
-INSERT INTO `processed_materials` (`id`, `processed_materials_name`, `weight`, `status`, `updated_at`) VALUES
-(1, 'Knotted Bastos', 2343.000, 'Available', '2026-01-06 14:51:22'),
-(2, 'Knotted Liniwan', 2475.000, 'Available', '2025-11-30 23:09:20'),
-(3, 'Warped Silk', 970.000, 'Available', '2026-01-06 14:51:22'),
-(4, 'Piña Seda', 0.000, 'Available', '2026-01-06 07:24:53');
+INSERT INTO `processed_materials` (`id`, `processed_materials_name`, `weight`, `status`, `updated_at`, `unit_cost`) VALUES
+(1, 'Knotted Bastos', 2328.000, 'Available', '2026-01-06 18:14:24', 17.00),
+(2, 'Knotted Liniwan', 2475.000, 'Available', '2026-01-06 18:14:47', 17.00),
+(3, 'Warped Silk', 963.000, 'Available', '2026-01-06 18:14:40', 19.00),
+(4, 'Piña Seda', 0.000, 'Available', '2026-01-06 07:24:53', 0.00);
 
 -- --------------------------------------------------------
 
@@ -760,8 +767,11 @@ INSERT INTO `production_line` (`prod_line_id`, `product_name`, `length_m`, `widt
 (198, 'Piña Seda', 12.000, 12.000, 0.000, 1, '2026-01-06 07:24:10', ''),
 (199, 'Piña Seda', 1.000, 1.000, 0.000, 1, '2026-01-06 07:43:03', 'pending'),
 (200, 'Piña Seda', 1.000, 1.000, 0.000, 1, '2026-01-06 11:37:43', ''),
-(201, 'Piña Seda', 1.000, 1.000, 0.000, 1, '2026-01-06 11:45:31', 'in_progress'),
-(202, 'Piña Seda', 12.000, 12.000, 0.000, 12, '2026-01-06 11:47:16', 'pending');
+(201, 'Piña Seda', 1.000, 1.000, 0.000, 1, '2026-01-06 11:45:31', ''),
+(202, 'Piña Seda', 12.000, 12.000, 0.000, 12, '2026-01-06 11:47:16', 'pending'),
+(203, 'Piña Seda', 1.000, 1.000, 0.000, 1, '2026-01-06 16:04:56', 'pending'),
+(204, 'Pure Piña Cloth', 1.000, 1.000, 0.000, 1, '2026-01-06 16:12:59', 'pending'),
+(205, 'Piña Seda', 1.000, 1.000, 0.000, 1, '2026-01-06 16:26:34', '');
 
 -- --------------------------------------------------------
 
@@ -897,9 +907,9 @@ CREATE TABLE `raw_materials` (
 --
 
 INSERT INTO `raw_materials` (`id`, `raw_materials_name`, `category`, `rm_quantity`, `rm_unit`, `rm_status`, `supplier_name`, `unit_cost`) VALUES
-(14, 'Piña Loose', 'Bastos', 96609.500, 'gram', 'Available', 'Ryan', 0.00),
-(15, 'Piña Loose', 'Liniwan/Washout', 80498.300, 'gram', 'Available', 'Ryan', 0.00),
-(19, 'Silk', '', 123.000, 'gram', 'Available', '123123', 123.00);
+(14, 'Piña Loose', 'Bastos', 96609.000, 'gram', 'Available', 'Ryan', 0.00),
+(15, 'Piña Loose', 'Liniwan/Washout', 80499.000, 'gram', 'Available', 'Ryan', 0.00),
+(19, 'Silk', '', 123.000, 'gram', 'Available', 'Ryan', 12.00);
 
 -- --------------------------------------------------------
 
@@ -1070,7 +1080,9 @@ INSERT INTO `stock_history` (`stock_id`, `stock_user_type`, `stock_raw_id`, `sto
 (174, 'member', 1, 14, 'Stock Out', 15.00, '2373.000 -> 2358.000', '2026-01-06 11:37:51', 1),
 (175, 'member', 3, 14, 'Stock Out', 7.00, '984.000 -> 977.000', '2026-01-06 11:37:51', 1),
 (176, 'member', 1, 14, 'Stock Out', 15.00, '2358.000 -> 2343.000', '2026-01-06 14:51:22', 1),
-(177, 'member', 3, 14, 'Stock Out', 7.00, '977.000 -> 970.000', '2026-01-06 14:51:22', 1);
+(177, 'member', 3, 14, 'Stock Out', 7.00, '977.000 -> 970.000', '2026-01-06 14:51:22', 1),
+(178, 'member', 1, 14, 'Stock Out', 15.00, '2343.000 -> 2328.000', '2026-01-06 17:20:38', 1),
+(179, 'member', 3, 14, 'Stock Out', 7.00, '970.000 -> 963.000', '2026-01-06 17:20:38', 1);
 
 -- --------------------------------------------------------
 
@@ -1101,7 +1113,7 @@ CREATE TABLE `task_approval_requests` (
   `member_id` int(11) NOT NULL,
   `member_name` varchar(255) NOT NULL,
   `role` varchar(50) NOT NULL,
-  `product_name` enum('Knotted Liniwan','Knotted Bastos','Warped Silk') NOT NULL,
+  `product_name` enum('Knotted Liniwan','Knotted Bastos','Warped Silk','Piña Seda','Pure Piña Cloth') NOT NULL,
   `weight_g` decimal(10,2) NOT NULL,
   `quantity` int(11) DEFAULT 1,
   `date_created` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -1152,19 +1164,24 @@ INSERT INTO `task_approval_requests` (`id`, `production_id`, `member_id`, `membe
 (98, 'PL0045', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 14:55:31', NULL, 'pending'),
 (99, 'PL0046', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 14:56:27', NULL, 'pending'),
 (100, 'PL0047', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 14:56:28', NULL, 'pending'),
-(101, 'PL0048', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 14:56:30', NULL, 'pending'),
 (102, 'PL0049', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 14:58:16', NULL, 'pending'),
 (103, 'PL0050', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 14:59:09', NULL, 'pending'),
 (104, 'PL0051', 5, 'jenrose  mon123', 'knotter', 'Knotted Liniwan', 1.00, 1, '2026-01-06 14:59:30', NULL, 'pending'),
 (105, 'PL0052', 5, 'jenrose  mon123', 'knotter', 'Knotted Liniwan', 1.00, 1, '2026-01-06 15:00:31', NULL, 'pending'),
 (106, 'PL0053', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 15:11:38', NULL, 'pending'),
-(107, 'PL0054', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 15:11:44', NULL, 'pending'),
-(108, 'PL0055', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 15:12:52', NULL, 'pending'),
-(109, 'PL0056', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 15:19:24', NULL, 'pending'),
-(110, 'PL0057', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 15:19:27', NULL, 'pending'),
-(114, 'PL0061', 5, 'jenrose  mon123', 'knotter', 'Knotted Liniwan', 1.00, 1, '2026-01-06 15:21:51', NULL, 'pending'),
-(116, 'PL0063', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 15:28:28', NULL, 'pending'),
-(117, 'PL0064', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 15:41:14', NULL, 'pending');
+(107, 'PL0054', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 15:11:44', NULL, 'rejected'),
+(110, 'PL0057', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 15:19:27', NULL, 'rejected'),
+(114, 'PL0061', 5, 'jenrose  mon123', 'knotter', 'Knotted Liniwan', 1.00, 1, '2026-01-06 15:21:51', NULL, 'approved'),
+(116, 'PL0063', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 15:28:28', NULL, 'rejected'),
+(117, 'PL0064', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 15:41:14', NULL, 'approved'),
+(118, 'PL0065', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 16:43:16', NULL, 'rejected'),
+(119, 'PL0066', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 16:43:33', NULL, 'rejected'),
+(120, 'PL0067', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 16:51:20', NULL, 'rejected'),
+(121, 'PL0068', 5, 'jenrose  mon123', 'knotter', 'Knotted Liniwan', 1.00, 1, '2026-01-06 16:52:11', NULL, 'rejected'),
+(122, 'PL0069', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 16:53:19', NULL, 'rejected'),
+(123, 'PL0070', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 17:03:33', NULL, 'pending'),
+(124, 'PL0071', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 17:06:14', NULL, 'pending'),
+(125, 'PL0072', 14, 'john b', 'weaver', '', 0.00, 1, '2026-01-06 17:13:57', NULL, 'pending');
 
 --
 -- Triggers `task_approval_requests`
@@ -1196,6 +1213,8 @@ CREATE TABLE `task_assignments` (
   `member_id` int(11) NOT NULL,
   `role` varchar(20) NOT NULL,
   `status` varchar(20) NOT NULL DEFAULT 'pending',
+  `decline_status` varchar(20) DEFAULT NULL,
+  `decline_reason` text DEFAULT NULL,
   `estimated_time` int(11) NOT NULL COMMENT 'Estimated time in days',
   `deadline` date NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -1206,98 +1225,101 @@ CREATE TABLE `task_assignments` (
 -- Dumping data for table `task_assignments`
 --
 
-INSERT INTO `task_assignments` (`id`, `prod_line_id`, `member_id`, `role`, `status`, `estimated_time`, `deadline`, `created_at`, `updated_at`) VALUES
-(8, 8, 1, 'knotter', 'completed', 0, '2025-07-19', '2025-07-17 11:04:37', '2025-07-17 11:09:50'),
-(9, 9, 1, 'knotter', 'completed', 0, '2025-07-19', '2025-07-17 11:10:46', '2025-07-17 11:11:01'),
-(11, 11, 1, 'knotter', 'completed', 0, '2025-07-19', '2025-07-17 12:20:05', '2025-07-17 12:20:29'),
-(17, 15, 1, 'knotter', 'completed', 0, '2025-07-19', '2025-07-18 08:29:54', '2025-07-18 08:30:08'),
-(19, 16, 1, 'knotter', 'completed', 0, '2025-07-19', '2025-07-18 08:40:07', '2025-07-18 08:40:19'),
-(22, 18, 1, 'knotter', 'completed', 0, '2025-07-19', '2025-07-18 08:52:07', '2025-07-18 08:52:17'),
-(23, 19, 1, 'knotter', 'completed', 0, '2025-07-19', '2025-07-18 08:57:04', '2025-07-18 08:57:32'),
-(24, 20, 1, 'knotter', 'completed', 0, '2025-07-19', '2025-07-18 08:58:12', '2025-07-18 08:58:29'),
-(27, 22, 4, 'weaver', 'completed', 0, '2025-07-20', '2025-07-18 09:02:04', '2025-07-18 09:02:51'),
-(30, 24, 1, 'knotter', 'completed', 0, '2025-07-19', '2025-07-18 09:08:22', '2025-07-18 09:08:41'),
-(31, 25, 1, 'knotter', 'completed', 0, '2025-07-19', '2025-07-18 09:09:14', '2025-07-18 09:09:25'),
-(36, 28, 1, 'knotter', 'completed', 0, '2025-07-19', '2025-07-18 09:17:28', '2025-07-18 09:17:48'),
-(37, 29, 4, 'weaver', 'completed', 0, '2025-07-19', '2025-07-18 09:18:30', '2025-07-18 09:18:59'),
-(38, 30, 4, 'weaver', 'completed', 0, '2025-07-19', '2025-07-18 09:21:22', '2025-07-18 09:21:35'),
-(43, 33, 4, 'weaver', 'completed', 0, '2025-07-19', '2025-07-18 09:30:24', '2025-07-18 09:30:38'),
-(48, 36, 4, 'weaver', 'completed', 0, '2025-07-19', '2025-07-18 09:55:32', '2025-07-18 09:55:44'),
-(50, 38, 4, 'weaver', 'completed', 0, '2025-07-19', '2025-07-18 10:09:37', '2025-07-18 10:10:07'),
-(63, 48, 1, 'knotter', 'completed', 0, '2025-07-25', '2025-07-24 08:49:35', '2025-07-24 08:49:46'),
-(64, 49, 1, 'knotter', 'completed', 0, '2025-07-25', '2025-07-24 08:59:27', '2025-07-24 08:59:46'),
-(65, 50, 1, 'knotter', 'completed', 0, '2025-07-25', '2025-07-24 09:10:41', '2025-07-24 09:10:55'),
-(66, 53, 1, 'knotter', 'completed', 0, '2025-07-25', '2025-07-24 11:37:04', '2025-07-24 11:37:14'),
-(67, 54, 1, 'knotter', 'completed', 0, '2025-07-25', '2025-07-24 11:41:19', '2025-07-24 11:41:29'),
-(68, 55, 1, 'knotter', 'completed', 0, '2025-07-26', '2025-07-24 12:10:32', '2025-07-24 12:10:43'),
-(69, 57, 1, 'knotter', 'completed', 0, '2025-07-25', '2025-07-24 12:23:59', '2025-07-24 12:24:42'),
-(73, 59, 2, 'warper', 'completed', 0, '2025-07-26', '2025-07-24 12:26:09', '2025-07-24 12:26:20'),
-(74, 60, 4, 'weaver', 'completed', 0, '2025-07-25', '2025-07-24 12:26:37', '2025-07-24 12:27:10'),
-(75, 61, 1, 'knotter', 'completed', 0, '2025-07-29', '2025-07-27 13:18:00', '2025-07-27 13:18:11'),
-(77, 62, 1, 'knotter', 'completed', 0, '2025-07-28', '2025-07-27 13:58:49', '2025-07-27 13:59:04'),
-(81, 65, 1, 'knotter', 'completed', 0, '2025-07-30', '2025-07-27 14:05:34', '2025-07-27 14:05:48'),
-(82, 66, 2, 'warper', 'completed', 0, '2025-07-29', '2025-07-27 14:06:18', '2025-07-27 14:06:32'),
-(83, 67, 4, 'weaver', 'completed', 0, '2025-07-29', '2025-07-27 14:07:03', '2025-07-27 14:07:15'),
-(84, 68, 1, 'knotter', 'completed', 0, '2025-07-30', '2025-07-28 10:14:15', '2025-07-28 10:14:28'),
-(89, 71, 1, 'knotter', 'completed', 0, '2025-07-31', '2025-07-29 11:29:45', '2025-07-29 11:38:05'),
-(90, 72, 1, 'knotter', 'completed', 0, '2025-07-31', '2025-07-29 11:30:47', '2025-07-29 11:38:02'),
-(91, 72, 1, 'knotter', 'completed', 0, '2025-07-31', '2025-07-29 11:30:47', '2025-07-29 11:38:02'),
-(92, 73, 2, 'warper', 'completed', 0, '2025-07-31', '2025-07-29 11:31:25', '2025-07-29 11:37:11'),
-(93, 74, 2, 'warper', 'completed', 0, '2025-07-30', '2025-07-29 11:39:50', '2025-07-29 11:40:01'),
-(96, 76, 1, 'knotter', 'completed', 0, '2025-07-31', '2025-07-30 12:22:53', '2025-07-30 12:23:07'),
-(97, 76, 1, 'knotter', 'completed', 0, '2025-07-31', '2025-07-30 12:22:53', '2025-07-30 12:23:07'),
-(98, 77, 1, 'knotter', 'completed', 0, '2025-07-31', '2025-07-30 12:24:05', '2025-07-30 12:24:17'),
-(99, 77, 1, 'knotter', 'completed', 0, '2025-07-31', '2025-07-30 12:24:05', '2025-07-30 12:24:17'),
-(100, 78, 1, 'knotter', 'completed', 0, '2025-07-31', '2025-07-30 12:26:32', '2025-07-30 12:26:47'),
-(102, 79, 1, 'knotter', 'completed', 0, '2025-07-31', '2025-07-30 12:55:47', '2025-07-30 12:56:00'),
-(103, 80, 1, 'knotter', 'completed', 0, '2025-07-31', '2025-07-30 13:01:48', '2025-07-30 13:02:00'),
-(104, 81, 1, 'knotter', 'completed', 0, '2025-08-01', '2025-07-31 02:55:21', '2025-07-31 02:55:35'),
-(105, 81, 1, 'knotter', 'completed', 0, '2025-08-01', '2025-07-31 02:55:21', '2025-07-31 02:55:35'),
-(106, 82, 1, 'knotter', 'completed', 0, '2025-08-01', '2025-07-31 02:57:36', '2025-07-31 02:57:48'),
-(107, 83, 2, 'warper', 'completed', 0, '2025-08-01', '2025-07-31 03:27:03', '2025-07-31 03:27:15'),
-(108, 84, 4, 'weaver', 'completed', 0, '2025-07-28', '2025-07-31 08:08:27', '2025-07-31 08:09:23'),
-(109, 85, 4, 'weaver', 'completed', 0, '2025-07-29', '2025-07-31 12:38:12', '2025-07-31 12:38:32'),
-(110, 86, 1, 'knotter', 'completed', 0, '2025-07-29', '2025-07-31 13:28:40', '2025-07-31 13:29:03'),
-(112, 87, 1, 'knotter', 'completed', 0, '2025-07-29', '2025-07-31 14:27:49', '2025-07-31 14:28:54'),
-(113, 88, 2, 'warper', 'completed', 0, '2025-08-06', '2025-07-31 14:49:12', '2025-11-24 12:44:56'),
-(114, 89, 2, 'warper', 'in_progress', 0, '2025-08-05', '2025-07-31 14:50:44', '2025-07-31 14:50:50'),
-(115, 90, 2, 'warper', 'completed', 0, '2025-08-08', '2025-07-31 14:53:01', '2025-07-31 21:27:51'),
-(116, 91, 2, 'warper', 'completed', 0, '2025-08-09', '2025-07-31 14:56:47', '2025-07-31 14:57:21'),
-(117, 91, 2, 'warper', 'completed', 0, '2025-08-09', '2025-07-31 14:56:47', '2025-07-31 14:57:21'),
-(120, 93, 5, 'knotter', 'completed', 0, '2025-08-03', '2025-08-01 03:49:15', '2025-08-01 03:51:09'),
-(121, 95, 4, 'weaver', 'in_progress', 0, '2025-08-03', '2025-08-01 04:12:03', '2025-08-01 04:12:31'),
-(125, 94, 4, 'weaver', 'pending', 0, '2025-11-28', '2025-11-24 12:44:18', '2025-11-24 12:44:18'),
-(127, 99, 4, 'weaver', 'pending', 0, '2025-11-29', '2025-11-24 13:01:49', '2025-11-24 13:01:49'),
-(128, 100, 5, 'knotter', 'completed', 0, '2025-12-03', '2025-11-24 13:39:18', '2025-11-25 03:59:45'),
-(129, 103, 4, 'weaver', 'pending', 0, '2025-11-28', '2025-11-27 20:21:54', '2025-11-27 20:21:54'),
-(130, 102, 2, 'warper', 'pending', 0, '2025-12-04', '2025-11-27 21:33:44', '2025-11-27 21:33:44'),
-(132, 118, 4, 'weaver', 'pending', 0, '2025-11-24', '2025-11-29 21:53:35', '2025-11-29 21:53:35'),
-(133, 116, 4, 'weaver', 'pending', 0, '2025-12-02', '2025-11-29 21:54:20', '2025-11-29 21:54:20'),
-(134, 125, 4, 'weaver', 'pending', 0, '2025-11-30', '2025-11-29 21:55:54', '2025-11-29 21:55:54'),
-(136, 126, 4, 'weaver', 'pending', 0, '2025-11-30', '2025-11-29 21:57:14', '2025-11-29 21:57:14'),
-(137, 133, 5, 'knotter', 'completed', 0, '2025-12-04', '2025-11-30 06:59:19', '2025-11-30 20:22:15'),
-(138, 133, 5, 'knotter', 'completed', 0, '2025-12-04', '2025-11-30 06:59:19', '2025-11-30 20:22:15'),
-(139, 137, 5, 'knotter', 'in_progress', 0, '2025-12-04', '2025-11-30 19:39:29', '2025-11-30 21:24:07'),
-(140, 138, 5, 'knotter', 'declined', 0, '2025-12-02', '2025-11-30 21:24:48', '2026-01-06 03:37:45'),
-(141, 177, 5, 'knotter', 'in_progress', 0, '2025-12-03', '2025-12-01 13:50:34', '2025-12-01 13:51:25'),
-(142, 179, 1, 'knotter', 'pending', 0, '2026-01-11', '2025-12-02 06:23:36', '2026-01-04 23:53:47'),
-(143, 179, 5, 'knotter', 'submitted', 0, '2026-01-02', '2025-12-02 06:23:36', '2026-01-06 05:50:53'),
-(144, 187, 14, 'weaver', 'pending', 0, '2026-01-12', '2026-01-05 11:41:15', '2026-01-05 11:41:15'),
-(145, 188, 14, 'weaver', 'pending', 0, '2026-01-12', '2026-01-05 11:44:05', '2026-01-05 11:44:05'),
-(146, 189, 14, 'weaver', 'declined', 0, '2026-01-12', '2026-01-05 11:44:15', '2026-01-06 14:52:07'),
-(147, 190, 9, 'knotter', 'pending', 0, '2026-01-12', '2026-01-05 11:44:24', '2026-01-05 11:44:24'),
-(148, 191, 1, 'knotter', 'pending', 0, '2026-01-12', '2026-01-05 11:44:34', '2026-01-05 14:16:28'),
-(149, 192, 2, 'warper', 'pending', 0, '2026-01-12', '2026-01-05 11:48:31', '2026-01-05 11:55:36'),
-(150, 193, 1, 'knotter', 'declined', 0, '2026-01-13', '2026-01-06 06:26:14', '2026-01-06 06:27:50'),
-(151, 194, 14, 'weaver', 'declined', 0, '2026-01-13', '2026-01-06 06:30:21', '2026-01-06 12:01:46'),
-(152, 195, 14, 'weaver', 'declined', 0, '2026-01-13', '2026-01-06 06:30:43', '2026-01-06 06:41:24'),
-(153, 196, 5, 'knotter', 'pending', 0, '2026-01-13', '2026-01-06 06:40:29', '2026-01-06 06:40:29'),
-(154, 197, 14, 'weaver', 'completed', 0, '2026-01-13', '2026-01-06 06:40:49', '2026-01-06 07:24:53'),
-(155, 198, 14, 'weaver', 'completed', 0, '2026-01-13', '2026-01-06 07:24:10', '2026-01-06 07:24:50'),
-(156, 199, 14, 'weaver', 'declined', 0, '2026-01-13', '2026-01-06 07:43:03', '2026-01-06 07:43:18'),
-(157, 200, 14, 'weaver', 'submitted', 0, '2026-01-13', '2026-01-06 11:37:43', '2026-01-06 11:49:27'),
-(158, 201, 14, 'weaver', 'in_progress', 0, '2026-01-13', '2026-01-06 11:45:31', '2026-01-06 14:51:22'),
-(159, 202, 14, 'weaver', 'declined', 0, '2026-01-13', '2026-01-06 11:47:16', '2026-01-06 11:48:29');
+INSERT INTO `task_assignments` (`id`, `prod_line_id`, `member_id`, `role`, `status`, `decline_status`, `decline_reason`, `estimated_time`, `deadline`, `created_at`, `updated_at`) VALUES
+(8, 8, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-17 11:04:37', '2025-07-17 11:09:50'),
+(9, 9, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-17 11:10:46', '2025-07-17 11:11:01'),
+(11, 11, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-17 12:20:05', '2025-07-17 12:20:29'),
+(17, 15, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-18 08:29:54', '2025-07-18 08:30:08'),
+(19, 16, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-18 08:40:07', '2025-07-18 08:40:19'),
+(22, 18, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-18 08:52:07', '2025-07-18 08:52:17'),
+(23, 19, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-18 08:57:04', '2025-07-18 08:57:32'),
+(24, 20, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-18 08:58:12', '2025-07-18 08:58:29'),
+(27, 22, 4, 'weaver', 'completed', NULL, NULL, 0, '2025-07-20', '2025-07-18 09:02:04', '2025-07-18 09:02:51'),
+(30, 24, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-18 09:08:22', '2025-07-18 09:08:41'),
+(31, 25, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-18 09:09:14', '2025-07-18 09:09:25'),
+(36, 28, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-18 09:17:28', '2025-07-18 09:17:48'),
+(37, 29, 4, 'weaver', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-18 09:18:30', '2025-07-18 09:18:59'),
+(38, 30, 4, 'weaver', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-18 09:21:22', '2025-07-18 09:21:35'),
+(43, 33, 4, 'weaver', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-18 09:30:24', '2025-07-18 09:30:38'),
+(48, 36, 4, 'weaver', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-18 09:55:32', '2025-07-18 09:55:44'),
+(50, 38, 4, 'weaver', 'completed', NULL, NULL, 0, '2025-07-19', '2025-07-18 10:09:37', '2025-07-18 10:10:07'),
+(63, 48, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-25', '2025-07-24 08:49:35', '2025-07-24 08:49:46'),
+(64, 49, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-25', '2025-07-24 08:59:27', '2025-07-24 08:59:46'),
+(65, 50, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-25', '2025-07-24 09:10:41', '2025-07-24 09:10:55'),
+(66, 53, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-25', '2025-07-24 11:37:04', '2025-07-24 11:37:14'),
+(67, 54, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-25', '2025-07-24 11:41:19', '2025-07-24 11:41:29'),
+(68, 55, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-26', '2025-07-24 12:10:32', '2025-07-24 12:10:43'),
+(69, 57, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-25', '2025-07-24 12:23:59', '2025-07-24 12:24:42'),
+(73, 59, 2, 'warper', 'completed', NULL, NULL, 0, '2025-07-26', '2025-07-24 12:26:09', '2025-07-24 12:26:20'),
+(74, 60, 4, 'weaver', 'completed', NULL, NULL, 0, '2025-07-25', '2025-07-24 12:26:37', '2025-07-24 12:27:10'),
+(75, 61, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-29', '2025-07-27 13:18:00', '2025-07-27 13:18:11'),
+(77, 62, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-28', '2025-07-27 13:58:49', '2025-07-27 13:59:04'),
+(81, 65, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-30', '2025-07-27 14:05:34', '2025-07-27 14:05:48'),
+(82, 66, 2, 'warper', 'completed', NULL, NULL, 0, '2025-07-29', '2025-07-27 14:06:18', '2025-07-27 14:06:32'),
+(83, 67, 4, 'weaver', 'completed', NULL, NULL, 0, '2025-07-29', '2025-07-27 14:07:03', '2025-07-27 14:07:15'),
+(84, 68, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-30', '2025-07-28 10:14:15', '2025-07-28 10:14:28'),
+(89, 71, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-31', '2025-07-29 11:29:45', '2025-07-29 11:38:05'),
+(90, 72, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-31', '2025-07-29 11:30:47', '2025-07-29 11:38:02'),
+(91, 72, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-31', '2025-07-29 11:30:47', '2025-07-29 11:38:02'),
+(92, 73, 2, 'warper', 'completed', NULL, NULL, 0, '2025-07-31', '2025-07-29 11:31:25', '2025-07-29 11:37:11'),
+(93, 74, 2, 'warper', 'completed', NULL, NULL, 0, '2025-07-30', '2025-07-29 11:39:50', '2025-07-29 11:40:01'),
+(96, 76, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-31', '2025-07-30 12:22:53', '2025-07-30 12:23:07'),
+(97, 76, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-31', '2025-07-30 12:22:53', '2025-07-30 12:23:07'),
+(98, 77, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-31', '2025-07-30 12:24:05', '2025-07-30 12:24:17'),
+(99, 77, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-31', '2025-07-30 12:24:05', '2025-07-30 12:24:17'),
+(100, 78, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-31', '2025-07-30 12:26:32', '2025-07-30 12:26:47'),
+(102, 79, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-31', '2025-07-30 12:55:47', '2025-07-30 12:56:00'),
+(103, 80, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-31', '2025-07-30 13:01:48', '2025-07-30 13:02:00'),
+(104, 81, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-08-01', '2025-07-31 02:55:21', '2025-07-31 02:55:35'),
+(105, 81, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-08-01', '2025-07-31 02:55:21', '2025-07-31 02:55:35'),
+(106, 82, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-08-01', '2025-07-31 02:57:36', '2025-07-31 02:57:48'),
+(107, 83, 2, 'warper', 'completed', NULL, NULL, 0, '2025-08-01', '2025-07-31 03:27:03', '2025-07-31 03:27:15'),
+(108, 84, 4, 'weaver', 'completed', NULL, NULL, 0, '2025-07-28', '2025-07-31 08:08:27', '2025-07-31 08:09:23'),
+(109, 85, 4, 'weaver', 'completed', NULL, NULL, 0, '2025-07-29', '2025-07-31 12:38:12', '2025-07-31 12:38:32'),
+(110, 86, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-29', '2025-07-31 13:28:40', '2025-07-31 13:29:03'),
+(112, 87, 1, 'knotter', 'completed', NULL, NULL, 0, '2025-07-29', '2025-07-31 14:27:49', '2025-07-31 14:28:54'),
+(113, 88, 2, 'warper', 'completed', NULL, NULL, 0, '2025-08-06', '2025-07-31 14:49:12', '2025-11-24 12:44:56'),
+(114, 89, 2, 'warper', 'in_progress', NULL, NULL, 0, '2025-08-05', '2025-07-31 14:50:44', '2025-07-31 14:50:50'),
+(115, 90, 2, 'warper', 'completed', NULL, NULL, 0, '2025-08-08', '2025-07-31 14:53:01', '2025-07-31 21:27:51'),
+(116, 91, 2, 'warper', 'completed', NULL, NULL, 0, '2025-08-09', '2025-07-31 14:56:47', '2025-07-31 14:57:21'),
+(117, 91, 2, 'warper', 'completed', NULL, NULL, 0, '2025-08-09', '2025-07-31 14:56:47', '2025-07-31 14:57:21'),
+(120, 93, 5, 'knotter', 'completed', NULL, NULL, 0, '2025-08-03', '2025-08-01 03:49:15', '2025-08-01 03:51:09'),
+(121, 95, 4, 'weaver', 'in_progress', NULL, NULL, 0, '2025-08-03', '2025-08-01 04:12:03', '2025-08-01 04:12:31'),
+(125, 94, 4, 'weaver', 'pending', NULL, NULL, 0, '2025-11-28', '2025-11-24 12:44:18', '2025-11-24 12:44:18'),
+(127, 99, 4, 'weaver', 'pending', NULL, NULL, 0, '2025-11-29', '2025-11-24 13:01:49', '2025-11-24 13:01:49'),
+(128, 100, 5, 'knotter', 'completed', NULL, NULL, 0, '2025-12-03', '2025-11-24 13:39:18', '2025-11-25 03:59:45'),
+(129, 103, 4, 'weaver', 'pending', NULL, NULL, 0, '2025-11-28', '2025-11-27 20:21:54', '2025-11-27 20:21:54'),
+(130, 102, 2, 'warper', 'pending', NULL, NULL, 0, '2025-12-04', '2025-11-27 21:33:44', '2025-11-27 21:33:44'),
+(132, 118, 4, 'weaver', 'pending', NULL, NULL, 0, '2025-11-24', '2025-11-29 21:53:35', '2025-11-29 21:53:35'),
+(133, 116, 4, 'weaver', 'pending', NULL, NULL, 0, '2025-12-02', '2025-11-29 21:54:20', '2025-11-29 21:54:20'),
+(134, 125, 4, 'weaver', 'pending', NULL, NULL, 0, '2025-11-30', '2025-11-29 21:55:54', '2025-11-29 21:55:54'),
+(136, 126, 4, 'weaver', 'pending', NULL, NULL, 0, '2025-11-30', '2025-11-29 21:57:14', '2025-11-29 21:57:14'),
+(137, 133, 5, 'knotter', 'completed', NULL, NULL, 0, '2025-12-04', '2025-11-30 06:59:19', '2025-11-30 20:22:15'),
+(138, 133, 5, 'knotter', 'completed', NULL, NULL, 0, '2025-12-04', '2025-11-30 06:59:19', '2025-11-30 20:22:15'),
+(139, 137, 5, 'knotter', 'in_progress', NULL, NULL, 0, '2025-12-04', '2025-11-30 19:39:29', '2025-11-30 21:24:07'),
+(140, 138, 5, 'knotter', 'declined', NULL, NULL, 0, '2025-12-02', '2025-11-30 21:24:48', '2026-01-06 03:37:45'),
+(141, 177, 5, 'knotter', 'in_progress', NULL, NULL, 0, '2025-12-03', '2025-12-01 13:50:34', '2025-12-01 13:51:25'),
+(142, 179, 1, 'knotter', 'pending', NULL, NULL, 0, '2026-01-11', '2025-12-02 06:23:36', '2026-01-04 23:53:47'),
+(143, 179, 5, 'knotter', 'submitted', NULL, NULL, 0, '2026-01-02', '2025-12-02 06:23:36', '2026-01-06 05:50:53'),
+(144, 187, 14, 'weaver', 'pending', NULL, NULL, 0, '2026-01-12', '2026-01-05 11:41:15', '2026-01-05 11:41:15'),
+(145, 188, 14, 'weaver', 'declined', NULL, NULL, 0, '2026-01-12', '2026-01-05 11:44:05', '2026-01-06 16:04:27'),
+(146, 189, 14, 'weaver', 'declined', NULL, NULL, 0, '2026-01-12', '2026-01-05 11:44:15', '2026-01-06 14:52:07'),
+(147, 190, 9, 'knotter', 'pending', NULL, NULL, 0, '2026-01-12', '2026-01-05 11:44:24', '2026-01-05 11:44:24'),
+(148, 191, 1, 'knotter', 'pending', NULL, NULL, 0, '2026-01-12', '2026-01-05 11:44:34', '2026-01-05 14:16:28'),
+(149, 192, 2, 'warper', 'pending', NULL, NULL, 0, '2026-01-12', '2026-01-05 11:48:31', '2026-01-05 11:55:36'),
+(150, 193, 1, 'knotter', 'declined', NULL, NULL, 0, '2026-01-13', '2026-01-06 06:26:14', '2026-01-06 06:27:50'),
+(151, 194, 14, 'weaver', 'declined', NULL, NULL, 0, '2026-01-13', '2026-01-06 06:30:21', '2026-01-06 12:01:46'),
+(152, 195, 14, 'weaver', 'declined', NULL, NULL, 0, '2026-01-13', '2026-01-06 06:30:43', '2026-01-06 06:41:24'),
+(153, 196, 5, 'knotter', 'pending', NULL, NULL, 0, '2026-01-13', '2026-01-06 06:40:29', '2026-01-06 06:40:29'),
+(154, 197, 14, 'weaver', 'completed', NULL, NULL, 0, '2026-01-13', '2026-01-06 06:40:49', '2026-01-06 07:24:53'),
+(155, 198, 14, 'weaver', 'completed', NULL, NULL, 0, '2026-01-13', '2026-01-06 07:24:10', '2026-01-06 07:24:50'),
+(156, 199, 14, 'weaver', 'declined', NULL, NULL, 0, '2026-01-13', '2026-01-06 07:43:03', '2026-01-06 07:43:18'),
+(157, 200, 14, 'weaver', 'submitted', NULL, NULL, 0, '2026-01-13', '2026-01-06 11:37:43', '2026-01-06 11:49:27'),
+(158, 201, 14, 'weaver', 'submitted', NULL, NULL, 0, '2026-01-13', '2026-01-06 11:45:31', '2026-01-06 16:05:37'),
+(159, 202, 4, 'weaver', 'reassigned', NULL, NULL, 0, '2026-01-13', '2026-01-06 11:47:16', '2026-01-06 16:02:49'),
+(160, 203, 14, 'weaver', 'reassigned', NULL, NULL, 0, '2026-01-13', '2026-01-06 16:04:56', '2026-01-06 16:50:36'),
+(161, 204, 4, 'weaver', 'reassigned', NULL, NULL, 0, '2026-01-13', '2026-01-06 16:12:59', '2026-01-06 16:13:19'),
+(162, 205, 14, 'weaver', 'submitted', NULL, NULL, 0, '2026-01-13', '2026-01-06 16:26:34', '2026-01-06 17:20:48');
 
 --
 -- Triggers `task_assignments`
@@ -1409,7 +1431,9 @@ INSERT INTO `task_completion_confirmations` (`id`, `production_id`, `member_id`,
 (87, 'PL0035', 5, 'jenrose  mon123', 'knotter', 'Knotted Bastos', 123.00, '2026-01-06 11:19:29', '2026-01-06 11:26:12', 'completed', '2026-01-06 03:19:29', '2026-01-06 07:23:51'),
 (88, 'PL0036', 5, 'jenrose  mon123', 'knotter', 'Knotted Bastos', 1212.00, '2026-01-06 11:24:01', '2026-01-06 11:26:08', 'completed', '2026-01-06 03:24:01', '2026-01-06 03:27:51'),
 (89, 'PL0036', 5, 'jenrose  mon123', 'knotter', 'Knotted Bastos', 1212.00, '2026-01-06 11:24:23', '2026-01-06 11:26:08', 'completed', '2026-01-06 03:24:23', '2026-01-06 03:27:51'),
-(90, 'PL0037', 5, 'jenrose  mon123', 'knotter', 'Knotted Liniwan', 123423.00, '2026-01-06 11:44:12', NULL, 'in_progress', '2026-01-06 03:44:12', '2026-01-06 03:44:12');
+(90, 'PL0037', 5, 'jenrose  mon123', 'knotter', 'Knotted Liniwan', 123423.00, '2026-01-06 11:44:12', NULL, 'in_progress', '2026-01-06 03:44:12', '2026-01-06 03:44:12'),
+(93, 'PL0064', 14, 'john b', 'weaver', 'Piña Seda', 0.00, '2026-01-07 00:42:14', NULL, 'in_progress', '2026-01-06 16:42:14', '2026-01-06 16:42:14'),
+(94, 'PL0061', 5, 'jenrose  mon123', 'knotter', 'Knotted Liniwan', 1.00, '2026-01-07 00:42:26', NULL, 'in_progress', '2026-01-06 16:42:26', '2026-01-06 16:42:26');
 
 -- --------------------------------------------------------
 
@@ -1443,7 +1467,10 @@ INSERT INTO `task_decline_notifications` (`id`, `task_assignment_id`, `prod_line
 (5, 156, 199, 14, 'ambaho te', NULL, 'pending', '2026-01-06 07:43:18', NULL, NULL, '2026-01-06 07:43:18', '2026-01-06 07:43:18'),
 (6, 159, 202, 14, 'kulang ng tela teh', NULL, 'pending', '2026-01-06 11:48:29', NULL, NULL, '2026-01-06 11:48:29', '2026-01-06 11:48:29'),
 (7, 151, 194, 14, 'ante kulet mo', NULL, 'pending', '2026-01-06 12:01:46', NULL, NULL, '2026-01-06 12:01:46', '2026-01-06 12:01:46'),
-(8, 146, 189, 14, 'binaha ang aklan', NULL, 'pending', '2026-01-06 14:52:07', NULL, NULL, '2026-01-06 14:52:07', '2026-01-06 14:52:07');
+(8, 146, 189, 14, 'binaha ang aklan', NULL, 'pending', '2026-01-06 14:52:07', NULL, NULL, '2026-01-06 14:52:07', '2026-01-06 14:52:07'),
+(9, 145, 188, 14, 'baho te', NULL, 'pending', '2026-01-06 16:04:27', NULL, NULL, '2026-01-06 16:04:27', '2026-01-06 16:04:27'),
+(10, 160, 203, 14, '123', NULL, 'pending', '2026-01-06 16:05:06', NULL, NULL, '2026-01-06 16:05:06', '2026-01-06 16:05:06'),
+(11, 161, 204, 14, 'baho', NULL, 'pending', '2026-01-06 16:13:08', NULL, NULL, '2026-01-06 16:13:08', '2026-01-06 16:13:08');
 
 -- --------------------------------------------------------
 
@@ -1775,7 +1802,7 @@ ALTER TABLE `finished_products`
 -- AUTO_INCREMENT for table `member_self_tasks`
 --
 ALTER TABLE `member_self_tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=125;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=133;
 
 --
 -- AUTO_INCREMENT for table `orders`
@@ -1811,7 +1838,7 @@ ALTER TABLE `product`
 -- AUTO_INCREMENT for table `production_line`
 --
 ALTER TABLE `production_line`
-  MODIFY `prod_line_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=203;
+  MODIFY `prod_line_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=206;
 
 --
 -- AUTO_INCREMENT for table `product_category`
@@ -1847,7 +1874,7 @@ ALTER TABLE `raw_materials`
 -- AUTO_INCREMENT for table `stock_history`
 --
 ALTER TABLE `stock_history`
-  MODIFY `stock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=178;
+  MODIFY `stock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=180;
 
 --
 -- AUTO_INCREMENT for table `task`
@@ -1859,25 +1886,25 @@ ALTER TABLE `task`
 -- AUTO_INCREMENT for table `task_approval_requests`
 --
 ALTER TABLE `task_approval_requests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=118;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=126;
 
 --
 -- AUTO_INCREMENT for table `task_assignments`
 --
 ALTER TABLE `task_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=160;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=163;
 
 --
 -- AUTO_INCREMENT for table `task_completion_confirmations`
 --
 ALTER TABLE `task_completion_confirmations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
 
 --
 -- AUTO_INCREMENT for table `task_decline_notifications`
 --
 ALTER TABLE `task_decline_notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `user_admin`
