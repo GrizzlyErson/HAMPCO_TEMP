@@ -9,7 +9,11 @@ $alterQueries = [
      ADD COLUMN IF NOT EXISTS `phone` varchar(20) DEFAULT NULL AFTER `email`,
      ADD COLUMN IF NOT EXISTS `role` varchar(20) DEFAULT NULL AFTER `phone`,
      ADD COLUMN IF NOT EXISTS `sex` varchar(10) DEFAULT NULL AFTER `role`,
-     ADD COLUMN IF NOT EXISTS `availability_status` ENUM('available', 'unavailable') DEFAULT 'available' AFTER `status`"
+     ADD COLUMN IF NOT EXISTS `availability_status` ENUM('available', 'unavailable') DEFAULT 'available' AFTER `status`",
+    "ALTER TABLE `member_self_tasks`
+     ADD COLUMN IF NOT EXISTS `length_m` DECIMAL(10,2) DEFAULT NULL,
+     ADD COLUMN IF NOT EXISTS `width_in` DECIMAL(10,2) DEFAULT NULL,
+     ADD COLUMN IF NOT EXISTS `quantity` INT(11) DEFAULT NULL"
 ];
 
 foreach ($alterQueries as $query) {

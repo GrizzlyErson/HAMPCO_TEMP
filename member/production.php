@@ -17,7 +17,7 @@ $member_role = strtolower($member['role']);
 
 <body class="hampco-admin-sidebar-layout">
 
-<div class="container mx-auto px-4">
+<div class="w-full px-4">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">Production</h2>
         <div class="flex space-x-4">
@@ -123,9 +123,8 @@ $member_role = strtolower($member['role']);
                 </button>
             </div>
 
-            <?php if (in_array($member_role, ['knotter', 'warper'])): ?>
             <!-- Self-Assigned Tasks Table -->
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="bg-white rounded-lg shadow-sm">
                 <div class="px-6 py-4 border-b border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-800">Self-Assigned Tasks</h3>
                 </div>
@@ -135,7 +134,13 @@ $member_role = strtolower($member['role']);
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Production ID</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                                <?php if (in_array($member_role, ['knotter', 'warper'])): ?>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight (g)</th>
+                                <?php else: // weaver ?>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Length (m)</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Width (in)</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                <?php endif; ?>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Raw Materials</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Created</th>
@@ -145,13 +150,12 @@ $member_role = strtolower($member['role']);
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200" id="selfAssignedTasksBody">
                             <tr>
-                                <td colspan="8" class="px-6 py-4 text-center text-gray-500">No tasks available</td>
+                                <td colspan="<?php echo in_array($member_role, ['knotter', 'warper']) ? '8' : '10'; ?>" class="px-6 py-4 text-center text-gray-500">No tasks available</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-            <?php endif; ?>
         </div>
 
         <!-- My Earnings Tab -->
@@ -402,16 +406,18 @@ $(document).ready(function() {
     // Function to load self-assigned tasks
     function loadSelfAssignedTasks() {
         const tableBody = $('#selfAssignedTasksBody');
+        const memberRole = '<?php echo strtolower($member_role); ?>';
+        const colspan = (memberRole === 'knotter' || memberRole === 'warper') ? 8 : 10;
         
         // Show loading state
-        tableBody.html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Loading tasks...</td></tr>');
+        tableBody.html(`<tr><td colspan="${colspan}" class="px-6 py-4 text-center text-gray-500">Loading tasks...</td></tr>`);
 
         fetch('backend/end-points/get_self_tasks.php')
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.tasks) {
                     if (data.tasks.length === 0) {
-                        tableBody.html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No tasks available</td></tr>');
+                        tableBody.html(`<tr><td colspan="${colspan}" class="px-6 py-4 text-center text-gray-500">No tasks available</td></tr>`);
                         return;
                     }
 
@@ -421,12 +427,23 @@ $(document).ready(function() {
                             'bg-[#4F46E5] hover:bg-[#4338CA]' : 
                             'bg-gray-400 cursor-not-allowed';
                         
+                        let details_cell = '';
+                        if (memberRole === 'knotter' || memberRole === 'warper') {
+                            details_cell = `<td class="px-6 py-4 text-sm text-gray-900">${task.weight_g}</td>`;
+                        } else { // weaver
+                            details_cell = `
+                                <td class="px-6 py-4 text-sm text-gray-900">${task.length_m || '-'}</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">${task.width_in || '-'}</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">${task.quantity || '-'}</td>
+                            `;
+                        }
+
                         return `
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.production_id}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.product_name}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.weight_g}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td class="px-6 py-4 text-sm text-gray-900">${task.production_id}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900">${task.product_name}</td>
+                            ${details_cell}
+                            <td class="px-6 py-4 text-sm text-gray-900">
                                 <span class="px-2 py-1 text-xs rounded-full font-medium ${
                                     task.status === 'completed' ? 'bg-green-100 text-green-800' :
                                     task.status === 'submitted' ? 'bg-purple-100 text-purple-800' :
@@ -436,15 +453,15 @@ $(document).ready(function() {
                                     ${task.status ? task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ') : '-'}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <button onclick="viewMaterials('${task.product_name}', ${task.weight_g})" 
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                <button onclick="viewMaterials('${task.product_name}', ${task.weight_g || 0})" 
                                     class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded text-sm">
                                     View Materials
                                 </button>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.date_created}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.date_submitted || '-'}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                            <td class="px-6 py-4 text-sm text-gray-900">${task.date_created}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900">${task.date_submitted || '-'}</td>
+                            <td class="px-6 py-4 text-sm space-x-2">
                                 ${task.status === 'pending' ? `
                                     <button onclick="${isApproved ? `startTask('${task.production_id}')` : 'void(0)'}" 
                                         class="${startButtonClass} text-white text-sm py-2 px-4 rounded"
@@ -466,12 +483,12 @@ $(document).ready(function() {
 
                     tableBody.html(rows);
                 } else {
-                    tableBody.html('<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Error loading tasks</td></tr>');
+                    tableBody.html(`<tr><td colspan="${colspan}" class="px-6 py-4 text-center text-red-500">Error loading tasks</td></tr>`);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                tableBody.html('<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Failed to load tasks</td></tr>');
+                tableBody.html(`<tr><td colspan="${colspan}" class="px-6 py-4 text-center text-red-500">Failed to load tasks</td></tr>`);
             });
     }
 
@@ -585,21 +602,38 @@ $(document).ready(function() {
     createTaskForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // Get form data
-        const formData = {
-            product_name: document.getElementById('productName').value,
-            weight: parseFloat(document.getElementById('weight').value)
-        };
-
-        // Validate form data
-        if (!formData.product_name || !formData.weight) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Please fill in all required fields'
-            });
-            return;
+        const memberRole = '<?php echo strtolower($member_role); ?>';
+        let formData;
+        
+        if (memberRole === 'knotter' || memberRole === 'warper') {
+            const weightVal = parseFloat(document.getElementById('weight').value);
+            if (!document.getElementById('productName').value || isNaN(weightVal)) {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Please fill in all required fields. Product name and weight must be filled.' });
+                return;
+            }
+            formData = {
+                product_name: document.getElementById('productName').value,
+                weight: weightVal,
+                length: 0,
+                width: 0,
+                quantity: 0
+            };
+        } else { // weaver
+            const lengthVal = parseFloat(document.getElementById('length').value);
+            if (!document.getElementById('productName').value || isNaN(lengthVal)) {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Please fill in product name and length.' });
+                return;
+            }
+            formData = {
+                product_name: document.getElementById('productName').value,
+                weight: 0,
+                length: lengthVal,
+                width: parseFloat(document.getElementById('width').value) || 0,
+                quantity: parseInt(document.getElementById('quantity').value, 10) || 0
+            };
         }
+
+        console.log('Submitting form data:', formData); // For debugging
 
         // Show loading state
         const createBtn = createTaskForm.querySelector('button[type="submit"]');

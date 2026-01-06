@@ -10,6 +10,25 @@ class Database {
     public function __construct() {
         $this->connectMySQLi();
         $this->connectPDO();
+        $this->run_migrations();
+    }
+
+    private function run_migrations() {
+        $migration_flag_file = __DIR__ . '/../.migration_weaver_fields.done';
+
+        if (!file_exists($migration_flag_file)) {
+            // Check if columns exist before altering
+            $result = $this->conn->query("SHOW COLUMNS FROM `member_self_tasks` LIKE 'length_m'");
+            if ($result && $result->num_rows == 0) {
+                 $this->conn->query("ALTER TABLE `member_self_tasks`
+                    ADD COLUMN `length_m` DECIMAL(10,2) DEFAULT NULL,
+                    ADD COLUMN `width_in` DECIMAL(10,2) DEFAULT NULL,
+                    ADD COLUMN `quantity` INT(11) DEFAULT NULL");
+            }
+            
+            // Create the flag file to prevent it from running again
+            file_put_contents($migration_flag_file, 'Migration for weaver fields completed on ' . date('Y-m-d H:i:s'));
+        }
     }
 
     private function connectMySQLi() {
@@ -85,4 +104,4 @@ class Database {
             return ['success' => false, 'error' => $stmt->error];
         }
     }
-} 
+}

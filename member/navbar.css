@@ -411,11 +411,7 @@ th, td {
 
 /* Responsive styles */
 @media screen and (max-width: 600px) {
-  table {
-    display: block;
-    overflow-x: auto;
-    width: fit-content;
-  }
+
   .fluid-name {
   display: block;
   width: 100%;

@@ -12,44 +12,39 @@ if (!isset($_SESSION['id'])) {
 $db = new Database();
 $member_id = $_SESSION['id'];
 
-// Get POST data
 $data = json_decode(file_get_contents('php://input'), true);
 
-if (!$data) {
-    echo json_encode(['success' => false, 'message' => 'Invalid request data']);
-    exit;
-}
-
-// Validate required fields
-if (!isset($data['product_name']) || !isset($data['weight'])) {
-    echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+if (!$data || empty($data['product_name'])) {
+    echo json_encode(['success' => false, 'message' => 'Invalid request data: product_name is empty']);
     exit;
 }
 
 try {
-    // Generate a unique production ID
-    $production_id = uniqid('PL', true);
-
-    // Insert the task
     $stmt = $db->conn->prepare("
         INSERT INTO member_self_tasks 
-        (production_id, member_id, product_name, weight_g, status) 
-        VALUES (?, ?, ?, ?, 'pending')
+        (member_id, product_name, weight_g, length_m, width_in, quantity, status) 
+        VALUES (?, ?, ?, ?, ?, ?, 'pending')
     ");
 
-    $stmt->bind_param("sisd",
-        $production_id,
+    $weight = $data['weight'] ?? null;
+    $length = $data['length'] ?? null;
+    $width = $data['width'] ?? null;
+    $quantity = $data['quantity'] ?? null;
+
+    $stmt->bind_param("isdddi",
         $member_id,
         $data['product_name'],
-        $data['weight']
+        $weight,
+        $length,
+        $width,
+        $quantity
     );
 
     if ($stmt->execute()) {
         $task_id = $stmt->insert_id;
         
-        // Get the created task details
         $stmt = $db->conn->prepare("
-            SELECT production_id, product_name, weight_g, status, date_created 
+            SELECT * 
             FROM member_self_tasks 
             WHERE id = ?
         ");
@@ -71,4 +66,4 @@ try {
         'success' => false, 
         'message' => 'Error creating task: ' . $e->getMessage()
     ]);
-} 
+}

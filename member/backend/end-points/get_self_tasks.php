@@ -18,6 +18,9 @@ try {
             mst.production_id,
             mst.product_name,
             mst.weight_g,
+            mst.length_m,
+            mst.width_in,
+            mst.quantity,
             mst.status,
             mst.raw_materials,
             mst.date_created,
@@ -51,4 +54,4 @@ try {
         'success' => false,
         'message' => 'Error fetching tasks: ' . $e->getMessage()
     ]);
-} 
+}
