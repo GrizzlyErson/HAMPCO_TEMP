@@ -1,10 +1,18 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 require_once '../../admin/backend/class.php';
 
 header('Content-Type: application/json');
 
+// Log start of script execution
+error_log("get_balance_summary.php: Script started.");
+
 if (!isset($_SESSION['id'])) {
+    error_log("get_balance_summary.php: Session ID not set. Not logged in.");
     echo json_encode([
         'success' => false,
         'message' => 'Not logged in'
@@ -15,6 +23,8 @@ if (!isset($_SESSION['id'])) {
 $db = new global_class();
 $member_id = $_SESSION['id'];
 $filter = $_GET['filter'] ?? 'all';
+
+error_log("get_balance_summary.php: Member ID: " . $member_id . ", Filter: " . $filter);
 
 try {
     // Get member role
@@ -30,12 +40,11 @@ try {
     $role_result = $stmt->get_result();
     $role_data = $role_result->fetch_assoc();
     if (!$role_data) {
-        throw new Exception("Member not found");
+        throw new Exception("Member not found for ID: " . $member_id);
     }
     $member_role = strtolower($role_data['role']);
     
-    // Debug log
-    error_log("Member role: " . $member_role);
+    error_log("get_balance_summary.php: Member role: " . $member_role);
 
     // Prepare date filter condition
     $date_condition = '';
@@ -52,18 +61,20 @@ try {
         default:
             $date_condition = '';
     }
+    error_log("get_balance_summary.php: Date condition: " . $date_condition);
 
     // Query the balance summary view
     $query = "SELECT * FROM member_balance_view WHERE member_id = ? $date_condition ORDER BY date_created DESC";
+    error_log("get_balance_summary.php: Balance query: " . $query . " with member_id: " . $member_id);
     
     $stmt = $db->conn->prepare($query);
     if (!$stmt) {
-        throw new Exception("Prepare failed: " . $db->conn->error);
+        throw new Exception("Prepare failed for balance query: " . $db->conn->error);
     }
 
     $stmt->bind_param("i", $member_id);
     if (!$stmt->execute()) {
-        throw new Exception("Execute failed: " . $stmt->error);
+        throw new Exception("Execute failed for balance query: " . $stmt->error);
     }
 
     $result = $stmt->get_result();
@@ -79,12 +90,20 @@ try {
         
         $balance_data[] = $row;
     }
+    error_log("get_balance_summary.php: Fetched " . count($balance_data) . " balance records.");
+
 
     // Get earnings summary
     $summary_query = "SELECT * FROM member_earnings_summary WHERE member_id = ?";
+    error_log("get_balance_summary.php: Summary query: " . $summary_query . " with member_id: " . $member_id);
     $stmt = $db->conn->prepare($summary_query);
+    if (!$stmt) {
+        throw new Exception("Prepare failed for summary query: " . $db->conn->error);
+    }
     $stmt->bind_param("i", $member_id);
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        throw new Exception("Execute failed for summary query: " . $stmt->error);
+    }
     $summary_result = $stmt->get_result();
     $summary = $summary_result->fetch_assoc();
 
@@ -92,6 +111,9 @@ try {
         $summary['total_earnings'] = number_format((float)str_replace(',', '', $summary['total_earnings']), 2, '.', '');
         $summary['pending_payments'] = number_format((float)str_replace(',', '', $summary['pending_payments']), 2, '.', '');
         $summary['completed_payments'] = number_format((float)str_replace(',', '', $summary['completed_payments']), 2, '.', '');
+        error_log("get_balance_summary.php: Fetched summary data: " . print_r($summary, true));
+    } else {
+        error_log("get_balance_summary.php: No summary data found for member ID: " . $member_id);
     }
 
     echo json_encode([
@@ -100,6 +122,7 @@ try {
         'summary' => $summary,
         'member_role' => $member_role
     ]);
+    error_log("get_balance_summary.php: Script finished successfully.");
 
 } catch (Exception $e) {
     error_log("Error in get_balance_summary.php: " . $e->getMessage());

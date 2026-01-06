@@ -1232,7 +1232,7 @@ function loadBalanceSummary() {
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="${'<?php echo in_array($member_role, ["knotter", "warper"]) ? "7" : "8"; ?>'}" class="px-6 py-4 text-center text-red-500">
-                        Error loading balance summary. Please try again.
+                        Error loading balance summary: ${error.message}. Please try again.
                     </td>
                 </tr>
             `;
