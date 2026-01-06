@@ -811,6 +811,11 @@ $(document).ready(function() {
     loadNewTasks();
     loadAssignedTasks();
     
+    // Auto-refresh new tasks every 10 seconds
+    setInterval(function() {
+        loadNewTasks();
+    }, 10000);
+    
     // Add refresh button click handler
     document.getElementById('refreshNewTasksBtn').addEventListener('click', function() {
         const btn = this;
