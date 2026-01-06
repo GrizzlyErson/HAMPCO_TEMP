@@ -123,7 +123,7 @@ $member_role = strtolower($member['role']);
                 </button>
             </div>
 
-            <?php if (in_array($member_role, ['knotter', 'warper'])): ?>
+            <?php if (in_array($member_role, ['knotter', 'warper', 'weaver'])): ?>
             <!-- Self-Assigned Tasks Table -->
             <div class="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200">
@@ -135,7 +135,13 @@ $member_role = strtolower($member['role']);
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Production ID</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                                <?php if ($member_role === 'knotter' || $member_role === 'warper'): ?>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight (g)</th>
+                                <?php elseif ($member_role === 'weaver'): ?>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Length (m)</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Width (in)</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                <?php endif; ?>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Raw Materials</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Created</th>
@@ -415,59 +421,153 @@ $(document).ready(function() {
                         return;
                     }
 
-                    const rows = data.tasks.map(task => {
-                        const isApproved = task.approval_status === 'approved';
-                        const startButtonClass = isApproved ? 
-                            'bg-[#4F46E5] hover:bg-[#4338CA]' : 
-                            'bg-gray-400 cursor-not-allowed';
-                        
-                        return `
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.production_id}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.product_name}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.weight_g}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <span class="px-2 py-1 text-xs rounded-full font-medium ${
-                                    task.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                    task.status === 'submitted' ? 'bg-purple-100 text-purple-800' :
-                                    task.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                                    'bg-yellow-100 text-yellow-800'
-                                }">
-                                    ${task.status ? task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ') : '-'}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <button onclick="viewMaterials('${task.product_name}', ${task.weight_g})" 
-                                    class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded text-sm">
-                                    View Materials
-                                </button>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.date_created}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.date_submitted || '-'}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                                ${task.status === 'pending' ? `
-                                    <button onclick="${isApproved ? `startTask('${task.production_id}')` : 'void(0)'}" 
-                                        class="${startButtonClass} text-white text-sm py-2 px-4 rounded"
-                                        ${!isApproved ? 'disabled' : ''}>
-                                        Start
-                                    </button>
-                                ` : task.status === 'in_progress' ? `
-                                    <button onclick="submitTask('${task.production_id}')" 
-                                    class="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm py-2 px-4 rounded">
-                                    Submit
-                                </button>
-                            ` : ''}
-                                ${task.status !== 'submitted' && task.status !== 'completed' ? `
-                                    <button onclick="deleteTask('${task.production_id}')" class="bg-[#EF4444] hover:bg-[#DC2626] text-white text-sm py-2 px-4 rounded">Delete</button>
-                                ` : ''}
-                            </td>
-                        </tr>
-                    `}).join('');
+                                        const rows = data.tasks.map(task => {
 
-                    tableBody.html(rows);
-                } else {
-                    tableBody.html('<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Error loading tasks</td></tr>');
-                }
+                                            const isApproved = task.approval_status === 'approved';
+
+                                            const startButtonClass = isApproved ? 
+
+                                                'bg-[#4F46E5] hover:bg-[#4338CA]' : 
+
+                                                'bg-gray-400 cursor-not-allowed';
+
+                                            
+
+                                            let measurementsCol = '';
+
+                                            let materialsButton = '';
+
+                                            let colSpan = 8; // Default for knotter/warper
+
+                    
+
+                                            if (memberRole === 'knotter' || memberRole === 'warper') {
+
+                                                measurementsCol = `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.weight_g}</td>`;
+
+                                                materialsButton = `
+
+                                                    <button onclick="viewMaterials('${task.product_name}', ${task.weight_g})" 
+
+                                                        class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded text-sm">
+
+                                                        View Materials
+
+                                                    </button>
+
+                                                `;
+
+                                            } else if (memberRole === 'weaver') {
+
+                                                measurementsCol = `
+
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.length_m}</td>
+
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.width_in}</td>
+
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.quantity}</td>
+
+                                                `;
+
+                                                materialsButton = ''; // Remove for weaver role for now
+
+                                                colSpan = 10; // Adjust colspan for weaver
+
+                                            }
+
+                                            
+
+                                            return `
+
+                                            <tr>
+
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.production_id}</td>
+
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.product_name || '-'}</td>
+
+                                                ${measurementsCol}
+
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+
+                                                    <span class="px-2 py-1 text-xs rounded-full font-medium ${
+
+                                                        task.status === 'completed' ? 'bg-green-100 text-green-800' :
+
+                                                        task.status === 'submitted' ? 'bg-purple-100 text-purple-800' :
+
+                                                        task.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+
+                                                        'bg-yellow-100 text-yellow-800'
+
+                                                    }">
+
+                                                        ${task.status ? task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ') : '-'}
+
+                                                    </span>
+
+                                                </td>
+
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+
+                                                    ${materialsButton}
+
+                                                </td>
+
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.date_created}</td>
+
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.date_submitted || '-'}
+
+                                                </td>
+
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+
+                                                    ${task.status === 'pending' ? `
+
+                                                        <button onclick="${isApproved ? `startTask('${task.production_id}')` : 'void(0)'}" 
+
+                                                            class="${startButtonClass} text-white text-sm py-2 px-4 rounded"
+
+                                                            ${!isApproved ? 'disabled' : ''}>
+
+                                                            Start
+
+                                                        </button>
+
+                                                    ` : task.status === 'in_progress' ? `
+
+                                                        <button onclick="submitTask('${task.production_id}')" 
+
+                                                        class="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm py-2 px-4 rounded">
+
+                                                        Submit
+
+                                                    </button>
+
+                                                ` : ''}
+
+                                                    ${task.status !== 'submitted' && task.status !== 'completed' ? `
+
+                                                        <button onclick="deleteTask('${task.production_id}')" class="bg-[#EF4444] hover:bg-[#DC2626] text-white text-sm py-2 px-4 rounded">Delete</button>
+
+                                                    ` : ''}
+
+                                                </td>
+
+                                            </tr>
+
+                                        `}).join('');
+
+                    
+
+                                        tableBody.html(rows);
+
+                                    } else {
+
+                                        const colSpan = (memberRole === 'weaver') ? 10 : 8; // Adjust colspan for "No tasks available"
+
+                                        tableBody.html('<tr><td colspan="' + colSpan + '" class="px-6 py-4 text-center text-gray-500">No tasks available</td></tr>');
+
+                                    }
             })
             .catch(error => {
                 console.error('Error:', error);

@@ -25,24 +25,30 @@ $member_role = strtolower($role_data['role']);
 
 // Get POST data
 $data = json_decode(file_get_contents('php://input'), true);
+error_log("create_self_task.php: Received data: " . print_r($data, true));
 
 if (!$data) {
     echo json_encode(['success' => false, 'message' => 'Invalid request data']);
     exit;
 }
 
+error_log("create_self_task.php: Member role: " . $member_role);
+
 // Validate required fields dynamically based on member_role
 if ($member_role === 'knotter' || $member_role === 'warper') {
     if (!isset($data['product_name']) || !isset($data['weight']) || !is_numeric($data['weight'])) {
+        error_log("create_self_task.php: Validation failed for " . $member_role . ". Data: " . print_r($data, true));
         echo json_encode(['success' => false, 'message' => 'Missing or invalid fields for ' . $member_role]);
         exit;
     }
 } elseif ($member_role === 'weaver') {
     if (!isset($data['product_name']) || !isset($data['length']) || !is_numeric($data['length']) || !isset($data['width']) || !is_numeric($data['width']) || !isset($data['quantity']) || !is_numeric($data['quantity'])) {
+        error_log("create_self_task.php: Validation failed for " . $member_role . ". Data: " . print_r($data, true));
         echo json_encode(['success' => false, 'message' => 'Missing or invalid fields for ' . $member_role]);
         exit;
     }
 } else {
+    error_log("create_self_task.php: Unknown member role: " . $member_role);
     echo json_encode(['success' => false, 'message' => 'Unknown member role']);
     exit;
 }
@@ -69,6 +75,7 @@ try {
             $data['product_name'],
             $data['weight']
         ];
+        error_log("create_self_task.php: Knotter/Warper INSERT details - SQL: $insert_sql, Types: $bind_types, Params: " . print_r($bind_params, true));
     } elseif ($member_role === 'weaver') {
         $insert_sql = "
             INSERT INTO member_self_tasks 
@@ -84,10 +91,12 @@ try {
             $data['width'],
             $data['quantity']
         ];
+        error_log("create_self_task.php: Weaver INSERT details - SQL: $insert_sql, Types: $bind_types, Params: " . print_r($bind_params, true));
     }
 
     $stmt = $db->conn->prepare($insert_sql);
     if (!$stmt) {
+        error_log("create_self_task.php: Failed to prepare statement: " . $db->conn->error);
         throw new Exception("Failed to prepare statement: " . $db->conn->error);
     }
     
@@ -101,6 +110,7 @@ try {
     call_user_func_array([$stmt, 'bind_param'], array_merge([$bind_types], $refs));
 
     if ($stmt->execute()) {
+        error_log("create_self_task.php: Statement executed successfully.");
         $task_id = $stmt->insert_id;
         
         // Get the created task details dynamically based on role
@@ -127,9 +137,11 @@ try {
             'task' => $task
         ]);
     } else {
+        error_log("create_self_task.php: Failed to execute statement: " . $stmt->error);
         throw new Exception("Failed to create task: " . $stmt->error);
     }
 } catch (Exception $e) {
+    error_log("create_self_task.php: Caught exception: " . $e->getMessage());
     echo json_encode([
         'success' => false, 
         'message' => 'Error creating task: ' . $e->getMessage()
