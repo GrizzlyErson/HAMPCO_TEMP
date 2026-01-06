@@ -803,14 +803,14 @@ $(document).ready(function() {
     loadNewTasks();
     loadAssignedTasks();
     
-    setInterval(() => {
-        loadNewTasks();
-        loadAssignedTasks();
-        const savedTab = localStorage.getItem('activeProductionTab');
-        if (savedTab === 'created') {
-            loadSelfAssignedTasks();
-        }
-    }, 5000);
+    // setInterval(() => {
+    //     loadNewTasks();
+    //     loadAssignedTasks();
+    //     const savedTab = localStorage.getItem('activeProductionTab');
+    //     if (savedTab === 'created') {
+    //         loadSelfAssignedTasks();
+    //     }
+    // }, 5000);
 
 
     // Handle submit button clicks using jQuery delegation
@@ -1061,7 +1061,7 @@ function declineTask(taskId) {
         html: `
             <div class="text-left">
                 <p class="mb-2 text-sm text-gray-600">Please let the admin know why you are declining this assignment.</p>
-                <textarea id="declineReasonInput" class="swal2-textarea" placeholder="Enter your reason..." rows="4" style="width: 100%;"></textarea>
+                <textarea id="declineReasonInput" class="swal2-textarea" placeholder="Enter your reason..." rows="4" style="width: 100%; max-width: 350px; box-sizing: border-box;"></textarea>
             </div>
         `,
         icon: 'warning',
