@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../class.php';
+require_once '../../admin/backend/class.php';
 
 header('Content-Type: application/json');
 
@@ -71,9 +71,9 @@ try {
     
     while ($row = $result->fetch_assoc()) {
         // Format the data
-        $row['weight_g'] = $row['weight_g'] ? number_format($row['weight_g'], 3) : '-';
-        $row['unit_rate'] = number_format($row['unit_rate'], 2);
-        $row['total_amount'] = number_format($row['total_amount'], 2);
+        $row['weight_g'] = $row['weight_g'] ? $row['weight_g'] : '-';
+        $row['unit_rate'] = number_format((float)str_replace(',', '', $row['unit_rate']), 2, '.', '');
+        $row['total_amount'] = number_format((float)str_replace(',', '', $row['total_amount']), 2, '.', '');
         $row['date_paid'] = $row['date_paid'] ? date('Y-m-d H:i', strtotime($row['date_paid'])) : null;
         $row['date_created'] = date('Y-m-d H:i', strtotime($row['date_created']));
         
@@ -89,9 +89,9 @@ try {
     $summary = $summary_result->fetch_assoc();
 
     if ($summary) {
-        $summary['total_earnings'] = number_format($summary['total_earnings'], 2);
-        $summary['pending_payments'] = number_format($summary['pending_payments'], 2);
-        $summary['completed_payments'] = number_format($summary['completed_payments'], 2);
+        $summary['total_earnings'] = number_format((float)str_replace(',', '', $summary['total_earnings']), 2, '.', '');
+        $summary['pending_payments'] = number_format((float)str_replace(',', '', $summary['pending_payments']), 2, '.', '');
+        $summary['completed_payments'] = number_format((float)str_replace(',', '', $summary['completed_payments']), 2, '.', '');
     }
 
     echo json_encode([
