@@ -781,7 +781,7 @@ $(document).ready(function() {
                     timer: 2000,
                     showConfirmButton: false
                 }).then(() => {
-                    loadSelfAssignedTasks();
+                    window.location.reload(); // Reload the page after successful task creation
                 });
             } else {
                 throw new Error(data.message || 'Failed to create task');
@@ -981,6 +981,8 @@ $(document).ready(function() {
                     text: `Your status has been set to ${status}`,
                     timer: 2000,
                     showConfirmButton: false
+                }).then(() => {
+                    window.location.reload(); // Reload the page after successful update
                 });
             } else {
                 // Show error message
@@ -1051,9 +1053,7 @@ function acceptTask(taskId) {
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-                        // Refresh the tables without full page reload
-                        loadNewTasks();
-                        loadAssignedTasks();
+                        window.location.reload(); // Reload the page after successful task acceptance
                     });
                 } else {
                     throw new Error(data.message || 'Failed to accept task');
@@ -1132,9 +1132,7 @@ function declineTask(taskId) {
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-                        // Refresh the tables without full page reload
-                        loadNewTasks();
-                        loadAssignedTasks();
+                        window.location.reload(); // Reload the page after successful task decline
                     });
                 } else {
                     throw new Error(data.message || 'Failed to decline task');
@@ -1525,7 +1523,7 @@ function updateTaskStatus(productionId, action) {
                 timer: 2000,
                 showConfirmButton: false
             }).then(() => {
-                loadSelfAssignedTasks();
+                window.location.reload(); // Reload the page after successful task status update
             });
         } else {
             throw new Error(data.message || `Failed to ${action} task`);
