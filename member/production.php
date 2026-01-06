@@ -13,79 +13,6 @@ $member = $result->fetch_assoc();
 $current_status = $member['availability_status'] ?? 'available';
 $member_role = strtolower($member['role']);
 
-// Get production tasks directly using the database connection
-$member_id = $_SESSION['id'];
-
-// Get new tasks (tasks specifically assigned to this member but not yet accepted)
-$new_tasks_query = "SELECT DISTINCT
-    pl.prod_line_id,
-    pl.product_name,
-    pl.length_m,
-    pl.width_m,
-    pl.weight_g,
-    pl.quantity,
-    pl.status as prod_status,
-    MIN(ta.status) as task_status,
-    MIN(ta.deadline) as deadline,
-    MIN(ta.id) as task_id
-    FROM production_line pl
-    JOIN task_assignments ta ON pl.prod_line_id = ta.prod_line_id
-    WHERE ta.member_id = ? 
-    AND ta.status = 'pending'
-    AND pl.status NOT IN ('completed', 'submitted')
-    AND NOT EXISTS (
-        SELECT 1 
-        FROM task_assignments ta2 
-        WHERE ta2.prod_line_id = pl.prod_line_id 
-        AND ta2.member_id = ta.member_id 
-        AND ta2.status IN ('in_progress', 'completed', 'submitted', 'declined')
-    )
-    GROUP BY pl.prod_line_id
-    ORDER BY pl.date_created DESC";
-
-$stmt = $db->conn->prepare($new_tasks_query);
-$stmt->bind_param("i", $member_id);
-$stmt->execute();
-$new_tasks_result = $stmt->get_result();
-$new_tasks = [];
-
-while ($row = $new_tasks_result->fetch_assoc()) {
-    $row['display_id'] = 'PL' . str_pad($row['prod_line_id'], 4, '0', STR_PAD_LEFT);
-    $row['status'] = $row['task_status'] ?? 'pending';
-    $new_tasks[] = $row;
-}
-
-// Get assigned tasks (tasks that have been accepted/started)
-$assigned_tasks_query = "SELECT 
-    pl.prod_line_id,
-    pl.product_name,
-    pl.length_m,
-    pl.width_m,
-    pl.weight_g,
-    pl.quantity,
-    ta.status,
-    ta.created_at as date_started,
-    CASE 
-        WHEN ta.status = 'completed' OR ta.status = 'submitted' THEN ta.updated_at 
-        ELSE NULL 
-    END as date_submitted
-    FROM production_line pl
-    JOIN task_assignments ta ON pl.prod_line_id = ta.prod_line_id
-    WHERE ta.member_id = ? 
-    AND ta.status NOT IN ('pending', 'completed')  -- Exclude pending and completed tasks
-    AND pl.status NOT IN ('completed', 'submitted')  -- Exclude tasks from completed/submitted production lines
-    ORDER BY ta.created_at DESC";
-
-$stmt = $db->conn->prepare($assigned_tasks_query);
-$stmt->bind_param("i", $member_id);
-$stmt->execute();
-$assigned_tasks_result = $stmt->get_result();
-$assigned_tasks = [];
-
-while ($row = $assigned_tasks_result->fetch_assoc()) {
-    $row['display_id'] = 'PL' . str_pad($row['prod_line_id'], 4, '0', STR_PAD_LEFT);
-    $assigned_tasks[] = $row;
-}
 ?>
 
 <body class="hampco-admin-sidebar-layout">
@@ -149,40 +76,7 @@ while ($row = $assigned_tasks_result->fetch_assoc()) {
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <?php foreach ($new_tasks as $task): ?>
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo htmlspecialchars($task['display_id']); ?></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo htmlspecialchars($task['product_name']); ?></td>
-                                <?php if ($member_role === 'knotter'): ?>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo $task['weight_g']; ?></td>
-                                <?php elseif ($member_role !== 'warper'): ?>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo $task['length_m']; ?></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo $task['width_m']; ?></td>
-                                <?php endif; ?>
-                                <?php if ($member_role === 'weaver'): ?>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo isset($task['quantity']) && $task['quantity'] > 0 ? $task['quantity'] : 1; ?></td>
-                                <?php endif; ?>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo ucfirst($task['status']); ?></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo $task['deadline'] ? date('Y-m-d', strtotime($task['deadline'])) : '-'; ?></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <div class="flex flex-col space-y-2">
-                                        <button onclick="acceptTask(<?php echo $task['task_id']; ?>)" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md">Accept</button>
-                                        <button onclick="declineTask(<?php echo $task['task_id']; ?>)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md">Decline</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                            <?php if (empty($new_tasks)): ?>
-                            <tr>
-                                <td colspan="<?php 
-                                    $colspan = 5;
-                                    if ($member_role === 'knotter') $colspan = 6;
-                                    elseif ($member_role === 'weaver') $colspan = 8;
-                                    elseif ($member_role !== 'warper') $colspan = 7;
-                                    echo $colspan;
-                                ?>" class="px-6 py-4 text-center text-gray-500">No new tasks available</td>
-                            </tr>
-                            <?php endif; ?>
+                           
                         </tbody>
                     </table>
                 </div>
@@ -213,43 +107,7 @@ while ($row = $assigned_tasks_result->fetch_assoc()) {
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <?php foreach ($assigned_tasks as $task): ?>
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo htmlspecialchars($task['display_id']); ?></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo htmlspecialchars($task['product_name']); ?></td>
-                                <?php if ($member_role === 'knotter'): ?>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo $task['weight_g']; ?></td>
-                                <?php elseif ($member_role !== 'warper'): ?>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo $task['length_m']; ?></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo $task['width_m']; ?></td>
-                                <?php endif; ?>
-                                <?php if ($member_role !== 'warper' && $member_role !== 'knotter'): ?>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo $task['quantity']; ?></td>
-                                <?php endif; ?>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo ucfirst($task['status']); ?></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo $task['date_started'] ? date('Y-m-d', strtotime($task['date_started'])) : '-'; ?></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo $task['date_submitted'] ? date('Y-m-d', strtotime($task['date_submitted'])) : '-'; ?></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <?php if ($task['status'] === 'in_progress'): ?>
-                                    <button class="submit-task-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md" 
-                                            data-prod-id="<?php echo $task['prod_line_id']; ?>"
-                                            data-prod-name="<?php echo htmlspecialchars($task['product_name']); ?>">
-                                        Submit
-                                    </button>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                            <?php if (empty($assigned_tasks)): ?>
-                            <tr>
-                                <td colspan="<?php
-                                    $colspan = 6;
-                                    if ($member_role === 'knotter') $colspan = 7;
-                                    elseif ($member_role !== 'warper') $colspan = 9;
-                                    echo $colspan;
-                                ?>" class="px-6 py-4 text-center text-gray-500">No assigned tasks</td>
-                            </tr>
-                            <?php endif; ?>
+                           
                         </tbody>
                     </table>
                 </div>
@@ -506,6 +364,10 @@ $(document).ready(function() {
         $(`#${savedTab}-tab`).click();
     }
 
+    if (savedTab === 'created') {
+        loadSelfAssignedTasks();
+    }
+
     // Create Task Modal Functionality
     const createTaskBtn = document.getElementById('createTaskBtn');
     const createTaskModal = document.getElementById('createTaskModal');
@@ -613,6 +475,112 @@ $(document).ready(function() {
             });
     }
 
+    function loadNewTasks() {
+        const tableBody = $('#newTasksTable tbody');
+        
+        // Show loading state
+        tableBody.html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Loading tasks...</td></tr>');
+
+        fetch('backend/end-points/get_new_tasks.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.tasks) {
+                    if (data.tasks.length === 0) {
+                        tableBody.html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No tasks available</td></tr>');
+                        return;
+                    }
+
+                    const rows = data.tasks.map(task => {
+                        return `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.display_id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.product_name}</td>
+                            <?php if ($member_role === 'knotter'): ?>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.weight_g}</td>
+                            <?php elseif ($member_role !== 'warper'): ?>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.length_m}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.width_m}</td>
+                            <?php endif; ?>
+                            <?php if ($member_role === 'weaver'): ?>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.quantity > 0 ? task.quantity : 1}</td>
+                            <?php endif; ?>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.status.charAt(0).toUpperCase() + task.status.slice(1)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.deadline ? new Date(task.deadline).toLocaleDateString() : '-'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div class="flex flex-col space-y-2">
+                                        <button onclick="acceptTask(${task.task_id})" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md">Accept</button>
+                                        <button onclick="declineTask(${task.task_id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md">Decline</button>
+                                    </div>
+                                </td>
+                        </tr>
+                    `}).join('');
+
+                    tableBody.html(rows);
+                } else {
+                    tableBody.html('<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Error loading tasks</td></tr>');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                tableBody.html('<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Failed to load tasks</td></tr>');
+            });
+    }
+
+    function loadAssignedTasks() {
+        const tableBody = $('#assignedTasksTable tbody');
+        
+        // Show loading state
+        tableBody.html('<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">Loading tasks...</td></tr>');
+
+        fetch('backend/end-points/get_assigned_tasks.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.tasks) {
+                    if (data.tasks.length === 0) {
+                        tableBody.html('<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No tasks available</td></tr>');
+                        return;
+                    }
+
+                    const rows = data.tasks.map(task => {
+                        return `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.display_id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.product_name}</td>
+                            <?php if ($member_role === 'knotter'): ?>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.weight_g}</td>
+                            <?php elseif ($member_role !== 'warper'): ?>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.length_m}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.width_m}</td>
+                            <?php endif; ?>
+                            <?php if ($member_role !== 'warper' && $member_role !== 'knotter'): ?>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.quantity}</td>
+                            <?php endif; ?>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.status.charAt(0).toUpperCase() + task.status.slice(1)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.date_started ? new Date(task.date_started).toLocaleDateString() : '-'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.date_submitted ? new Date(task.date_submitted).toLocaleDateString() : '-'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    ${task.status === 'in_progress' ? `
+                                    <button class="submit-task-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md" 
+                                            data-prod-id="${task.prod_line_id}"
+                                            data-prod-name="${task.product_name}">
+                                        Submit
+                                    </button>
+                                    ` : ''}
+                                </td>
+                        </tr>
+                    `}).join('');
+
+                    tableBody.html(rows);
+                } else {
+                    tableBody.html('<tr><td colspan="9" class="px-6 py-4 text-center text-red-500">Error loading tasks</td></tr>');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                tableBody.html('<tr><td colspan="9" class="px-6 py-4 text-center text-red-500">Failed to load tasks</td></tr>');
+            });
+    }
+
     // Handle form submission for creating new task
     createTaskForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -687,11 +655,19 @@ $(document).ready(function() {
     $('#created-tab').on('click', function() {
         loadSelfAssignedTasks();
     });
+    
+    loadNewTasks();
+    loadAssignedTasks();
+    
+    setInterval(() => {
+        loadNewTasks();
+        loadAssignedTasks();
+        const savedTab = localStorage.getItem('activeProductionTab');
+        if (savedTab === 'created') {
+            loadSelfAssignedTasks();
+        }
+    }, 5000);
 
-    // Initial load if Task Created tab is active
-    if ($('#created-tab').attr('aria-selected') === 'true') {
-        loadSelfAssignedTasks();
-    }
 
     // Handle submit button clicks using jQuery delegation
     $('#assignedTasksTable').on('click', '.submit-task-btn', function(e) {
