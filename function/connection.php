@@ -19,4 +19,4 @@ try {
     error_log("Connection failed: " . $e->getMessage());
     die("Connection failed. Please try again later.");
 }
-?> 
+?>
