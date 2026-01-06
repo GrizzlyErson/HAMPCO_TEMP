@@ -32,7 +32,7 @@ SELECT
     COUNT(*) as total_tasks,
     SUM(CASE WHEN payment_status = 'Pending' THEN total_amount ELSE 0 END) as pending_payments,
     SUM(CASE WHEN payment_status = 'Paid' THEN total_amount ELSE 0 END) as completed_payments,
-    SUM(total_amount) as total_earnings
+    SUM(CASE WHEN payment_status = 'Paid' THEN total_amount ELSE 0 END) as total_earnings
 FROM payment_records
 WHERE status = 'completed'
 GROUP BY member_id;

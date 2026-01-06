@@ -353,7 +353,7 @@ $(document).ready(function() {
 
         // Load earnings data if switching to the earnings tab
         if (tabId === 'earnings') {
-            loadEarningsData();
+            loadBalanceSummary();
         }
     });
 
@@ -1101,56 +1101,7 @@ function submitTask(prodLineId, $button) {
         });
     }
 
-    // Function to load earnings data
-    function loadEarningsData() {
-        const dateFilter = document.getElementById('earningsDateFilter').value;
-        
-        fetch('backend/end-points/get_member_earnings.php?filter=' + dateFilter)
-            .then(response => response.json())
-            .then(data => {
-                // Update statistics
-                document.getElementById('totalEarnings').textContent = '₱' + parseFloat(data.total_earnings || 0).toFixed(2);
-                document.getElementById('completedTasksCount').textContent = data.completed_tasks || 0;
-                document.getElementById('pendingPayments').textContent = '₱' + parseFloat(data.pending_payments || 0).toFixed(2);
 
-                // Update table
-                const tableBody = document.getElementById('earningsTableBody');
-                if (!data.earnings || data.earnings.length === 0) {
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">No earnings history found</td>
-                        </tr>
-                    `;
-                    return;
-                }
-
-                tableBody.innerHTML = data.earnings.map(earning => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">${earning.task_id}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">${earning.product_name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">${earning.completion_date}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">₱${earning.amount.toFixed(2)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <span class="px-2 py-1 text-xs rounded-full ${
-                                earning.payment_status === 'paid' 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : 'bg-yellow-100 text-yellow-800'
-                            }">
-                                ${earning.payment_status.charAt(0).toUpperCase() + earning.payment_status.slice(1)}
-                            </span>
-                        </td>
-                    </tr>
-                `).join('');
-            })
-            .catch(error => {
-                console.error('Error loading earnings data:', error);
-                document.getElementById('earningsTableBody').innerHTML = `
-                    <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-red-500">Error loading earnings data. Please try again.</td>
-                    </tr>
-                `;
-            });
-    }
 
 function loadBalanceSummary() {
     const dateFilter = document.getElementById('earningsDateFilter').value;
@@ -1261,12 +1212,35 @@ function loadBalanceSummary() {
                 }
             }).join('');
 
-            // Update the earnings summary
-            if (data.summary) {
-                document.getElementById('totalEarnings').textContent = '₱' + parseFloat(data.summary.total_earnings || 0).toFixed(2);
-                document.getElementById('completedTasksCount').textContent = data.summary.total_tasks || 0;
-                document.getElementById('pendingPayments').textContent = '₱' + parseFloat(data.summary.pending_payments || 0).toFixed(2);
+            // Debug log the data received for calculation
+            console.log('Raw data.data for earnings calculation:', data.data);
+
+            // Calculate total earnings from paid items in the balance summary
+            let totalPaidEarnings = 0;
+            let totalCompletedTasks = 0;
+            let totalPendingPayments = 0;
+
+            if (data.data && Array.isArray(data.data)) {
+                data.data.forEach(item => {
+                    console.log('Processing item:', item); // Log each item
+                    const amount = parseFloat(item.total_amount || 0);
+                    if (item.payment_status === 'Paid') {
+                        totalPaidEarnings += amount;
+                        totalCompletedTasks++;
+                    } else if (item.payment_status === 'Pending') {
+                        totalPendingPayments += amount;
+                    }
+                });
             }
+
+            console.log('Calculated totalPaidEarnings:', totalPaidEarnings);
+            console.log('Calculated totalCompletedTasks:', totalCompletedTasks);
+            console.log('Calculated totalPendingPayments:', totalPendingPayments);
+
+            document.getElementById('totalEarnings').textContent = '₱' + totalPaidEarnings.toFixed(2);
+            document.getElementById('completedTasksCount').textContent = totalCompletedTasks;
+            document.getElementById('pendingPayments').textContent = '₱' + totalPendingPayments.toFixed(2);
+
         })
         .catch(error => {
             console.error('Error loading balance summary:', error);
