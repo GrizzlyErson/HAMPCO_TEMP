@@ -35,7 +35,7 @@ try {
         $get_task = $db->prepare("
             SELECT 
                 COALESCE(mst.production_id, ta.prod_line_id) as production_id,
-                COALESCE(mst.product_name, ta.product_name_field, pl.product_name) as product_name,
+                COALESCE(mst.product_name, pl.product_name) as product_name,
                 COALESCE(mst.weight_g, pl.weight_g) as weight,
                 COALESCE(mst.member_id, ta.member_id) as member_id,
                 um.role,
