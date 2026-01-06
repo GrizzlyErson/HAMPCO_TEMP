@@ -58,15 +58,25 @@
             <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
                 <th class="py-3 px-6 text-left">Processed Materials Name</th>
                 <th class="py-3 px-6 text-left">Weight (grams)</th>
+                <th class="py-3 px-6 text-left">Unit Cost (₱)</th>
                 <th class="py-3 px-6 text-left">Date Updated</th>
+                <th class="py-3 px-6 text-left">Action</th>
             </tr>
         </thead>
         <tbody class="text-gray-600 text-sm">
             <?php
+            // Add unit_cost column if it doesn't exist
+            $check_column = mysqli_query($db->conn, "SHOW COLUMNS FROM processed_materials LIKE 'unit_cost'");
+            if (mysqli_num_rows($check_column) == 0) {
+                mysqli_query($db->conn, "ALTER TABLE processed_materials ADD COLUMN unit_cost DECIMAL(10,2) DEFAULT 0.00");
+            }
+            
             // Query to get processed materials (excluding final products)
             $processed_query = "SELECT 
+                id,
                 processed_materials_name,
                 weight,
+                unit_cost,
                 updated_at
             FROM processed_materials 
             WHERE processed_materials_name IN ('Knotted Bastos', 'Knotted Liniwan', 'Warped Silk')
@@ -77,14 +87,27 @@
 
             if ($processed_result && mysqli_num_rows($processed_result) > 0) {
                 while ($row = mysqli_fetch_assoc($processed_result)) {
+                    $unit_cost = isset($row['unit_cost']) ? floatval($row['unit_cost']) : 0.00;
                     echo "<tr class='border-b border-gray-200 hover:bg-gray-50'>";
                     echo "<td class='py-3 px-6 text-left'>" . htmlspecialchars($row['processed_materials_name']) . "</td>";
                     echo "<td class='py-3 px-6 text-left'>" . number_format($row['weight'], 3) . "</td>";
+                    echo "<td class='py-3 px-6 text-left'>₱ " . number_format($unit_cost, 2) . "</td>";
                     echo "<td class='py-3 px-6 text-left'>" . date('Y-m-d H:i', strtotime($row['updated_at'])) . "</td>";
+                    echo "<td class='py-3 px-6 flex space-x-2'>";
+                    echo "<button 
+                        type='button'
+                        class='updateProcessedBtn bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-full text-xs flex items-center shadow'
+                        data-id='" . htmlspecialchars($row['id']) . "' 
+                        data-name='" . htmlspecialchars($row['processed_materials_name']) . "'
+                        data-unit_cost='" . htmlspecialchars($unit_cost) . "'
+                    >";
+                    echo "<span class='material-icons text-sm mr-1'>edit</span> Update";
+                    echo "</button>";
+                    echo "</td>";
                     echo "</tr>";
                 }
             } else {
-                echo "<tr><td colspan='3' class='py-3 px-6 text-center'>No processed materials found</td></tr>";
+                echo "<tr><td colspan='5' class='py-3 px-6 text-center'>No processed materials found</td></tr>";
             }
             ?>
         </tbody>
@@ -105,17 +128,27 @@
                 <th class="py-3 px-6 text-left">Length (m)</th>
                 <th class="py-3 px-6 text-left">Width (m)</th>
                 <th class="py-3 px-6 text-left">Quantity</th>
+                <th class="py-3 px-6 text-left">Unit Cost (₱)</th>
                 <th class="py-3 px-6 text-left">Date Updated</th>
+                <th class="py-3 px-6 text-left">Action</th>
             </tr>
         </thead>
         <tbody class="text-gray-600 text-sm">
             <?php
+            // Add unit_cost column if it doesn't exist
+            $check_column_finished = mysqli_query($db->conn, "SHOW COLUMNS FROM finished_products LIKE 'unit_cost'");
+            if (mysqli_num_rows($check_column_finished) == 0) {
+                mysqli_query($db->conn, "ALTER TABLE finished_products ADD COLUMN unit_cost DECIMAL(10,2) DEFAULT 0.00");
+            }
+            
             // Query to get finished products
             $finished_query = "SELECT 
+                id,
                 product_name,
                 length_m,
                 width_m,
                 quantity,
+                unit_cost,
                 updated_at
             FROM finished_products
             WHERE product_name IN ('Piña Seda', 'Pure Piña Cloth')
@@ -125,16 +158,29 @@
 
             if ($finished_result && mysqli_num_rows($finished_result) > 0) {
                 while ($row = mysqli_fetch_assoc($finished_result)) {
+                    $unit_cost = isset($row['unit_cost']) ? floatval($row['unit_cost']) : 0.00;
                     echo "<tr class='border-b border-gray-200 hover:bg-gray-50'>";
                     echo "<td class='py-3 px-6 text-left'>" . htmlspecialchars($row['product_name']) . "</td>";
                     echo "<td class='py-3 px-6 text-left'>" . number_format($row['length_m'], 3) . "</td>";
                     echo "<td class='py-3 px-6 text-left'>" . number_format($row['width_m'], 3) . "</td>";
                     echo "<td class='py-3 px-6 text-left'>" . htmlspecialchars($row['quantity']) . "</td>";
+                    echo "<td class='py-3 px-6 text-left'>₱ " . number_format($unit_cost, 2) . "</td>";
                     echo "<td class='py-3 px-6 text-left'>" . date('Y-m-d H:i', strtotime($row['updated_at'])) . "</td>";
+                    echo "<td class='py-3 px-6 flex space-x-2'>";
+                    echo "<button 
+                        type='button'
+                        class='updateFinishedBtn bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-full text-xs flex items-center shadow'
+                        data-id='" . htmlspecialchars($row['id']) . "' 
+                        data-name='" . htmlspecialchars($row['product_name']) . "'
+                        data-unit_cost='" . htmlspecialchars($unit_cost) . "'
+                    >";
+                    echo "<span class='material-icons text-sm mr-1'>edit</span> Update";
+                    echo "</button>";
+                    echo "</td>";
                     echo "</tr>";
                 }
             } else {
-                echo "<tr><td colspan='5' class='py-3 px-6 text-center'>No finished Piña products found</td></tr>";
+                echo "<tr><td colspan='7' class='py-3 px-6 text-center'>No finished Piña products found</td></tr>";
             }
             ?>
         </tbody>
@@ -799,6 +845,251 @@ $(document).ready(function() {
                 });
             }
         });
+    });
+});
+</script>
+
+<!-- Update Processed Materials Modal -->
+<div id="UpdateProcessedModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-8 w-full max-w-md mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800">Update Processed Material</h2>
+            <button type="button" class="closeProcessedModal text-gray-400 hover:text-gray-600">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <form id="updateProcessedForm" class="space-y-6">
+            <input type="hidden" name="processed_id" id="processed_id">
+            <div class="space-y-4">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Processed Material Name</label>
+                    <input type="text" name="processed_name" id="processed_name" class="w-full border border-gray-300 rounded-md px-4 py-2 bg-gray-100 cursor-not-allowed" readonly>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Unit Cost (₱) <span class="text-red-500">*</span></label>
+                    <input type="number" name="processed_unit_cost" id="processed_unit_cost" class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter unit cost" min="0" step="0.01" required>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-8">
+                <button type="button" class="closeProcessedModal px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    Cancel
+                </button>
+                <button type="submit" id="submitUpdateProcessed" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Update
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Update Finished Products Modal -->
+<div id="UpdateFinishedModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-8 w-full max-w-md mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800">Update Finished Product</h2>
+            <button type="button" class="closeFinishedModal text-gray-400 hover:text-gray-600">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <form id="updateFinishedForm" class="space-y-6">
+            <input type="hidden" name="finished_id" id="finished_id">
+            <div class="space-y-4">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
+                    <input type="text" name="finished_name" id="finished_name" class="w-full border border-gray-300 rounded-md px-4 py-2 bg-gray-100 cursor-not-allowed" readonly>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Unit Cost (₱) <span class="text-red-500">*</span></label>
+                    <input type="number" name="finished_unit_cost" id="finished_unit_cost" class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter unit cost" min="0" step="0.01" required>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-8">
+                <button type="button" class="closeFinishedModal px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    Cancel
+                </button>
+                <button type="submit" id="submitUpdateFinished" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Update
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Processed Materials Update Button Handler
+    $(document).on('click', '.updateProcessedBtn', function() {
+        var id = $(this).data('id');
+        var name = $(this).data('name');
+        var unitCost = $(this).data('unit_cost') || '0';
+        
+        $('#processed_id').val(id);
+        $('#processed_name').val(name);
+        $('#processed_unit_cost').val(unitCost);
+        
+        $('#UpdateProcessedModal').removeClass('hidden').fadeIn();
+    });
+
+    // Processed Materials Update Form Submission
+    $('#updateProcessedForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        var formData = {
+            requestType: 'UpdateProcessedMaterial',
+            processed_id: $('#processed_id').val(),
+            processed_unit_cost: $('#processed_unit_cost').val() || '0'
+        };
+
+        if (!formData.processed_unit_cost || formData.processed_unit_cost === '0') {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please enter a valid unit cost',
+                icon: 'error'
+            });
+            return false;
+        }
+
+        var submitBtn = $('#submitUpdateProcessed');
+        submitBtn.prop('disabled', true).html('Updating...');
+
+        $.ajax({
+            type: "POST",
+            url: "backend/end-points/controller.php",
+            data: formData,
+            success: function(response) {
+                try {
+                    var result = typeof response === 'string' ? JSON.parse(response) : response;
+                    if (result.status === 'success') {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: result.message || 'Processed material updated successfully',
+                            icon: 'success'
+                        }).then(() => {
+                            window.location.reload(true);
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: result.message || 'Failed to update processed material',
+                            icon: 'error'
+                        });
+                    }
+                } catch (e) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Server error occurred',
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Server error: ' + error,
+                    icon: 'error'
+                });
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).html('Update');
+            }
+        });
+    });
+
+    // Finished Products Update Button Handler
+    $(document).on('click', '.updateFinishedBtn', function() {
+        var id = $(this).data('id');
+        var name = $(this).data('name');
+        var unitCost = $(this).data('unit_cost') || '0';
+        
+        $('#finished_id').val(id);
+        $('#finished_name').val(name);
+        $('#finished_unit_cost').val(unitCost);
+        
+        $('#UpdateFinishedModal').removeClass('hidden').fadeIn();
+    });
+
+    // Finished Products Update Form Submission
+    $('#updateFinishedForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        var formData = {
+            requestType: 'UpdateFinishedProduct',
+            finished_id: $('#finished_id').val(),
+            finished_unit_cost: $('#finished_unit_cost').val() || '0'
+        };
+
+        if (!formData.finished_unit_cost || formData.finished_unit_cost === '0') {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please enter a valid unit cost',
+                icon: 'error'
+            });
+            return false;
+        }
+
+        var submitBtn = $('#submitUpdateFinished');
+        submitBtn.prop('disabled', true).html('Updating...');
+
+        $.ajax({
+            type: "POST",
+            url: "backend/end-points/controller.php",
+            data: formData,
+            success: function(response) {
+                try {
+                    var result = typeof response === 'string' ? JSON.parse(response) : response;
+                    if (result.status === 'success') {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: result.message || 'Finished product updated successfully',
+                            icon: 'success'
+                        }).then(() => {
+                            window.location.reload(true);
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: result.message || 'Failed to update finished product',
+                            icon: 'error'
+                        });
+                    }
+                } catch (e) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Server error occurred',
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Server error: ' + error,
+                    icon: 'error'
+                });
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).html('Update');
+            }
+        });
+    });
+
+    // Close modals
+    $(document).on('click', '.closeProcessedModal, #UpdateProcessedModal', function(e) {
+        if (e.target === this || $(e.target).hasClass('closeProcessedModal')) {
+            $('#UpdateProcessedModal').fadeOut(function() {
+                $(this).addClass('hidden');
+            });
+        }
+    });
+
+    $(document).on('click', '.closeFinishedModal, #UpdateFinishedModal', function(e) {
+        if (e.target === this || $(e.target).hasClass('closeFinishedModal')) {
+            $('#UpdateFinishedModal').fadeOut(function() {
+                $(this).addClass('hidden');
+            });
+        }
     });
 });
 </script>

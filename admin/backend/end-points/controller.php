@@ -177,6 +177,174 @@ try {
             }
             break;
 
+        case 'UpdateProcessedMaterial':
+            $processed_id = $_POST['processed_id'];
+            $processed_unit_cost = isset($_POST['processed_unit_cost']) ? floatval($_POST['processed_unit_cost']) : 0;
+
+            if (empty($processed_id)) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Processed material ID is required'
+                ]);
+                exit;
+            }
+
+            if (!is_numeric($processed_unit_cost) || $processed_unit_cost < 0) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Unit cost must be a valid positive number'
+                ]);
+                exit;
+            }
+
+            try {
+                $query = $db->conn->prepare("
+                    UPDATE processed_materials 
+                    SET unit_cost = ?
+                    WHERE id = ?
+                ");
+                
+                if (!$query) {
+                    throw new Exception("Prepare failed: " . $db->conn->error);
+                }
+                
+                $query->bind_param("di", $processed_unit_cost, $processed_id);
+                $result = $query->execute();
+                
+                if ($result) {
+                    $query->close();
+                    echo json_encode(['status' => 'success', 'message' => 'Processed material unit cost updated successfully']);
+                } else {
+                    throw new Exception("Execute failed: " . $query->error);
+                }
+            } catch (Exception $e) {
+                error_log("Error in UpdateProcessedMaterial: " . $e->getMessage());
+                echo json_encode(['status' => 'error', 'message' => 'Failed to update processed material: ' . $e->getMessage()]);
+            }
+            break;
+
+        case 'DeleteProcessedMaterial':
+            $processed_id = $_POST['processed_id'];
+            
+            if (!is_numeric($processed_id)) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Invalid processed material ID'
+                ]);
+                exit;
+            }
+            
+            try {
+                $query = $db->conn->prepare("DELETE FROM processed_materials WHERE id = ?");
+                if (!$query) {
+                    throw new Exception("Prepare failed: " . $db->conn->error);
+                }
+                
+                $query->bind_param("i", $processed_id);
+                $result = $query->execute();
+                
+                if ($result) {
+                    $query->close();
+                    echo json_encode([
+                        'status' => 'success',
+                        'message' => 'Processed material deleted successfully'
+                    ]);
+                } else {
+                    throw new Exception("Execute failed: " . $query->error);
+                }
+            } catch (Exception $e) {
+                error_log("Error in DeleteProcessedMaterial: " . $e->getMessage());
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Failed to delete processed material: ' . $e->getMessage()
+                ]);
+            }
+            break;
+
+        case 'UpdateFinishedProduct':
+            $finished_id = $_POST['finished_id'];
+            $finished_unit_cost = isset($_POST['finished_unit_cost']) ? floatval($_POST['finished_unit_cost']) : 0;
+
+            if (empty($finished_id)) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Finished product ID is required'
+                ]);
+                exit;
+            }
+
+            if (!is_numeric($finished_unit_cost) || $finished_unit_cost < 0) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Unit cost must be a valid positive number'
+                ]);
+                exit;
+            }
+
+            try {
+                $query = $db->conn->prepare("
+                    UPDATE finished_products 
+                    SET unit_cost = ?
+                    WHERE id = ?
+                ");
+                
+                if (!$query) {
+                    throw new Exception("Prepare failed: " . $db->conn->error);
+                }
+                
+                $query->bind_param("di", $finished_unit_cost, $finished_id);
+                $result = $query->execute();
+                
+                if ($result) {
+                    $query->close();
+                    echo json_encode(['status' => 'success', 'message' => 'Finished product unit cost updated successfully']);
+                } else {
+                    throw new Exception("Execute failed: " . $query->error);
+                }
+            } catch (Exception $e) {
+                error_log("Error in UpdateFinishedProduct: " . $e->getMessage());
+                echo json_encode(['status' => 'error', 'message' => 'Failed to update finished product: ' . $e->getMessage()]);
+            }
+            break;
+
+        case 'DeleteFinishedProduct':
+            $finished_id = $_POST['finished_id'];
+            
+            if (!is_numeric($finished_id)) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Invalid finished product ID'
+                ]);
+                exit;
+            }
+            
+            try {
+                $query = $db->conn->prepare("DELETE FROM finished_products WHERE id = ?");
+                if (!$query) {
+                    throw new Exception("Prepare failed: " . $db->conn->error);
+                }
+                
+                $query->bind_param("i", $finished_id);
+                $result = $query->execute();
+                
+                if ($result) {
+                    $query->close();
+                    echo json_encode([
+                        'status' => 'success',
+                        'message' => 'Finished product deleted successfully'
+                    ]);
+                } else {
+                    throw new Exception("Execute failed: " . $query->error);
+                }
+            } catch (Exception $e) {
+                error_log("Error in DeleteFinishedProduct: " . $e->getMessage());
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Failed to delete finished product: ' . $e->getMessage()
+                ]);
+            }
+            break;
+
         case 'DeleteProduct':
             $prod_id = isset($_POST['prod_id']) ? intval($_POST['prod_id']) : 0;
             if ($prod_id <= 0) {
