@@ -17,7 +17,7 @@ $member_role = strtolower($member['role']);
 
 <body class="hampco-admin-sidebar-layout">
 
-<div class="w-full px-4">
+<div class="container mx-auto px-4">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-800">Production</h2>
         <div class="flex space-x-4">
@@ -123,8 +123,9 @@ $member_role = strtolower($member['role']);
                 </button>
             </div>
 
+            <?php if (in_array($member_role, ['knotter', 'warper'])): ?>
             <!-- Self-Assigned Tasks Table -->
-            <div class="bg-white rounded-lg shadow-sm">
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-800">Self-Assigned Tasks</h3>
                 </div>
@@ -150,6 +151,7 @@ $member_role = strtolower($member['role']);
                     </table>
                 </div>
             </div>
+            <?php endif; ?>
         </div>
 
         <!-- My Earnings Tab -->
@@ -266,7 +268,7 @@ $member_role = strtolower($member['role']);
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="weight">
                         Weight (g)
                     </label>
-                    <input type="number" id="weight" name="weight" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" required>
+                    <input type="number" id="weight" name="weight" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
                 <?php elseif ($member_role === 'warper'): ?>
                 <!-- Fields for Warper -->
@@ -280,7 +282,7 @@ $member_role = strtolower($member['role']);
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="weight">
                         Weight (g)
                     </label>
-                    <input type="number" id="weight" name="weight" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" required>
+                    <input type="number" id="weight" name="weight" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
                 <?php else: ?>
                 <!-- Fields for Weaver -->
@@ -295,10 +297,22 @@ $member_role = strtolower($member['role']);
                     </select>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="weight">
-                        Weight (g)
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="length">
+                        Length (m)
                     </label>
-                    <input type="number" id="weight" name="weight" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" required>
+                    <input type="number" id="length" name="length" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="width">
+                        Width (in)
+                    </label>
+                    <input type="number" id="width" name="width" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="quantity">
+                        Quantity
+                    </label>
+                    <input type="number" id="quantity" name="quantity" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
                 <?php endif; ?>
                 <div class="flex justify-end space-x-3 mt-6">
@@ -388,18 +402,16 @@ $(document).ready(function() {
     // Function to load self-assigned tasks
     function loadSelfAssignedTasks() {
         const tableBody = $('#selfAssignedTasksBody');
-        const memberRole = '<?php echo strtolower($member_role); ?>';
-        const colspan = 8; // Fixed colspan for all roles since we only have 8 columns
         
         // Show loading state
-        tableBody.html(`<tr><td colspan="${colspan}" class="px-6 py-4 text-center text-gray-500">Loading tasks...</td></tr>`);
+        tableBody.html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Loading tasks...</td></tr>');
 
         fetch('backend/end-points/get_self_tasks.php')
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.tasks) {
                     if (data.tasks.length === 0) {
-                        tableBody.html(`<tr><td colspan="${colspan}" class="px-6 py-4 text-center text-gray-500">No tasks available</td></tr>`);
+                        tableBody.html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No tasks available</td></tr>');
                         return;
                     }
 
@@ -409,19 +421,12 @@ $(document).ready(function() {
                             'bg-[#4F46E5] hover:bg-[#4338CA]' : 
                             'bg-gray-400 cursor-not-allowed';
                         
-                        let details_cell = '';
-                        if (memberRole === 'knotter' || memberRole === 'warper') {
-                            details_cell = `<td class="px-6 py-4 text-sm text-gray-900">${task.weight_g || '-'}</td>`;
-                        } else { // weaver
-                            details_cell = `<td class="px-6 py-4 text-sm text-gray-900">${task.weight_g || '-'}</td>`;
-                        }
-
                         return `
                         <tr>
-                            <td class="px-6 py-4 text-sm text-gray-900">${task.production_id}</td>
-                            <td class="px-6 py-4 text-sm text-gray-900">${task.product_name}</td>
-                            ${details_cell}
-                            <td class="px-6 py-4 text-sm text-gray-900">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.production_id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.product_name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.weight_g}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <span class="px-2 py-1 text-xs rounded-full font-medium ${
                                     task.status === 'completed' ? 'bg-green-100 text-green-800' :
                                     task.status === 'submitted' ? 'bg-purple-100 text-purple-800' :
@@ -431,15 +436,15 @@ $(document).ready(function() {
                                     ${task.status ? task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ') : '-'}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-900">
-                                <button onclick="viewMaterials('${task.product_name}', ${task.weight_g || 0})" 
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <button onclick="viewMaterials('${task.product_name}', ${task.weight_g})" 
                                     class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded text-sm">
                                     View Materials
                                 </button>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-900">${task.date_created}</td>
-                            <td class="px-6 py-4 text-sm text-gray-900">${task.date_submitted || '-'}</td>
-                            <td class="px-6 py-4 text-sm space-x-2">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.date_created}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${task.date_submitted || '-'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                                 ${task.status === 'pending' ? `
                                     <button onclick="${isApproved ? `startTask('${task.production_id}')` : 'void(0)'}" 
                                         class="${startButtonClass} text-white text-sm py-2 px-4 rounded"
@@ -461,12 +466,12 @@ $(document).ready(function() {
 
                     tableBody.html(rows);
                 } else {
-                    tableBody.html(`<tr><td colspan="${colspan}" class="px-6 py-4 text-center text-red-500">Error loading tasks</td></tr>`);
+                    tableBody.html('<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Error loading tasks</td></tr>');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                tableBody.html(`<tr><td colspan="${colspan}" class="px-6 py-4 text-center text-red-500">Failed to load tasks</td></tr>`);
+                tableBody.html('<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Failed to load tasks</td></tr>');
             });
     }
 
@@ -580,29 +585,21 @@ $(document).ready(function() {
     createTaskForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        const memberRole = '<?php echo strtolower($member_role); ?>';
-        const productNameElement = document.getElementById('productName');
-        const weightElement = document.getElementById('weight');
-        
-        const productName = productNameElement.value;
-        const weight = parseFloat(weightElement.value);
-        
-        // Validate required fields
-        if (!productName || isNaN(weight)) {
-            Swal.fire({ 
-                icon: 'error', 
-                title: 'Error', 
-                text: 'Please fill in all required fields. Product name and weight must be filled.' 
+        // Get form data
+        const formData = {
+            product_name: document.getElementById('productName').value,
+            weight: parseFloat(document.getElementById('weight').value)
+        };
+
+        // Validate form data
+        if (!formData.product_name || !formData.weight) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Please fill in all required fields'
             });
             return;
         }
-        
-        const formData = {
-            product_name: productName,
-            weight: weight
-        };
-
-        console.log('Submitting form data:', formData); // For debugging
 
         // Show loading state
         const createBtn = createTaskForm.querySelector('button[type="submit"]');
@@ -1232,7 +1229,7 @@ function loadBalanceSummary() {
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="${'<?php echo in_array($member_role, ["knotter", "warper"]) ? "7" : "8"; ?>'}" class="px-6 py-4 text-center text-red-500">
-                        Error loading balance summary: ${error.message}. Please try again.
+                        Error loading balance summary. Please try again.
                     </td>
                 </tr>
             `;
