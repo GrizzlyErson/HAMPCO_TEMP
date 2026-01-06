@@ -24,6 +24,9 @@ try {
         throw new Exception("Connection failed: " . $db->connect_error);
     }
 
+    // Debug logging
+    error_log("confirm_task_completion.php - Received production_id: " . $production_id);
+
     // Start transaction
     $db->begin_transaction();
 
@@ -39,7 +42,9 @@ try {
                 CASE 
                     WHEN tcc.production_id IS NOT NULL THEN 'self_assigned'
                     ELSE 'regular_assigned'
-                END as task_type
+                END as task_type,
+                ta.status as ta_status,
+                tcc.status as tcc_status
             FROM user_member um
             LEFT JOIN task_completion_confirmations tcc ON um.id = tcc.member_id AND tcc.production_id = ? AND tcc.status = 'submitted'
             LEFT JOIN task_assignments ta ON um.id = ta.member_id AND ta.prod_line_id = ? AND ta.status = 'submitted'
@@ -61,66 +66,96 @@ try {
         $task_result = $get_task->get_result();
         $task = $task_result->fetch_assoc();
         
-        if (!$task) {
-            throw new Exception("Task not found or not submitted");
-        }
-
-        // Add to processed materials
-        $check_processed = $db->prepare("
-            SELECT id, weight 
-            FROM processed_materials 
-            WHERE processed_materials_name = ? 
-            AND status = 'Available'
-        ");
+        // Debug logging
+        error_log("Task lookup result: " . json_encode($task));
         
-        if (!$check_processed) {
-            throw new Exception("Failed to prepare processed materials check query: " . $db->error);
-        }
-
-        $check_processed->bind_param("s", $task['product_name']);
-        if (!$check_processed->execute()) {
-            throw new Exception("Failed to check processed materials: " . $check_processed->error);
-        }
-
-        $processed_result = $check_processed->get_result();
-        $processed_material = $processed_result->fetch_assoc();
-        $new_weight = $task['weight'];
-
-        if ($processed_material) {
-            // Update existing processed material
-            $update_processed = $db->prepare("
-                UPDATE processed_materials 
-                SET weight = weight + ?,
-                    updated_at = NOW()
-                WHERE id = ?
+        if (!$task) {
+            // Try a broader search to see what's actually in the database
+            error_log("Task not found with strict query. Trying broader search...");
+            $broad_search = $db->prepare("
+                SELECT 
+                    ta.prod_line_id,
+                    ta.member_id,
+                    ta.status,
+                    um.role,
+                    um.fullname,
+                    pl.product_name,
+                    pl.weight_g
+                FROM task_assignments ta
+                LEFT JOIN user_member um ON ta.member_id = um.id
+                LEFT JOIN production_line pl ON ta.prod_line_id = pl.prod_line_id
+                WHERE ta.prod_line_id = ?
+                LIMIT 1
             ");
+            $broad_search->bind_param("s", $production_id);
+            $broad_search->execute();
+            $broad_result = $broad_search->get_result();
+            $broad_task = $broad_result->fetch_assoc();
+            error_log("Broad search result: " . json_encode($broad_task));
+            
+            throw new Exception("Task not found or not submitted. Expected status 'submitted' for task_id: " . $production_id);
+        }
 
-            if (!$update_processed) {
-                throw new Exception("Failed to prepare processed materials update query: " . $db->error);
+        // Add to processed materials (skip if product_name is NULL)
+        if (!empty($task['product_name']) && !is_null($task['product_name'])) {
+            $check_processed = $db->prepare("
+                SELECT id, weight 
+                FROM processed_materials 
+                WHERE processed_materials_name = ? 
+                AND status = 'Available'
+            ");
+            
+            if (!$check_processed) {
+                throw new Exception("Failed to prepare processed materials check query: " . $db->error);
             }
 
-            $update_processed->bind_param("di", $new_weight, $processed_material['id']);
+            $check_processed->bind_param("s", $task['product_name']);
+            if (!$check_processed->execute()) {
+                throw new Exception("Failed to check processed materials: " . $check_processed->error);
+            }
 
-            if (!$update_processed->execute()) {
-                throw new Exception("Failed to update processed materials: " . $update_processed->error);
+            $processed_result = $check_processed->get_result();
+            $processed_material = $processed_result->fetch_assoc();
+            $new_weight = $task['weight'];
+
+            if ($processed_material && !is_null($new_weight) && $new_weight > 0) {
+                // Update existing processed material
+                $update_processed = $db->prepare("
+                    UPDATE processed_materials 
+                    SET weight = weight + ?,
+                        updated_at = NOW()
+                    WHERE id = ?
+                ");
+
+                if (!$update_processed) {
+                    throw new Exception("Failed to prepare processed materials update query: " . $db->error);
+                }
+
+                $update_processed->bind_param("di", $new_weight, $processed_material['id']);
+
+                if (!$update_processed->execute()) {
+                    throw new Exception("Failed to update processed materials: " . $update_processed->error);
+                }
+            } elseif (!$processed_material && !is_null($new_weight) && $new_weight > 0) {
+                // Insert new processed material
+                $insert_processed = $db->prepare("
+                    INSERT INTO processed_materials 
+                    (processed_materials_name, weight, status, updated_at)
+                    VALUES (?, ?, 'Available', NOW())
+                ");
+
+                if (!$insert_processed) {
+                    throw new Exception("Failed to prepare processed materials insert query: " . $db->error);
+                }
+
+                $insert_processed->bind_param("sd", $task['product_name'], $new_weight);
+
+                if (!$insert_processed->execute()) {
+                    throw new Exception("Failed to insert processed materials: " . $insert_processed->error);
+                }
             }
         } else {
-            // Insert new processed material
-            $insert_processed = $db->prepare("
-                INSERT INTO processed_materials 
-                (processed_materials_name, weight, status, updated_at)
-                VALUES (?, ?, 'Available', NOW())
-            ");
-
-            if (!$insert_processed) {
-                throw new Exception("Failed to prepare processed materials insert query: " . $db->error);
-            }
-
-            $insert_processed->bind_param("sd", $task['product_name'], $new_weight);
-
-            if (!$insert_processed->execute()) {
-                throw new Exception("Failed to insert processed materials: " . $insert_processed->error);
-            }
+            error_log("Skipping processed materials update - product_name is NULL or empty for production_id: " . $production_id);
         }
 
         // Update task status to completed based on task type
@@ -231,18 +266,26 @@ try {
 
                     // Calculate quantity
                     $quantity = ($pl_details['product_name'] === 'Piña Seda' || $pl_details['product_name'] === 'Pure Piña Cloth') 
-                        ? $pl_details['quantity'] 
+                        ? intval($pl_details['quantity']) 
                         : 1;
+
+                    // Cast dimensions and weights to float
+                    $length_m = floatval($pl_details['length_m']);
+                    $width_m = floatval($pl_details['width_m']);
+                    $weight_g = floatval($pl_details['weight_g']);
+                    $unit_rate = floatval($unit_rate);
 
                     // Calculate total amount based on product type
                     $total_amount = 0.00;
-                    if ($pl_details['weight_g'] > 0) {
-                        $total_amount = $pl_details['weight_g'] * $unit_rate;
-                    } elseif ($pl_details['length_m'] > 0 && $pl_details['width_m'] > 0) {
-                        $total_amount = $pl_details['length_m'] * $pl_details['width_m'] * $unit_rate;
+                    if ($weight_g > 0) {
+                        $total_amount = $weight_g * $unit_rate;
+                    } elseif ($length_m > 0 && $width_m > 0) {
+                        $total_amount = $length_m * $width_m * $unit_rate;
                     } else {
                         $total_amount = $quantity * $unit_rate;
                     }
+
+                    error_log("Creating payment record - member_id: " . $task['member_id'] . ", production_id: " . $production_id . ", product: " . $pl_details['product_name'] . ", unit_rate: " . $unit_rate . ", total: " . $total_amount);
 
                     // Insert payment record
                     $insert_payment = $db->prepare("
@@ -255,10 +298,13 @@ try {
                         throw new Exception("Failed to prepare payment insert: " . $db->error);
                     }
 
-                    $insert_payment->bind_param("isddddi", $task['member_id'], $production_id, $pl_details['length_m'], $pl_details['width_m'], $pl_details['weight_g'], $quantity, $unit_rate, $total_amount);
+                    $insert_payment->bind_param("isddidd", $task['member_id'], $production_id, $length_m, $width_m, $weight_g, $quantity, $unit_rate, $total_amount);
                     if (!$insert_payment->execute()) {
                         throw new Exception("Failed to create payment record: " . $insert_payment->error);
                     }
+                    error_log("Payment record created successfully for member_id: " . $task['member_id'] . ", production_id: " . $production_id);
+                } else {
+                    error_log("Could not find production line details for production_id: " . $production_id);
                 }
             }
         }
