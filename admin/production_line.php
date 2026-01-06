@@ -258,18 +258,54 @@ function refreshTaskAssignments() {
                     `;
                 }).join('');
 
-                const taskStatuses = item.assignments.map(a => a.task_status);
-                let displayStatus = item.status;
-                const assignment = item.assignments[0];
+                // Determine display status based on assignment priority
+                let displayStatus;
+                let isDeclined = false;
+                let isReassigned = false;
+                let isInProgress = false;
+                let isSubmitted = false;
+                let isPending = false;
 
-                if (assignment && (assignment.decline_status === 'pending' || assignment.decline_status === 'responded')) {
-                    displayStatus = 'declined';
-                } else if (taskStatuses.includes('in_progress')) {
-                    displayStatus = 'in_progress';
-                } else if (taskStatuses.includes('submitted')) {
-                    displayStatus = 'submitted';
-                } else if (taskStatuses.includes('pending')) {
-                    displayStatus = 'pending';
+                if (item.assignments && item.assignments.length > 0) {
+                    // Check if any assignment is declined or reassigned
+                    for (const assignment of item.assignments) {
+                        if (assignment && (assignment.decline_status === 'pending' || assignment.decline_status === 'responded')) {
+                            isDeclined = true;
+                            break; // Found a declined assignment, no need to check further
+                        }
+                        if (assignment && assignment.task_status === 'declined') {
+                            isDeclined = true;
+                            break; // Also check if task_status is explicitly 'declined'
+                        }
+                        if (assignment && assignment.task_status === 'reassigned') {
+                            isReassigned = true;
+                        }
+                        if (assignment && assignment.task_status === 'in_progress') {
+                            isInProgress = true;
+                        }
+                        if (assignment && assignment.task_status === 'submitted') {
+                            isSubmitted = true;
+                        }
+                        if (assignment && assignment.task_status === 'pending') {
+                            isPending = true;
+                        }
+                    }
+
+                    if (isDeclined) {
+                        displayStatus = 'declined';
+                    } else if (isReassigned) {
+                        displayStatus = 'reassigned';
+                    } else if (isSubmitted) {
+                        displayStatus = 'submitted';
+                    } else if (isInProgress) {
+                        displayStatus = 'in_progress';
+                    } else if (isPending) {
+                        displayStatus = 'pending';
+                    } else {
+                        displayStatus = item.status; // Fallback to production line status
+                    }
+                } else {
+                    displayStatus = item.status; // No assignments, use production line status
                 }
 
                 const statusClass = displayStatus === 'completed' ? 'bg-green-100 text-green-800' :
@@ -316,9 +352,19 @@ function refreshTaskAssignments() {
                     }
 
                     // Check if task has a decline reason
-                    const hasDecline = item.assignments[0]?.decline_status === 'pending' || item.assignments[0]?.decline_status === 'responded';
-                    const declineReason = item.assignments[0]?.decline_reason ? item.assignments[0].decline_reason : 'No reason provided';
+                                    let declinedAssignment = null;
+                                    for (const assignment of item.assignments) {
+                                        if (assignment && (assignment.decline_status === 'pending' || assignment.decline_status === 'responded' || assignment.task_status === 'declined')) {
+                                            declinedAssignment = assignment;
+                                            break;
+                                        }
+                                    }
                     
+                                    const hasDecline = declinedAssignment !== null;
+                                    const declineReason = declinedAssignment?.decline_reason ? declinedAssignment.decline_reason : 'No reason provided';
+                                    const declinedTaskId = declinedAssignment?.task_id || 0;
+                                    const declinedMemberName = declinedAssignment?.member_name || '';
+                                    const declinedRole = declinedAssignment?.role || '';                    
                     row.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">${item.prod_line_id}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.product_name}</td>
@@ -345,7 +391,7 @@ function refreshTaskAssignments() {
                                             class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md transition-colors w-full text-xs">
                                             View Decline Reason
                                         </button>
-                                        <button onclick="openReassignModal('${item.raw_id}', '${item.product_name}', ${item.assignments[0]?.task_id || 0}, '${item.assignments[0]?.member_name || ''}', '${item.assignments[0]?.role || ''}')"
+                                        <button onclick="openReassignModal('${item.raw_id}', '${item.product_name}', ${declinedTaskId}, '${declinedMemberName}', '${declinedRole}')"
                                             class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md transition-colors w-full text-xs">
                                             Reassign
                                         </button>
@@ -1583,6 +1629,7 @@ function getStatusClass(status) {
                             <option value="in_progress">In Progress</option>
                             <option value="declined">Declined</option>
                             <option value="completed">Completed</option>
+                            <option value="reassigned">Reassigned</option>
                         </select>
                     </div>
                 </div>
@@ -2065,7 +2112,7 @@ function submitReassignTask() {
                 timer: 1500
             }).then(() => {
                 document.getElementById('reassignTaskModal').classList.add('hidden');
-                location.reload();
+                refreshTaskAssignments();
             });
         } else {
             alert('Error: ' + (data.message || 'Failed to reassign task'));

@@ -52,7 +52,7 @@ try {
     $stmt_role->close();
 
     // Update the task assignment with new member and deadline
-    $update_task_sql = "UPDATE task_assignments SET member_id = ?, role = ?, deadline = ?, updated_at = NOW() WHERE id = ?";
+    $update_task_sql = "UPDATE task_assignments SET member_id = ?, role = ?, deadline = ?, status = 'reassigned', decline_status = NULL, decline_reason = NULL, updated_at = NOW() WHERE id = ?";
     $stmt_update = $conn->prepare($update_task_sql);
     if (!$stmt_update) {
         throw new Exception("Failed to prepare task update statement: " . $conn->error);

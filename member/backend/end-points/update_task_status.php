@@ -254,29 +254,43 @@ try {
         ]);
 
     } elseif ($action === 'decline') {
+        logError("Decline action initiated", ['task_id' => $task_id, 'member_id' => $member_id, 'decline_reason' => $decline_reason]);
+
         if ($decline_reason === null || $decline_reason === '') {
+            logError("Decline reason missing", ['task_id' => $task_id]);
             throw new Exception('Decline reason is required.');
         }
+
         // Update task_assignments table for decline
-        $update_task = $db->conn->prepare("
+        $update_task_sql = "
             UPDATE task_assignments 
             SET status = 'declined', 
+                decline_status = 'pending', /* Set decline status to pending */
+                decline_reason = ?, /* Set decline reason */
                 updated_at = NOW() 
             WHERE id = ? AND member_id = ? AND status = 'pending'
-        ");
+        ";
+        logError("Decline SQL query", ['query' => $update_task_sql, 'bind_params' => [$decline_reason, $task_id, $member_id]]);
+
+        $update_task = $db->conn->prepare($update_task_sql);
 
         if (!$update_task) {
+            logError("Failed to prepare decline task update statement", ['error' => $db->conn->error]);
             throw new Exception("Database error: " . $db->conn->error);
         }
 
-        $update_task->bind_param("ii", $task_id, $member_id);
+        $update_task->bind_param("sii", $decline_reason, $task_id, $member_id);
         
         if (!$update_task->execute()) {
+            logError("Failed to execute decline task update", ['error' => $update_task->error, 'task_id' => $task_id]);
             throw new Exception("Failed to decline task: " . $update_task->error);
         }
 
+        logError("Decline task update executed", ['affected_rows' => $update_task->affected_rows, 'task_id' => $task_id]);
+
         if ($update_task->affected_rows === 0) {
-            throw new Exception("No rows were updated in task_assignments for decline");
+            logError("No rows affected for decline task update", ['task_id' => $task_id]);
+            throw new Exception("No rows were updated in task_assignments for decline. Task might not be pending or assigned to this member.");
         }
 
         $update_task->close();

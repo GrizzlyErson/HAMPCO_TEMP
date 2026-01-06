@@ -42,6 +42,22 @@ try {
     
     if ($db->conn->query($sql) === TRUE) {
         echo "Task assignments table created successfully\n";
+
+        // Add new columns to task_assignments table if they don't exist
+        $alter_sql_decline_status = "ALTER TABLE `task_assignments` ADD COLUMN `decline_status` VARCHAR(20) NULL DEFAULT NULL AFTER `status`;";
+        if ($db->conn->query($alter_sql_decline_status) === TRUE) {
+            echo "Column 'decline_status' added to task_assignments table (if not exists)\n";
+        } else {
+            error_log("Error adding column 'decline_status': " . $db->conn->error);
+        }
+
+        $alter_sql_decline_reason = "ALTER TABLE `task_assignments` ADD COLUMN `decline_reason` TEXT NULL DEFAULT NULL AFTER `decline_status`;";
+        if ($db->conn->query($alter_sql_decline_reason) === TRUE) {
+            echo "Column 'decline_reason' added to task_assignments table (if not exists)\n";
+        } else {
+            error_log("Error adding column 'decline_reason': " . $db->conn->error);
+        }
+
     } else {
         throw new Exception("Error creating task_assignments table: " . $db->conn->error);
     }
