@@ -283,6 +283,11 @@
 
             // Set category if not Silk
             var rmDescriptionSelect = $('#category');
+            // Handle "Not available" as empty string
+            if (rmDescription === 'Not available' || rmDescription === '') {
+                rmDescription = '';
+            }
+            
             if (rmName === 'Silk') {
                 rmDescriptionSelect.val('');
                 rmDescriptionSelect.prop('disabled', true);
@@ -290,22 +295,28 @@
                 $('#update-category-warning').removeClass('hidden');
             } else {
                 // Enable and set category immediately
-                    rmDescriptionSelect.prop('disabled', false);
-                    rmDescriptionSelect.prop('required', true);
+                rmDescriptionSelect.prop('disabled', false);
+                rmDescriptionSelect.prop('required', true);
+                
+                // Only set value if category exists and is not empty
+                if (rmDescription && rmDescription !== 'Not available') {
                     rmDescriptionSelect.val(rmDescription);
-                    $('#update-category-warning').addClass('hidden');
+                } else {
+                    rmDescriptionSelect.val('');
+                }
+                $('#update-category-warning').addClass('hidden');
                     
-                    // Debug log for category setting
-                    console.log('Setting category value:', {
-                        description: rmDescription,
-                        currentValue: rmDescriptionSelect.val(),
-                        options: rmDescriptionSelect.find('option').map(function() {
-                            return $(this).val();
-                        }).get()
-                    });
+                // Debug log for category setting
+                console.log('Setting category value:', {
+                    description: rmDescription,
+                    currentValue: rmDescriptionSelect.val(),
+                    options: rmDescriptionSelect.find('option').map(function() {
+                        return $(this).val();
+                    }).get()
+                });
 
                 // If category is not in the options, add it
-                if (rmDescription && !rmDescriptionSelect.find('option[value="' + rmDescription + '"]').length) {
+                if (rmDescription && rmDescription !== 'Not available' && !rmDescriptionSelect.find('option[value="' + rmDescription + '"]').length) {
                     rmDescriptionSelect.append(new Option(rmDescription, rmDescription));
                 }
             }
@@ -313,9 +324,23 @@
             // Set other form values
             $('#rm_quantity').val(rmQuantity);
             $('#rm_unit').val(rmUnit || 'gram');
-            $('#rm_status').val(rmStatus);
+            
+            // Normalize status value to match select options
+            var normalizedStatus = rmStatus;
+            if (rmStatus && typeof rmStatus === 'string') {
+                normalizedStatus = rmStatus.charAt(0).toUpperCase() + rmStatus.slice(1).toLowerCase();
+                // Handle "Not available" vs "Not Available"
+                if (normalizedStatus.toLowerCase() === 'not available') {
+                    normalizedStatus = 'Not Available';
+                } else if (normalizedStatus.toLowerCase() === 'available') {
+                    normalizedStatus = 'Available';
+                }
+            }
+            $('#rm_status').val(normalizedStatus);
             $('#supplier_name').val(supplierName || '');
-            $('#unit_cost').val(unitCost || '0');
+            // Ensure unit_cost is properly set - handle 0 as a valid value
+            var unitCostValue = unitCost !== null && unitCost !== undefined && unitCost !== '' ? unitCost : '0';
+            $('#update_unit_cost').val(unitCostValue);
 
             // Debug log the form values after setting
             console.log('Form values after setting:', {
@@ -326,21 +351,25 @@
                 unit: $('#rm_unit').val(),
                 status: $('#rm_status').val(),
                 supplier_name: $('#supplier_name').val(),
-                unit_cost: $('#unit_cost').val()
+                unit_cost: $('#update_unit_cost').val()
             });
             
-            // Show the modal
-            $('#UpdateRawMaterialsModal').fadeIn();
+            // Show the modal - remove hidden class and fade in
+            $('#UpdateRawMaterialsModal').removeClass('hidden').fadeIn();
         });
 
         // Close update modal handler
-        $('#UpdateRawMaterialsModal .closeModal, #UpdateRawMaterialsModal .modalCancel').click(function() {
-            $('#UpdateRawMaterialsModal').fadeOut();
+        $(document).on('click', '#UpdateRawMaterialsModal .closeModal, #UpdateRawMaterialsModal .modalCancel', function() {
+            $('#UpdateRawMaterialsModal').fadeOut(function() {
+                $(this).addClass('hidden');
+            });
         });
 
-        $('#UpdateRawMaterialsModal').click(function(e) {
+        $(document).on('click', '#UpdateRawMaterialsModal', function(e) {
             if (e.target === this) {
-                $(this).fadeOut();
+                $(this).fadeOut(function() {
+                    $(this).addClass('hidden');
+                });
             }
         });
 
@@ -349,15 +378,33 @@
             e.preventDefault();
             
             // Get form values
+            var categoryValue = $('#category').val();
+            // Treat "Not available" as empty string
+            if (categoryValue === 'Not available' || categoryValue === '') {
+                categoryValue = '';
+            }
+            
+            // Get unit_cost and ensure it's a valid number
+            var unitCostValue = $('#update_unit_cost').val();
+            // Convert to number, default to 0 if empty or invalid
+            // Important: preserve 0 as a valid value
+            if (unitCostValue === '' || unitCostValue === null || unitCostValue === undefined) {
+                unitCostValue = '0';
+            } else {
+                var parsedValue = parseFloat(unitCostValue);
+                unitCostValue = isNaN(parsedValue) ? '0' : parsedValue.toString();
+            }
+            
             var formData = {
                 requestType: 'UpdateRawMaterials',
                 rm_id: $('#rmid').val(),
                 rm_name: $('#rm_name').val(),
-                category: $('#category').val(),
+                category: categoryValue,
                 rm_quantity: $('#rm_quantity').val(),
                 rm_unit: $('#rm_unit').val(),
                 rm_status: $('#rm_status').val(),
-                supplier_name: $('#supplier_name').val() || ''
+                supplier_name: $('#supplier_name').val() || '',
+                unit_cost: unitCostValue
             };
 
             // For Silk material, ensure category is empty
@@ -388,6 +435,7 @@
 
             // Debug log
             console.log('Sending update data:', formData);
+            console.log('Unit cost value being sent:', formData.unit_cost, 'Type:', typeof formData.unit_cost);
 
             // Disable submit button
             var submitBtn = $('#submitUpdateRawMaterials');
@@ -407,7 +455,8 @@
                                 text: result.message || 'Raw material updated successfully',
                                 icon: 'success'
                             }).then(() => {
-                                window.location.reload();
+                                // Force a hard reload to ensure updated data is displayed
+                                window.location.reload(true);
                             });
                         } else {
                             Swal.fire({
@@ -628,7 +677,7 @@ $(document).ready(function() {
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Unit Cost (₱)</label>
-                    <input type="number" name="unit_cost" id="unit_cost" class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter unit cost per gram" min="0" step="0.01">
+                    <input type="number" name="unit_cost" id="update_unit_cost" class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter unit cost per gram" min="0" step="0.01">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
