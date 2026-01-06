@@ -169,8 +169,8 @@ function confirmTaskCompletion(prodLineId) {
                         showConfirmButton: false,
                         timer: 1500
                     }).then(() => {
-                        // Refresh the tasks table
-                        refreshTaskAssignments();
+                        // Refresh the tasks table with force refresh to ensure DOM updates
+                        refreshTaskAssignments(true);
                     });
                 } else {
                     Swal.fire({
@@ -217,7 +217,7 @@ const dataCache = {
 };
 
 // Function to refresh task assignments
-function refreshTaskAssignments() {
+function refreshTaskAssignments(forceRefresh = false) {
     fetch('backend/end-points/get_task_assignments.php')
         .then(response => response.json())
         .then(response => {
@@ -225,8 +225,8 @@ function refreshTaskAssignments() {
                 throw new Error(response.message);
             }
             
-            // Check if data has changed before updating DOM
-            if (!dataCache.hasTaskAssignmentsChanged(response.data)) {
+            // Check if data has changed before updating DOM (unless forceRefresh is true)
+            if (!forceRefresh && !dataCache.hasTaskAssignmentsChanged(response.data)) {
                 console.log('Task assignments data unchanged, skipping DOM update');
                 return;
             }
@@ -265,6 +265,7 @@ function refreshTaskAssignments() {
                 let isInProgress = false;
                 let isSubmitted = false;
                 let isPending = false;
+                let isCompleted = false;
 
                 if (item.assignments && item.assignments.length > 0) {
                     // Check if any assignment is declined or reassigned
@@ -276,6 +277,9 @@ function refreshTaskAssignments() {
                         if (assignment && assignment.task_status === 'declined') {
                             isDeclined = true;
                             break; // Also check if task_status is explicitly 'declined'
+                        }
+                        if (assignment && assignment.task_status === 'completed') {
+                            isCompleted = true;
                         }
                         if (assignment && assignment.task_status === 'reassigned') {
                             isReassigned = true;
@@ -293,6 +297,8 @@ function refreshTaskAssignments() {
 
                     if (isDeclined) {
                         displayStatus = 'declined';
+                    } else if (isCompleted) {
+                        displayStatus = 'completed';
                     } else if (isReassigned) {
                         displayStatus = 'reassigned';
                     } else if (isSubmitted) {
