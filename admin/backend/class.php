@@ -7,9 +7,7 @@ class global_class extends db_connect
 {
     public function __construct()
     {
-        // The parent db_connect class's constructor will handle the connection.
-        // We ensure it's called, but do not explicitly call connect() again here.
-        parent::__construct();
+        $this->connect();
     }
 
     public function check_account($id, $type = 'admin') {
