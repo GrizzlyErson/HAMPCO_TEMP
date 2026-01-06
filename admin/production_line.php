@@ -60,6 +60,10 @@ while ($row = mysqli_fetch_assoc($production_result)) {
 }
 ?>
 
+<script>
+    const productionItemsData = <?php echo json_encode($production_items); ?>;
+</script>
+
 <!-- Materials Modal -->
 <div id="materialsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-[1000] hidden">
     <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
@@ -256,7 +260,11 @@ function refreshTaskAssignments() {
 
                 const taskStatuses = item.assignments.map(a => a.task_status);
                 let displayStatus = item.status;
-                if (taskStatuses.includes('in_progress')) {
+                const assignment = item.assignments[0];
+
+                if (assignment && (assignment.decline_status === 'pending' || assignment.decline_status === 'responded')) {
+                    displayStatus = 'declined';
+                } else if (taskStatuses.includes('in_progress')) {
                     displayStatus = 'in_progress';
                 } else if (taskStatuses.includes('submitted')) {
                     displayStatus = 'submitted';
@@ -267,6 +275,7 @@ function refreshTaskAssignments() {
                 const statusClass = displayStatus === 'completed' ? 'bg-green-100 text-green-800' :
                                   displayStatus === 'submitted' ? 'bg-purple-100 text-purple-800' :
                                   displayStatus === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                                  displayStatus === 'declined' ? 'bg-red-100 text-red-800' :
                                   'bg-yellow-100 text-yellow-800';
 
                 if (displayStatus === 'completed') {
@@ -290,6 +299,22 @@ function refreshTaskAssignments() {
                     completedTableBody.appendChild(row);
                 } else {
                     inProgressTasksFound++;
+
+                    const fullItemData = productionItemsData.find(p => p.raw_id == item.raw_id);
+                    let unitDisplay = '-';
+                    if (fullItemData) {
+                        const isDimensionsProduct = ['Piña Seda', 'Pure Piña Cloth'].includes(fullItemData.product_name);
+                        const isWeightProduct = ['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'].includes(fullItemData.product_name);
+
+                        if (isDimensionsProduct) {
+                            unitDisplay = `${fullItemData.quantity} pc(s)`;
+                        } else if (isWeightProduct) {
+                            unitDisplay = `${fullItemData.weight_g} g`;
+                        } else {
+                            unitDisplay = fullItemData.quantity ? `${fullItemData.quantity} pc(s)` : (fullItemData.weight_g ? `${fullItemData.weight_g} g` : '-');
+                        }
+                    }
+
                     // Check if task has a decline reason
                     const hasDecline = item.assignments[0]?.decline_status === 'pending' || item.assignments[0]?.decline_status === 'responded';
                     const declineReason = item.assignments[0]?.decline_reason ? item.assignments[0].decline_reason : 'No reason provided';
@@ -297,6 +322,7 @@ function refreshTaskAssignments() {
                     row.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">${item.prod_line_id}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.product_name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${unitDisplay}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
                                 ${displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
@@ -335,7 +361,7 @@ function refreshTaskAssignments() {
             if (inProgressTasksFound === 0) {
                 inProgressTableBody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
                             No in-progress tasks assigned yet.
                         </td>
                     </tr>
@@ -344,7 +370,7 @@ function refreshTaskAssignments() {
             if (completedTasksFound === 0) {
                 completedTableBody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
                             No completed tasks found.
                         </td>
                     </tr>
@@ -358,7 +384,7 @@ function refreshTaskAssignments() {
             if (inProgressTableBody) {
                 inProgressTableBody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-sm text-red-600">
+                        <td colspan="7" class="px-6 py-4 text-center text-sm text-red-600">
                             Error loading in-progress tasks: ${error.message}
                         </td>
                     </tr>
@@ -367,7 +393,7 @@ function refreshTaskAssignments() {
             if (completedTableBody) {
                 completedTableBody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-sm text-red-600">
+                        <td colspan="7" class="px-6 py-4 text-center text-sm text-red-600">
                             Error loading completed tasks: ${error.message}
                         </td>
                     </tr>
@@ -664,6 +690,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get the active tab from URL or localStorage
     const urlParams = new URLSearchParams(window.location.search);
     const activeTab = urlParams.get('tab') || localStorage.getItem('activeTab') || 'monitoring';
+    const status = urlParams.get('status');
+    const search = urlParams.get('search');
     
     // Tabs
     const monitoringTab = document.getElementById('monitoringTab');
@@ -736,6 +764,30 @@ document.addEventListener('DOMContentLoaded', function() {
             switchTab(memberTaskRequestsTab, memberTaskRequestsContent, monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent);
             updateURL('memberTaskRequests');
         });
+    }
+
+    // Handle URL params for filtering
+    if (activeTab === 'tasks') {
+        if(status) {
+            const statusFilter = document.getElementById('statusFilter');
+            if(statusFilter) statusFilter.value = status;
+        }
+        if (search) {
+            // there are two inputs with same ID. querySelector to the rescue.
+            const searchInput = document.querySelector('#tasksContent #searchInput');
+            if (searchInput) {
+                searchInput.value = search;
+            }
+        }
+        if(status || search) {
+            setTimeout(filterTasks, 100); // setTimeout to allow table to render
+        }
+    } else if (activeTab === 'monitoring' && search) {
+        const searchInput = document.querySelector('#monitoringContent #searchInput');
+        if(searchInput) {
+            searchInput.value = search;
+        }
+        filterProductionItems();
     }
 
     // Handle browser back/forward buttons
@@ -1529,6 +1581,7 @@ function getStatusClass(status) {
                             <option value="all">All Status</option>
                             <option value="pending">Pending</option>
                             <option value="in_progress">In Progress</option>
+                            <option value="declined">Declined</option>
                             <option value="completed">Completed</option>
                         </select>
                     </div>
@@ -1541,6 +1594,7 @@ function getStatusClass(status) {
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Production ID</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Product Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Unit</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Date Created</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Assigned Members</th>

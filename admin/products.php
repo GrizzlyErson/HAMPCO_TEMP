@@ -39,38 +39,45 @@
 
 <!-- Update Product Modal -->
 <div id="UpdateRawMaterialsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="display:none;">
-    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+    <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <h2 id="modalTitle" class="text-xl font-semibold mb-4">Update Product</h2>
         <form id="frmUpdateProduct">
             <input type="hidden" name="rm_id" id="rmid"> 
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-1">Name</label>
-                <input type="text" id="rm_name" name="rm_name" class="w-full border rounded p-2" required>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-1">Description</label>
-                <input type="text" id="rm_description" name="rm_description" class="w-full border rounded p-2" required>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-1">Price</label>
-                <input type="text" id="rm_price" name="rm_price" class="w-full border rounded p-2" required>
-            </div>
-            <div class="mb-4">
-                <label for="productCategory" class="block text-sm font-medium">Choose a Category</label>
-                <select id="productCategory" name="rm_product_Category" class="w-full border rounded p-2" required>
-                    <option value="" disabled selected>Select a Category</option>
-                    <?php foreach ($db->fetch_all_category() as $category): ?>
-                        <option value="<?= $category['category_id'] ?>"><?= $category['category_name'] ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="mb-4">
-                <label for="productImage" class="block text-sm font-medium">Product Image</label>
-                <input type="file" id="productImage" name="rm_product_image" class="w-full border rounded p-2" accept="image/*">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                <div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Name</label>
+                        <input type="text" id="rm_name" name="rm_name" class="w-full border rounded p-2" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Description</label>
+                        <input type="text" id="rm_description" name="rm_description" class="w-full border rounded p-2" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Price</label>
+                        <input type="text" id="rm_price" name="rm_price" class="w-full border rounded p-2" required>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="mb-4">
+                        <label for="productCategory" class="block text-sm font-medium">Choose a Category</label>
+                        <select id="productCategory" name="rm_product_Category" class="w-full border rounded p-2" required>
+                            <option value="" disabled selected>Select a Category</option>
+                            <?php foreach ($db->fetch_all_category() as $category): ?>
+                                <option value="<?= $category['category_id'] ?>"><?= $category['category_name'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="productImage" class="block text-sm font-medium">Product Image</label>
+                        <input type="file" id="productImage" name="rm_product_image" class="w-full border rounded p-2" accept="image/*">
+                    </div>
+                </div>
             </div>
 
-            <div class="flex justify-end gap-2">
+            <div class="flex justify-end gap-2 mt-6">
                 <button type="button" id="closeUpdateProductModal" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
                 <button type="submit" id="submitUpdateProduct" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Update</button>
             </div>
@@ -171,66 +178,68 @@
 
 <!-- Modal -->
 <div id="AddProductModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center " style="display:none;">
-    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+    <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <h2 class="text-xl font-semibold mb-4">Add Product</h2>
         <form id="AddProductForm">
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-1">Name</label>
-                <input type="text" name="rm_name" class="w-full border rounded p-2" placeholder="Enter product name manually" required>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-1">Or choose from inventory</label>
-                <select id="product_inventory_dropdown" class="w-full border rounded p-2">
-                    <option value="">Select a product from inventory</option>
-                    <optgroup label="Raw materials">
-                        <option value="Piña loose (liniwan)">Piña loose (liniwan)</option>
-                        <option value="Piña loose (bastos)">Piña loose (bastos)</option>
-                        <option value="Silk">Silk</option>
-                    </optgroup>
-                    <optgroup label="Processed">
-                        <option value="Knotted liniwan">Knotted liniwan</option>
-                        <option value="Knotted bastos">Knotted bastos</option>
-                        <option value="Warped silk">Warped silk</option>
-                    </optgroup>
-                    <optgroup label="Finished products">
-                        <option value="Piña seda">Piña seda</option>
-                        <option value="Pure piña cloth">Pure piña cloth</option>
-                    </optgroup>
-                </select>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-1">Description</label>
-                <input type="text" name="rm_description" id="rm_description" class="w-full border rounded p-2" placeholder="" >
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-1">Price</label>
-                <input type="text" name="rm_price" id="rm_price" class="w-full border rounded p-2" placeholder="" required>
-            </div>
-
-
-             <div class="mb-4">
-                    <label for="productCategory" class="block text-sm font-medium text-gray-700">Choose a Category</label>
-                    <select id="productCategory" name="rm_product_Category" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
-                        <option value="" disabled selected>Select a Category</option>
-                        <?php $fetch_all_category = $db->fetch_all_category();
-                            if ($fetch_all_category): 
-                                foreach ($fetch_all_category as $category): ?>
-                                    <option value="<?=$category['category_id']?>"><?=$category['category_name']?></option>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <option value="" disabled>No record found.</option>
-                            <?php endif; ?>
-                    </select>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                <div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Name</label>
+                        <input type="text" name="rm_name" class="w-full border rounded p-2" placeholder="Enter product name manually" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Or choose from inventory</label>
+                        <select id="product_inventory_dropdown" class="w-full border rounded p-2">
+                            <option value="">Select a product from inventory</option>
+                            <optgroup label="Raw materials">
+                                <option value="Piña loose (liniwan)">Piña loose (liniwan)</option>
+                                <option value="Piña loose (bastos)">Piña loose (bastos)</option>
+                                <option value="Silk">Silk</option>
+                            </optgroup>
+                            <optgroup label="Processed">
+                                <option value="Knotted liniwan">Knotted liniwan</option>
+                                <option value="Knotted bastos">Knotted bastos</option>
+                                <option value="Warped silk">Warped silk</option>
+                            </optgroup>
+                            <optgroup label="Finished products">
+                                <option value="Piña seda">Piña seda</option>
+                                <option value="Pure piña cloth">Pure piña cloth</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Description</label>
+                        <input type="text" name="rm_description" id="rm_description" class="w-full border rounded p-2" placeholder="" >
+                    </div>
                 </div>
-           
-           
-            <div class="mb-4">
-                <label for="productImage" class="block text-gray-700">Product Image</label>
-                <input type="file" id="productImage" name="rm_product_image" class="w-full p-2 border border-gray-300 rounded-md" accept="image/*" required>
+
+                <div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Price</label>
+                        <input type="text" name="rm_price" id="rm_price" class="w-full border rounded p-2" placeholder="" required>
+                    </div>
+                     <div class="mb-4">
+                            <label for="productCategory" class="block text-sm font-medium text-gray-700">Choose a Category</label>
+                            <select id="productCategory" name="rm_product_Category" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                                <option value="" disabled selected>Select a Category</option>
+                                <?php $fetch_all_category = $db->fetch_all_category();
+                                    if ($fetch_all_category): 
+                                        foreach ($fetch_all_category as $category): ?>
+                                            <option value="<?=$category['category_id']?>"><?=$category['category_name']?></option>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <option value="" disabled>No record found.</option>
+                                    <?php endif; ?>
+                            </select>
+                        </div>
+                    <div class="mb-4">
+                        <label for="productImage" class="block text-gray-700">Product Image</label>
+                        <input type="file" id="productImage" name="rm_product_image" class="w-full p-2 border border-gray-300 rounded-md" accept="image/*" required>
+                    </div>
+                </div>
             </div>
 
-
-            <div class="flex justify-end gap-2">
+            <div class="flex justify-end gap-2 mt-6">
                 <button type="button" id="closeAddProductModal" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
                 <button type="submit" id="submitAddRawMaterials" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add</button>
             </div>

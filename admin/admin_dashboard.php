@@ -101,7 +101,7 @@ require_once "components/header.php";
                             <!-- Modal Footer -->
                             <div style="padding: 16px; border-top: 1px solid #e5e7eb; display: flex; gap: 8px;">
                                 <button id="markAllRead" style="flex: 1; background-color: #2563eb; color: white; font-weight: 600; padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; transition: background-color 0.3s;">
-                                    Mark All as Read
+                                    Clear All Notifications
                                 </button>
                                 <button id="closeNotificationBtn" style="flex: 1; background-color: #e5e7eb; color: #374151; font-weight: 600; padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; transition: background-color 0.3s;">
                                     Close
@@ -555,7 +555,7 @@ require_once "components/header.php";
                             console.error('Error fetching notifications:', e);
                             return { notifications: [] };
                         }),
-                    fetch('backend/end-points/task_declines.php?action=list&status=all')
+                    fetch('backend/end-points/task_declines.php?action=list&status=pending')
                         .then(r => {
                             console.log('Get declined tasks response status:', r.status);
                             if (!r.ok) {
@@ -650,8 +650,13 @@ require_once "components/header.php";
                     // Update declined task notifications
                     if (declinedList) {
                         if (declineCount > 0) {
-                            declinedList.innerHTML = declineItems.map(decline => `
-                                <li style="padding: 12px; background-color: #fee2e2; border-radius: 6px; border: 1px solid #fecaca; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;">
+                            declinedList.innerHTML = declineItems.map(decline => {
+                                const link = `production_line.php?tab=tasks&status=declined&search=${encodeURIComponent(decline.production_code || '')}`;
+                                return `
+                                <li style="padding: 12px; background-color: #fee2e2; border-radius: 6px; border: 1px solid #fecaca; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px; cursor: pointer;" 
+                                    onclick="window.location.href='${link}'"
+                                    onmouseover="this.style.backgroundColor='#fecaca'" 
+                                    onmouseout="this.style.backgroundColor='#fee2e2'">
                                     <div>
                                         <h4 style="font-weight: 600; color: #991b1b; margin: 0; font-size: 14px;">${escapeHtml(decline.production_code)} • ${escapeHtml(decline.product_name)}</h4>
                                         <p style="font-size: 12px; color: #7f1d1d; margin: 4px 0 0 0;">Member: ${escapeHtml(decline.member_name)}</p>
@@ -663,11 +668,12 @@ require_once "components/header.php";
                                         data-prod="${encodeURIComponent(decline.production_code || '')}" 
                                         data-product="${encodeURIComponent(decline.product_name || '')}" 
                                         data-member="${encodeURIComponent(decline.member_name || '')}"
-                                        style="align-self: flex-start; padding: 6px 10px; background-color: #dc2626; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                        style="align-self: flex-start; padding: 6px 10px; background-color: #dc2626; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;"
+                                        onclick="event.stopPropagation();">
                                         Add Explanation
                                     </button>
                                 </li>
-                            `).join('');
+                            `}).join('');
 
                             declinedList.querySelectorAll('.respond-decline-btn').forEach(btn => {
                                 btn.addEventListener('click', function() {
@@ -790,38 +796,106 @@ require_once "components/header.php";
             const markAllReadBtn = document.getElementById('markAllRead');
             if (markAllReadBtn) {
                 markAllReadBtn.addEventListener('click', function() {
-                    console.log('Marking all notifications as read');
-                    fetch('backend/end-points/notifications.php?action=mark-read', {
+                    console.log('Clearing all notifications');
+
+                    // Clear order notifications
+                    const clearOrders = fetch('backend/end-points/notifications.php?action=mark-read', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Mark all read response:', data);
-                        if (data.success) {
-                            updateNotifications();
-                            if (typeof alertify !== 'undefined') {
-                                alertify.success('All notifications marked as read');
+                    }).then(response => response.json());
+
+                    // Clear declined task notifications
+                    const clearDeclinedTasks = fetch('backend/end-points/task_declines.php?action=clear_all', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    }).then(response => response.json());
+
+                    Promise.all([clearOrders, clearDeclinedTasks])
+                    .then(([ordersResult, declinedResult]) => {
+                        console.log('Clear orders response:', ordersResult);
+                        console.log('Clear declined tasks response:', declinedResult);
+                        
+                        let allCleared = true;
+                        let messages = [];
+
+                        if (ordersResult.success) {
+                            messages.push('Order notifications cleared.');
+                        } else {
+                            allCleared = false;
+                            console.error('Could not clear order notifications.');
+                        }
+
+                        if (declinedResult.success) {
+                            messages.push('Declined task notifications cleared.');
+                        } else {
+                            allCleared = false;
+                            console.error('Could not clear declined task notifications.');
+                        }
+                        
+                        updateNotifications();
+
+                        if (typeof alertify !== 'undefined') {
+                            if(allCleared) {
+                                alertify.success('All notifications cleared.');
+                            } else {
+                                alertify.warning('Some notifications could not be cleared.');
                             }
                         }
                     })
-                    .catch(error => console.error('Error marking all notifications as read:', error));
+                    .catch(error => {
+                        console.error('Error clearing notifications:', error);
+                        if (typeof alertify !== 'undefined') {
+                            alertify.error('An error occurred while clearing notifications.');
+                        }
+                    });
+                });
+            }
+
+            function updateOrderStatus(orderId, newStatus) {
+                fetch('backend/end-points/update_order_status.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        status: newStatus
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof alertify !== 'undefined') {
+                            alertify.success('Order status updated successfully');
+                        }
+                        updateNotifications();
+                    } else {
+                        throw new Error(data.error || 'Unknown error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (typeof alertify !== 'undefined') {
+                        alertify.error('Error updating order status');
+                    }
                 });
             }
 
             // Accept order from notification
             window.acceptOrderFromNotif = function(orderId) {
                 if (confirm(`Accept order #${orderId}?`)) {
-                    updateOrderStatus(orderId, 'Accepted', null);
+                    updateOrderStatus(orderId, 'Accepted');
                 }
             };
 
             // Decline order from notification
             window.declineOrderFromNotif = function(orderId) {
                 if (confirm(`Decline order #${orderId}?`)) {
-                    updateOrderStatus(orderId, 'Declined', null);
+                    updateOrderStatus(orderId, 'Declined');
                 }
             };
         });
