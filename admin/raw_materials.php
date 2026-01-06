@@ -357,7 +357,8 @@
                 rm_quantity: $('#rm_quantity').val(),
                 rm_unit: $('#rm_unit').val(),
                 rm_status: $('#rm_status').val(),
-                supplier_name: $('#supplier_name').val() || ''
+                supplier_name: $('#supplier_name').val() || '',
+                unit_cost: $('#unit_cost').val()
             };
 
             // For Silk material, ensure category is empty
