@@ -6,10 +6,12 @@ require_once '../../../function/db_connect.php';
 $response = ["success" => false, "data" => [], "message" => "Unknown error."];
 
 try {
+    // Get all production lines with their assignments (both regular and self-assigned)
     $sql = "SELECT DISTINCT
         pl.prod_line_id,
         pl.product_name,
         pl.status,
+        pl.date_created,
         GROUP_CONCAT(ta.id) as task_ids,
         GROUP_CONCAT(ta.member_id) as member_ids,
         GROUP_CONCAT(ta.role) as roles,
@@ -18,14 +20,37 @@ try {
         GROUP_CONCAT(ta.updated_at) as completion_dates,
         GROUP_CONCAT(um.fullname) as member_names,
         GROUP_CONCAT(um.role) as member_roles,
-        pl.date_created,
-        GROUP_CONCAT(ta.decline_status) as decline_statuses, /* Direct from task_assignments */
-        GROUP_CONCAT(ta.decline_reason) as decline_reasons /* Direct from task_assignments */
+        GROUP_CONCAT(ta.decline_status) as decline_statuses,
+        GROUP_CONCAT(ta.decline_reason) as decline_reasons
     FROM production_line pl
     LEFT JOIN task_assignments ta ON pl.prod_line_id = ta.prod_line_id
     LEFT JOIN user_member um ON ta.member_id = um.id
     GROUP BY pl.prod_line_id
-    ORDER BY pl.date_created DESC";
+    
+    UNION ALL
+    
+    SELECT DISTINCT
+        mst.production_id as prod_line_id,
+        mst.product_name,
+        mst.status,
+        mst.date_created,
+        GROUP_CONCAT(mst.id) as task_ids,
+        GROUP_CONCAT(mst.member_id) as member_ids,
+        GROUP_CONCAT(um.role) as roles,
+        GROUP_CONCAT(mst.status) as task_statuses,
+        NULL as deadlines,
+        GROUP_CONCAT(mst.date_submitted) as completion_dates,
+        GROUP_CONCAT(um.fullname) as member_names,
+        GROUP_CONCAT(um.role) as member_roles,
+        NULL as decline_statuses,
+        NULL as decline_reasons
+    FROM member_self_tasks mst
+    LEFT JOIN user_member um ON mst.member_id = um.id
+    LEFT JOIN production_line pl ON CAST(mst.production_id AS UNSIGNED) = pl.prod_line_id
+    WHERE pl.prod_line_id IS NULL
+    GROUP BY mst.production_id
+    
+    ORDER BY date_created DESC";
             
             $result = $conn->query($sql);
             
@@ -45,9 +70,8 @@ try {
                     $completion_dates = $row['completion_dates'] ? explode(',', $row['completion_dates']) : [];
                     $member_names = $row['member_names'] ? explode(',', $row['member_names']) : [];
                     $member_roles = $row['member_roles'] ? explode(',', $row['member_roles']) : [];
-                    // Removed decline_ids as it's no longer needed from tdn table
-                    $decline_statuses = $row['decline_statuses'] ? explode(',', $row['decline_statuses']) : []; // Direct from ta
-                    $decline_reasons = $row['decline_reasons'] ? explode(',', $row['decline_reasons']) : []; // Direct from ta
+                    $decline_statuses = $row['decline_statuses'] ? explode(',', $row['decline_statuses']) : [];
+                    $decline_reasons = $row['decline_reasons'] ? explode(',', $row['decline_reasons']) : [];
         
                     // Format production ID to match monitoring tab format
                     $display_id = 'PL' . str_pad($row['prod_line_id'], 4, '0', STR_PAD_LEFT);

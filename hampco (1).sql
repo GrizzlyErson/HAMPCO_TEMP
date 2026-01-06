@@ -246,6 +246,8 @@ CREATE TRIGGER `after_self_task_completion` AFTER UPDATE ON `member_self_tasks` 
             member_id,
             production_id,
             weight_g,
+            length_m,
+            width_m,
             quantity,
             unit_rate,
             total_amount,
@@ -257,18 +259,24 @@ CREATE TRIGGER `after_self_task_completion` AFTER UPDATE ON `member_self_tasks` 
             NEW.member_id,
             NEW.production_id,
             NEW.weight_g,
-            1,
+            NEW.length_m,
+            NEW.width_in,
+            CASE 
+                WHEN NEW.product_name IN ('Piña Seda', 'Pure Piña Cloth') THEN COALESCE(NEW.quantity, 1)
+                ELSE 1
+            END,
             CASE 
                 WHEN NEW.product_name = 'Knotted Liniwan' THEN 50.00
                 WHEN NEW.product_name = 'Knotted Bastos' THEN 50.00
                 WHEN NEW.product_name = 'Warped Silk' THEN 19.00
+                WHEN NEW.product_name IN ('Piña Seda', 'Pure Piña Cloth') THEN 550.00
                 ELSE 0.00
             END,
-            NEW.weight_g * 
             CASE 
-                WHEN NEW.product_name = 'Knotted Liniwan' THEN 50.00
-                WHEN NEW.product_name = 'Knotted Bastos' THEN 50.00
-                WHEN NEW.product_name = 'Warped Silk' THEN 19.00
+                WHEN NEW.product_name = 'Knotted Liniwan' THEN NEW.weight_g * 50.00
+                WHEN NEW.product_name = 'Knotted Bastos' THEN NEW.weight_g * 50.00
+                WHEN NEW.product_name = 'Warped Silk' THEN NEW.weight_g * 19.00
+                WHEN NEW.product_name IN ('Piña Seda', 'Pure Piña Cloth') THEN COALESCE(NEW.length_m * NEW.width_in * 550.00, NEW.quantity * 550.00)
                 ELSE 0.00
             END,
             1,

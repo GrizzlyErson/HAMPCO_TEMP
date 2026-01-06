@@ -31,26 +31,29 @@ try {
     $db->begin_transaction();
 
     try {
-        // Get task completion details - check both task_completion_confirmations and task_assignments
+        // Get task completion details - check task_assignments, member_self_tasks, and task_completion_confirmations
         $get_task = $db->prepare("
             SELECT 
-                COALESCE(tcc.production_id, ta.prod_line_id) as production_id,
-                COALESCE(tcc.product_name, pl.product_name) as product_name,
-                COALESCE(tcc.weight, pl.weight_g) as weight,
-                COALESCE(tcc.member_id, ta.member_id) as member_id,
+                COALESCE(mst.production_id, ta.prod_line_id) as production_id,
+                COALESCE(mst.product_name, ta.product_name_field, pl.product_name) as product_name,
+                COALESCE(mst.weight_g, pl.weight_g) as weight,
+                COALESCE(mst.member_id, ta.member_id) as member_id,
                 um.role,
                 CASE 
-                    WHEN tcc.production_id IS NOT NULL THEN 'self_assigned'
+                    WHEN mst.production_id IS NOT NULL THEN 'self_assigned'
                     ELSE 'regular_assigned'
                 END as task_type,
+                mst.status as mst_status,
                 ta.status as ta_status,
-                tcc.status as tcc_status
+                COALESCE(mst.length_m, pl.length_m) as length_m,
+                COALESCE(mst.width_in, pl.width_m) as width_m,
+                COALESCE(mst.quantity, pl.quantity) as quantity
             FROM user_member um
-            LEFT JOIN task_completion_confirmations tcc ON um.id = tcc.member_id AND tcc.production_id = ? AND tcc.status = 'submitted'
+            LEFT JOIN member_self_tasks mst ON um.id = mst.member_id AND (mst.production_id = ? OR CAST(mst.production_id AS UNSIGNED) = ?) AND mst.status IN ('submitted', 'in_progress')
             LEFT JOIN task_assignments ta ON um.id = ta.member_id AND ta.prod_line_id = ? AND ta.status = 'submitted'
-            LEFT JOIN production_line pl ON ta.prod_line_id = pl.prod_line_id
-            WHERE (tcc.production_id = ? OR ta.prod_line_id = ?)
-            AND um.id = COALESCE(tcc.member_id, ta.member_id)
+            LEFT JOIN production_line pl ON (ta.prod_line_id = pl.prod_line_id OR CAST(mst.production_id AS UNSIGNED) = pl.prod_line_id)
+            WHERE (mst.production_id = ? OR ta.prod_line_id = ?)
+            AND um.id = COALESCE(mst.member_id, ta.member_id)
             LIMIT 1
         ");
 
@@ -58,7 +61,7 @@ try {
             throw new Exception("Failed to prepare task query: " . $db->error);
         }
 
-        $get_task->bind_param("ssss", $production_id, $production_id, $production_id, $production_id);
+        $get_task->bind_param("sssss", $production_id, $production_id, $production_id, $production_id, $production_id);
         if (!$get_task->execute()) {
             throw new Exception("Failed to get task details: " . $get_task->error);
         }
