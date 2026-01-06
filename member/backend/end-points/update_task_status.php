@@ -2,10 +2,12 @@
 // Prevent any output before setting headers
 error_reporting(E_ALL);
 ini_set('display_errors', 0); // Disable error display, we'll handle errors ourselves
+ob_start(); // Start output buffering to prevent accidental output
 session_start();
 
 // Function to send JSON response
 function sendJsonResponse($success, $message, $data = null, $statusCode = 200) {
+    ob_clean(); // Clear any buffered output
     http_response_code($statusCode);
     header('Content-Type: application/json');
     if ($data !== null) {
@@ -52,8 +54,6 @@ try {
         throw new Exception('Database connection failed');
     }
 
-    // Initialize global class for StockOut functionality
-    $global_db = new global_class();
 
 
     $member_id = $_SESSION['id'];
@@ -139,6 +139,13 @@ try {
             );
         } catch (Exception $e) {
             throw new Exception("Insufficient materials: " . $e->getMessage());
+        }
+
+        // Initialize global class for StockOut functionality
+        try {
+            $global_db = new global_class();
+        } catch (Exception $e) {
+            throw new Exception("Failed to initialize stock management: " . $e->getMessage());
         }
 
         // Get raw material IDs and deduct from inventory
