@@ -617,12 +617,30 @@ $(document).ready(function() {
             }
         }
 
-        // Validate form data
-        if (!formData.product_name || !formData.weight) {
+        // Validate form data dynamically based on memberRole
+        let isValid = true;
+        let errorMessage = 'Please fill in all required fields';
+
+        if (memberRole === 'knotter' || memberRole === 'warper') {
+            if (!formData.product_name || !formData.weight || isNaN(formData.weight)) {
+                isValid = false;
+            }
+        } else if (memberRole === 'weaver') {
+            if (!formData.product_name || !formData.length || isNaN(formData.length) || !formData.width || isNaN(formData.width) || !formData.quantity || isNaN(formData.quantity)) {
+                isValid = false;
+            }
+        } else {
+            // Default case, perhaps for roles not explicitly handled, or a generic check
+            if (!formData.product_name) {
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Please fill in all required fields'
+                text: errorMessage
             });
             return;
         }
