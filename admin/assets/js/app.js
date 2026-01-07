@@ -33,7 +33,7 @@ async function loadMembers(role, selectElement, productName = null) {
 }
 
 // Function to handle task assignment
-async function assignTask(prodLineId, productName, quantity) { // Made async
+async function assignTask(prodLineId, productName, quantity, weight) { // Made async
     const form = document.getElementById('taskAssignmentForm');
     const modalTitle = document.querySelector('#taskAssignmentModal h3');
     const identifierInput = document.getElementById('identifier');
@@ -44,6 +44,17 @@ async function assignTask(prodLineId, productName, quantity) { // Made async
     if (identifierInput) identifierInput.value = prodLineId;
     if (prodLineIdInput) prodLineIdInput.value = prodLineId;
     if (productDetailsInput) productDetailsInput.value = productName; // Set product_details
+    
+    // Store the weight in a hidden input for later use
+    let weightInput = document.getElementById('product_weight');
+    if (!weightInput) {
+        weightInput = document.createElement('input');
+        weightInput.type = 'hidden';
+        weightInput.id = 'product_weight';
+        weightInput.name = 'product_weight';
+        form.appendChild(weightInput);
+    }
+    weightInput.value = weight || '0';
 
     // Reset form fields and hidden inputs
     if (form) form.reset();

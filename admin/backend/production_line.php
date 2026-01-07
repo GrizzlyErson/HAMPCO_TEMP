@@ -1113,7 +1113,7 @@ function getStatusClass(status) {
                             <td class="px-4 py-2 text-center"><?php echo $item['date_created']; ?></td>
                             <td class="px-4 py-2 text-center">
                                 <div class="flex justify-center gap-2">
-                                    <button onclick="assignTask('<?php echo $item['raw_id']; ?>', '<?php echo htmlspecialchars($item['product_name'], ENT_QUOTES); ?>', <?php echo $item['quantity']; ?>)"
+                                    <button onclick="assignTask('<?php echo $item['raw_id']; ?>', '<?php echo htmlspecialchars($item['product_name'], ENT_QUOTES); ?>', <?php echo $item['quantity']; ?>, <?php echo $item['weight_g']; ?>)"
                                         class="<?php echo $item['has_assignments'] ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-500 hover:bg-indigo-600'; ?> text-white px-4 py-2 rounded"
                                         <?php echo $item['has_assignments'] ? 'disabled' : ''; ?>>
                                         Assign Tasks
