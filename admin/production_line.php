@@ -2214,25 +2214,19 @@ function loadReassignMembers(role) {
             }
             
             if (members && members.length > 0) {
-                // Filter to show only available members
-                const availableMembers = members.filter(m => m.work_status === 'Available');
-                
-                if (availableMembers.length > 0) {
-                    availableMembers.forEach(member => {
-                        const option = document.createElement('option');
-                        option.value = member.id;
-                        option.textContent = `${member.fullname} - Available`;
-                        select.appendChild(option);
-                    });
-                } else {
-                    // Show occupied members if no available
-                    members.forEach(member => {
-                        const option = document.createElement('option');
-                        option.value = member.id;
-                        option.textContent = `${member.fullname} - ${member.work_status}`;
-                        select.appendChild(option);
-                    });
-                }
+                // Sort members so available ones are at the top
+                members.sort((a, b) => {
+                    if (a.work_status === 'Available' && b.work_status !== 'Available') return -1;
+                    if (a.work_status !== 'Available' && b.work_status === 'Available') return 1;
+                    return a.fullname.localeCompare(b.fullname);
+                });
+
+                members.forEach(member => {
+                    const option = document.createElement('option');
+                    option.value = member.id;
+                    option.textContent = `${member.fullname} - ${member.work_status}`;
+                    select.appendChild(option);
+                });
             }
         })
         .catch(error => {
@@ -2336,27 +2330,24 @@ function updateAvailableMembers(productName) {
             }
             
             if (members && members.length > 0) {
-                // Filter to show only available members
-                const availableMembers = members.filter(member => member.work_status === 'Available');
+                // Sort members so available ones are at the top
+                members.sort((a, b) => {
+                    if (a.work_status === 'Available' && b.work_status !== 'Available') return -1;
+                    if (a.work_status !== 'Available' && b.work_status === 'Available') return 1;
+                    return a.fullname.localeCompare(b.fullname);
+                });
+
+                members.forEach(member => {
+                    const option = document.createElement('option');
+                    option.value = member.id;
+                    option.textContent = `${member.fullname} (${member.role}) - ${member.work_status}`;
+                    assignedToSelect.appendChild(option);
+                });
                 
+                // Auto-select the first available member if any
+                const availableMembers = members.filter(member => member.work_status === 'Available');
                 if (availableMembers.length > 0) {
-                    availableMembers.forEach((member, index) => {
-                        const option = document.createElement('option');
-                        option.value = member.id;
-                        option.textContent = `${member.fullname} (${member.role}) - Available`;
-                        assignedToSelect.appendChild(option);
-                    });
-                    
-                    // Auto-select the first available member
                     assignedToSelect.value = availableMembers[0].id;
-                } else {
-                    // Show occupied members if no available members
-                    members.forEach(member => {
-                        const option = document.createElement('option');
-                        option.value = member.id;
-                        option.textContent = `${member.fullname} (${member.role}) - ${member.work_status}`;
-                        assignedToSelect.appendChild(option);
-                    });
                 }
             } else {
                 const option = document.createElement('option');

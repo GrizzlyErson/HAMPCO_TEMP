@@ -40,16 +40,32 @@ try {
             $unit = '';
 
             if ($material_type == 'raw') {
-                $stmt = $conn->prepare("SELECT SUM(rm_quantity) as total_stocks FROM raw_materials WHERE raw_materials_name = ? AND rm_status = 'Available'");
-                if (!$stmt) {
-                    throw new Exception("Prepare failed for raw materials: " . $conn->error);
+                // Handle mapping for specific material names that imply categories
+                $query = "SELECT SUM(rm_quantity) as total_stocks FROM raw_materials WHERE rm_status = 'Available'";
+                $params = [];
+                $types = "";
+
+                if (stripos($material_name, 'Liniwan') !== false && stripos($material_name, 'Pina') !== false) {
+                    $query .= " AND raw_materials_name = 'Piña Loose' AND category = 'Liniwan/Washout'";
+                } elseif (stripos($material_name, 'Bastos') !== false && stripos($material_name, 'Pina') !== false) {
+                    $query .= " AND raw_materials_name = 'Piña Loose' AND category = 'Bastos'";
+                } elseif ($material_name === 'Pina Loose' || $material_name === 'Piña Loose') {
+                    $query .= " AND raw_materials_name = 'Piña Loose'";
+                } else {
+                    $query .= " AND raw_materials_name = ?";
+                    $params[] = $material_name;
+                    $types .= "s";
                 }
-                $stmt->bind_param("s", $material_name);
+
+                $stmt = $conn->prepare($query);
+                if (!empty($params)) {
+                    $stmt->bind_param($types, ...$params);
+                }
                 $stmt->execute();
                 $raw_material_result = $stmt->get_result();
                 if ($raw_material_result && $row = $raw_material_result->fetch_assoc()) {
-                    $available_quantity = (int)($row['total_stocks'] ?? 0);
-                    $unit = 'unit(s)'; // Assuming raw materials are in units
+                    $available_quantity = (float)($row['total_stocks'] ?? 0);
+                    $unit = 'g';
                 }
                 $stmt->close();
             } else if ($material_type == 'processed') {
@@ -61,7 +77,7 @@ try {
                 $stmt->execute();
                 $processed_material_result = $stmt->get_result();
                 if ($processed_material_result && $row = $processed_material_result->fetch_assoc()) {
-                    $available_quantity = (int)($row['total_weight'] ?? 0);
+                    $available_quantity = (float)($row['total_weight'] ?? 0);
                     $unit = 'g'; // Assuming processed materials are in grams
                 }
                 $stmt->close();
@@ -78,11 +94,15 @@ try {
     } else {
         // Original behavior: fetch all available raw and processed materials
         // Get raw materials
-        $raw_sql = "SELECT raw_materials_name as name, SUM(rm_quantity) as available_quantity FROM raw_materials WHERE rm_status = 'Available' GROUP BY raw_materials_name";
+        $raw_sql = "SELECT raw_materials_name as name, category, SUM(rm_quantity) as available_quantity FROM raw_materials WHERE rm_status = 'Available' GROUP BY raw_materials_name, category";
         $raw_result = $conn->query($raw_sql);
         if ($raw_result) {
             while ($row = $raw_result->fetch_assoc()) {
-                $response['materials'][] = ['name' => $row['name'], 'category' => 'raw', 'available_quantity' => $row['available_quantity'], 'unit' => 'unit(s)'];
+                $name = $row['name'];
+                if (!empty($row['category'])) {
+                    $name .= " (" . $row['category'] . ")";
+                }
+                $response['materials'][] = ['name' => $name, 'category' => 'raw', 'available_quantity' => (float)$row['available_quantity'], 'unit' => 'g'];
             }
         }
 
@@ -91,7 +111,7 @@ try {
         $processed_result = $conn->query($processed_sql);
         if ($processed_result) {
             while ($row = $processed_result->fetch_assoc()) {
-                $response['materials'][] = ['name' => $row['name'], 'category' => 'processed', 'available_quantity' => $row['available_quantity'], 'unit' => 'g'];
+                $response['materials'][] = ['name' => $row['name'], 'category' => 'processed', 'available_quantity' => (float)$row['available_quantity'], 'unit' => 'g'];
             }
         }
     }

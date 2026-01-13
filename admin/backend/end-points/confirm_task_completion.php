@@ -24,6 +24,7 @@ try {
     if ($db->connect_error) {
         throw new Exception("Connection failed: " . $db->connect_error);
     }
+    $db->set_charset("utf8mb4");
 
     // Debug logging
     error_log("confirm_task_completion.php - Received production_id: " . $production_id);
@@ -76,7 +77,7 @@ try {
                     mst.product_name,
                     mst.weight_g,
                     mst.length_m,
-                    mst.width_in,
+                    mst.width_in as width_m,
                     mst.quantity,
                     mst.member_id,
                     um.role,
@@ -155,62 +156,101 @@ try {
             throw new Exception("Task not found or not submitted. Expected status 'submitted' for task_id: " . $production_id);
         }
 
-        // Add to processed materials (skip if product_name is NULL)
+        // Update Inventory (Processed Materials or Finished Products)
         if (!empty($task['product_name']) && !is_null($task['product_name'])) {
-            $check_processed = $db->prepare("
-                SELECT id, weight 
-                FROM processed_materials 
-                WHERE processed_materials_name = ? 
-                AND status = 'Available'
-            ");
-            
-            if (!$check_processed) {
-                throw new Exception("Failed to prepare processed materials check query: " . $db->error);
-            }
+            $product_name = trim($task['product_name']);
+            // Normalize product names to ensure consistency (handle Pina vs Piña)
+            if (strcasecmp($product_name, 'Pina Seda') === 0) $product_name = 'Piña Seda';
+            if (strcasecmp($product_name, 'Pure Pina Cloth') === 0) $product_name = 'Pure Piña Cloth';
 
-            $check_processed->bind_param("s", $task['product_name']);
-            if (!$check_processed->execute()) {
-                throw new Exception("Failed to check processed materials: " . $check_processed->error);
-            }
+            $processed_materials_list = ['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'];
+            $finished_products_list = ['Piña Seda', 'Pure Piña Cloth'];
 
-            $processed_result = $check_processed->get_result();
-            $processed_material = $processed_result->fetch_assoc();
-            $new_weight = $task['weight'];
+            if (in_array($product_name, $processed_materials_list)) {
+                // Handle Processed Materials (Update Weight)
+                $new_weight = floatval($task['weight_g']); // Fix: Use weight_g instead of weight
 
-            if ($processed_material && !is_null($new_weight) && $new_weight > 0) {
-                // Update existing processed material
-                $update_processed = $db->prepare("
-                    UPDATE processed_materials 
-                    SET weight = weight + ?,
-                        updated_at = NOW()
-                    WHERE id = ?
-                ");
+                if ($new_weight > 0) {
+                    // Check for existing record (case-insensitive)
+                    $check_processed = $db->prepare("
+                        SELECT id, weight 
+                        FROM processed_materials 
+                        WHERE LOWER(TRIM(processed_materials_name)) = LOWER(?) 
+                        AND status = 'Available'
+                        LIMIT 1
+                    ");
+                    
+                    if (!$check_processed) {
+                        throw new Exception("Failed to prepare processed materials check query: " . $db->error);
+                    }
 
-                if (!$update_processed) {
-                    throw new Exception("Failed to prepare processed materials update query: " . $db->error);
+                    $check_processed->bind_param("s", $product_name);
+                    if (!$check_processed->execute()) {
+                        throw new Exception("Failed to check processed materials: " . $check_processed->error);
+                    }
+
+                    $processed_result = $check_processed->get_result();
+                    $processed_material = $processed_result->fetch_assoc();
+
+                    if ($processed_material) {
+                        // Update existing processed material
+                        $update_processed = $db->prepare("
+                            UPDATE processed_materials 
+                            SET weight = weight + ?,
+                                updated_at = NOW()
+                            WHERE id = ?
+                        ");
+                        $update_processed->bind_param("di", $new_weight, $processed_material['id']);
+                        if (!$update_processed->execute()) {
+                            throw new Exception("Failed to update processed materials: " . $update_processed->error);
+                        }
+                    } else {
+                        // Insert new processed material
+                        $insert_processed = $db->prepare("
+                            INSERT INTO processed_materials 
+                            (processed_materials_name, weight, status, updated_at)
+                            VALUES (?, ?, 'Available', NOW())
+                        ");
+                        $insert_processed->bind_param("sd", $product_name, $new_weight);
+                        if (!$insert_processed->execute()) {
+                            throw new Exception("Failed to insert processed materials: " . $insert_processed->error);
+                        }
+                    }
                 }
+            } elseif (in_array($product_name, $finished_products_list)) {
+                // Handle Finished Products (Update Quantity/Dimensions)
+                $length = floatval($task['length_m']);
+                $width = floatval($task['width_m']);
+                $quantity = intval($task['quantity']);
 
-                $update_processed->bind_param("di", $new_weight, $processed_material['id']);
+                if ($quantity > 0) {
+                    // Check if a product with same dimensions exists (using epsilon for float comparison)
+                    // Increased epsilon to 0.01 to handle slight rounding differences
+                    error_log("Checking finished products for: $product_name, L:$length, W:$width");
+                    $check_finished = $db->prepare("
+                        SELECT id, quantity 
+                        FROM finished_products 
+                        WHERE LOWER(TRIM(product_name)) = LOWER(?) 
+                        AND ABS(length_m - ?) < 0.01 
+                        AND ABS(width_m - ?) < 0.01
+                        LIMIT 1
+                    ");
+                    $check_finished->bind_param("sdd", $product_name, $length, $width);
+                    $check_finished->execute();
+                    $finished_result = $check_finished->get_result();
+                    $finished_product = $finished_result->fetch_assoc();
 
-                if (!$update_processed->execute()) {
-                    throw new Exception("Failed to update processed materials: " . $update_processed->error);
-                }
-            } elseif (!$processed_material && !is_null($new_weight) && $new_weight > 0) {
-                // Insert new processed material
-                $insert_processed = $db->prepare("
-                    INSERT INTO processed_materials 
-                    (processed_materials_name, weight, status, updated_at)
-                    VALUES (?, ?, 'Available', NOW())
-                ");
-
-                if (!$insert_processed) {
-                    throw new Exception("Failed to prepare processed materials insert query: " . $db->error);
-                }
-
-                $insert_processed->bind_param("sd", $task['product_name'], $new_weight);
-
-                if (!$insert_processed->execute()) {
-                    throw new Exception("Failed to insert processed materials: " . $insert_processed->error);
+                    if ($finished_product) {
+                        // Update quantity
+                        $update_finished = $db->prepare("UPDATE finished_products SET quantity = quantity + ?, updated_at = NOW() WHERE id = ?");
+                        $update_finished->bind_param("ii", $quantity, $finished_product['id']);
+                        $update_finished->execute();
+                    } else {
+                        // Insert new finished product
+                        $insert_finished = $db->prepare("INSERT INTO finished_products (product_name, length_m, width_m, quantity, updated_at) VALUES (?, ?, ?, ?, NOW())");
+                        $insert_finished->bind_param("sddi", $product_name, $length, $width, $quantity);
+                        $insert_finished->execute();
+                    }
                 }
             }
         } else {
