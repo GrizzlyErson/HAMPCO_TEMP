@@ -248,9 +248,8 @@ $(document).ready(function () {
           </div>
 
           <!-- Buttons Section -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 25px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px;">
             <button type="button" id="cancelCheckoutBtn" style="padding: 12px; background-color: #d1d5db; color: #111827; border: none; border-radius: 6px; font-weight: 500; font-size: 14px; cursor: pointer; transition: background-color 0.2s;">Cancel</button>
-            <button type="button" id="proceedCheckoutBtn" style="padding: 12px; background-color: #3b82f6; color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 14px; cursor: pointer; transition: background-color 0.2s;">Proceed</button>
             <button type="submit" id="completeOrderBtn" style="padding: 12px; background-color: #10b981; color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 14px; cursor: pointer; transition: background-color 0.2s;">Complete Order</button>
           </div>
         </form>
@@ -293,45 +292,6 @@ $(document).ready(function () {
         $('#paymentProofWrapper').css('display', 'none');
         $('#modalPaymentProof').val('');
       }
-    });
-
-    // Proceed button - validate fields
-    $(document).on('click', '#proceedCheckoutBtn', function(e) {
-      e.preventDefault();
-      
-      const name = $('#modalName').val().trim();
-      const contact = $('#modalContact').val().trim();
-      const address = $('#modalAddress').val().trim();
-      const paymentMethod = $('#modalPaymentMethod').val();
-      const paymentProof = $('#modalPaymentProof').val();
-
-      if (!name) {
-        alertify.error('Please enter your full name');
-        $('#modalName').focus();
-        return;
-      }
-      if (!contact) {
-        alertify.error('Please enter your contact number');
-        $('#modalContact').focus();
-        return;
-      }
-      if (!address) {
-        alertify.error('Please enter your delivery address');
-        $('#modalAddress').focus();
-        return;
-      }
-      if (!paymentMethod) {
-        alertify.error('Please select a payment method');
-        $('#modalPaymentMethod').focus();
-        return;
-      }
-      if (paymentMethod === 'GCash' && !paymentProof) {
-        alertify.error('Please upload payment proof for GCash');
-        $('#modalPaymentProof').focus();
-        return;
-      }
-
-      alertify.success('Information validated! Click "Complete Order" to finalize your purchase.');
     });
 
     // Submit form - checkout
