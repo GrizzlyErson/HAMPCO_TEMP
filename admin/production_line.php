@@ -3,6 +3,18 @@ include "components/header.php";
 // Add custom CSS for tables
 echo '<link rel="stylesheet" href="css/table-styles.css">';
 
+// Check and add updated_at column to production_line if it doesn't exist
+$check_pl_updated = mysqli_query($db->conn, "SHOW COLUMNS FROM production_line LIKE 'updated_at'");
+if (mysqli_num_rows($check_pl_updated) == 0) {
+    mysqli_query($db->conn, "ALTER TABLE production_line ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+}
+
+// Check and add updated_at column to task_assignments if it doesn't exist
+$check_ta_updated = mysqli_query($db->conn, "SHOW COLUMNS FROM task_assignments LIKE 'updated_at'");
+if (mysqli_num_rows($check_ta_updated) == 0) {
+    mysqli_query($db->conn, "ALTER TABLE task_assignments ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+}
+
 // Fetch assigned tasks
 $tasks_query = "SELECT 
     pl.prod_line_id,

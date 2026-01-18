@@ -193,12 +193,6 @@ async function assignTask(prodLineId, productName, quantity, weight) { // Made a
     if (modal) modal.classList.remove('hidden');
 }
 
-// Function to handle edit product
-function editProduct(prodLineId) {
-    alert('Edit functionality for production item ' + prodLineId + ' is being developed.');
-    // This can be extended later to open an edit modal or redirect to an edit page
-}
-
 // Function to load all uncompleted production lines
 async function loadProductionLines(selectElement) {
     try {
@@ -792,4 +786,3 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 });
-

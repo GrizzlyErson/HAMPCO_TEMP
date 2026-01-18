@@ -41,7 +41,13 @@
             </tr>
         </thead>
         <tbody class="text-gray-600 text-sm">
-           <?php include "backend/end-points/list_raw_material.php";?>
+           <?php 
+           // Add updated_at column to raw_materials if it doesn't exist
+           $check_rm_updated = mysqli_query($db->conn, "SHOW COLUMNS FROM raw_materials LIKE 'updated_at'");
+           if (mysqli_num_rows($check_rm_updated) == 0) {
+               mysqli_query($db->conn, "ALTER TABLE raw_materials ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+           }
+           include "backend/end-points/list_raw_material.php";?>
         </tbody>
     </table>
 </div>
@@ -69,6 +75,12 @@
             $check_column = mysqli_query($db->conn, "SHOW COLUMNS FROM processed_materials LIKE 'unit_cost'");
             if (mysqli_num_rows($check_column) == 0) {
                 mysqli_query($db->conn, "ALTER TABLE processed_materials ADD COLUMN unit_cost DECIMAL(10,2) DEFAULT 0.00");
+            }
+            
+            // Add updated_at column if it doesn't exist
+            $check_updated_at = mysqli_query($db->conn, "SHOW COLUMNS FROM processed_materials LIKE 'updated_at'");
+            if (mysqli_num_rows($check_updated_at) == 0) {
+                mysqli_query($db->conn, "ALTER TABLE processed_materials ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
             }
             
             // Query to get processed materials (excluding final products)
@@ -139,6 +151,12 @@
             $check_column_finished = mysqli_query($db->conn, "SHOW COLUMNS FROM finished_products LIKE 'unit_cost'");
             if (mysqli_num_rows($check_column_finished) == 0) {
                 mysqli_query($db->conn, "ALTER TABLE finished_products ADD COLUMN unit_cost DECIMAL(10,2) DEFAULT 0.00");
+            }
+            
+            // Add updated_at column if it doesn't exist
+            $check_updated_at_finished = mysqli_query($db->conn, "SHOW COLUMNS FROM finished_products LIKE 'updated_at'");
+            if (mysqli_num_rows($check_updated_at_finished) == 0) {
+                mysqli_query($db->conn, "ALTER TABLE finished_products ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
             }
             
             // Query to get finished products

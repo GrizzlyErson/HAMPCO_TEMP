@@ -64,13 +64,13 @@ try {
         $bind_types .= "d";
         $bind_values[] = $width_m;
 
-        $update_fields[] = "weight_g = NULL"; // Clear weight for dimension products
+        $update_fields[] = "weight_g = 0"; // Clear weight for dimension products
         $update_fields[] = "quantity = ?";
         $bind_types .= "i";
         $bind_values[] = $quantity;
     } elseif ($isWeightProduct) {
-        $update_fields[] = "length_m = NULL"; // Clear length for weight products
-        $update_fields[] = "width_m = NULL";  // Clear width for weight products
+        $update_fields[] = "length_m = 0"; // Clear length for weight products
+        $update_fields[] = "width_m = 0";  // Clear width for weight products
         $update_fields[] = "weight_g = ?";
         $bind_types .= "d";
         $bind_values[] = $weight_g;
@@ -78,9 +78,9 @@ try {
         $bind_types .= "i";
         $bind_values[] = 1;
     } else { // Generic product, prioritize quantity, clear dimensions/weight if not applicable
-        $update_fields[] = "length_m = NULL";
-        $update_fields[] = "width_m = NULL";
-        $update_fields[] = "weight_g = NULL";
+        $update_fields[] = "length_m = 0";
+        $update_fields[] = "width_m = 0";
+        $update_fields[] = "weight_g = 0";
         $update_fields[] = "quantity = ?";
         $bind_types .= "i";
         $bind_values[] = $quantity;
