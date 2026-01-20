@@ -191,7 +191,7 @@
                         <td class="px-6 py-4 text-sm">${task.member_name}</td>
                         <td class="px-6 py-4 text-sm">
                             ${task.status === 'submitted' ? `
-                                <button onclick="confirmTaskCompletion(${task.prod_line_id})"
+                                <button onclick="confirmTaskCompletion(${task.prod_line_id}, '${task.product_name.replace(/'/g, "\\'")}')"
                                     class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors">
                                     Confirm Task Completion
                                 </button>
@@ -211,20 +211,46 @@
             });
     }
 
-    function confirmTaskCompletion(prodLineId) {
+    function confirmTaskCompletion(prodLineId, productName) {
+        let inputLabel = 'Actual Output';
+        let inputPlaceholder = 'Enter value';
+        
+        // Determine unit based on product
+        if (['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'].includes(productName)) {
+            inputLabel = 'Actual Weight Received (grams)';
+            inputPlaceholder = 'Enter weight in grams';
+        } else if (['Piña Seda', 'Pure Piña Cloth'].includes(productName)) {
+            inputLabel = 'Actual Length Received (meters)';
+            inputPlaceholder = 'Enter length in meters';
+        }
+
         Swal.fire({
             title: 'Confirm Task Completion',
-            text: 'Are you sure you want to confirm this task as completed?',
-            icon: 'question',
+            text: `Please enter the ${inputLabel.toLowerCase()} for ${productName}`,
+            icon: 'info',
+            input: 'number',
+            inputLabel: inputLabel,
+            inputPlaceholder: inputPlaceholder,
+            inputAttributes: {
+                min: '0',
+                step: '0.01'
+            },
             showCancelButton: true,
             confirmButtonColor: '#10B981',
             cancelButtonColor: '#EF4444',
-            confirmButtonText: 'Yes, confirm completion',
-            cancelButtonText: 'Cancel'
+            confirmButtonText: 'Confirm & Complete',
+            cancelButtonText: 'Cancel',
+            preConfirm: (value) => {
+                if (!value) {
+                    Swal.showValidationMessage('You need to enter a value!')
+                }
+                return value;
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 const formData = new FormData();
                 formData.append('prod_line_id', prodLineId);
+                formData.append('actual_output', result.value);
 
                 fetch('backend/end-points/confirm_task_completion.php', {
                     method: 'POST',

@@ -139,16 +139,41 @@ function fetchProductionLineData() {
 }
 
 // Function to confirm task completion
-function confirmTaskCompletion(prodLineId) {
+function confirmTaskCompletion(prodLineId, productName) {
+    let inputLabel = 'Actual Output';
+    let inputPlaceholder = 'Enter value';
+    
+    // Determine unit based on product
+    if (['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'].includes(productName)) {
+        inputLabel = 'Actual Weight Received (grams)';
+        inputPlaceholder = 'Enter weight in grams';
+    } else if (['Piña Seda', 'Pure Piña Cloth'].includes(productName)) {
+        inputLabel = 'Actual Length Received (meters)';
+        inputPlaceholder = 'Enter length in meters';
+    }
+
     Swal.fire({
         title: 'Confirm Task Completion',
-        text: 'Are you sure you want to mark this task as completed? This action cannot be undone.',
-        icon: 'warning',
+        text: `Please enter the ${inputLabel.toLowerCase()} for ${productName}`,
+        icon: 'info',
+        input: 'number',
+        inputLabel: inputLabel,
+        inputPlaceholder: inputPlaceholder,
+        inputAttributes: {
+            min: '0',
+            step: '0.01'
+        },
         showCancelButton: true,
         confirmButtonColor: '#10B981',
         cancelButtonColor: '#EF4444',
-        confirmButtonText: 'Yes, complete it!',
-        cancelButtonText: 'Cancel'
+        confirmButtonText: 'Confirm & Complete',
+        cancelButtonText: 'Cancel',
+        preConfirm: (value) => {
+            if (!value) {
+                Swal.showValidationMessage('You need to enter a value!')
+            }
+            return value;
+        }
     }).then((result) => {
         if (result.isConfirmed) {
             // Show loading state
@@ -169,7 +194,7 @@ function confirmTaskCompletion(prodLineId) {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: `production_id=${prodLineId}`
+                body: `production_id=${prodLineId}&actual_output=${result.value}`
             })
             .then(response => response.json())
             .then(data => {
@@ -183,6 +208,9 @@ function confirmTaskCompletion(prodLineId) {
                     }).then(() => {
                         // Refresh the tasks table with force refresh to ensure DOM updates
                         refreshTaskAssignments(true);
+                        if (typeof loadTaskCompletions === 'function') {
+                            loadTaskCompletions();
+                        }
                     });
                 } else {
                     Swal.fire({
@@ -402,7 +430,7 @@ function refreshTaskAssignments(forceRefresh = false) {
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                             ${item.status !== 'completed' ? `
                                 <div class="flex flex-col items-center space-y-2">
-                                    <button onclick="confirmTaskCompletion('${item.raw_id}')" 
+                                    <button onclick="confirmTaskCompletion('${item.raw_id}', '${item.product_name.replace(/'/g, "\\'")}')" 
                                         class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-md transition-colors w-full text-xs ${displayStatus !== 'submitted' ? 'opacity-50 cursor-not-allowed' : ''}"
                                         ${displayStatus !== 'submitted' ? 'disabled' : ''}>
                                         Confirm
@@ -1237,7 +1265,7 @@ function loadTaskCompletions() {
                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
                         ${task.status === 'in_progress' ? `
                             <div class="flex flex-col items-center space-y-2">
-                                <button onclick="confirmTaskCompletion('${task.production_id}')"
+                                <button onclick="confirmTaskCompletion('${task.production_id}', '${task.product_name.replace(/'/g, "\\'")}')"
                                     class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors w-full">
                                     Confirm Completion
                                 </button>
