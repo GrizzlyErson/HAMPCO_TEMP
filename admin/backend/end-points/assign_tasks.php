@@ -1,4 +1,5 @@
 <?php
+ob_start();
 require_once __DIR__ . "/../class.php";
 
 $db = new global_class();
@@ -239,5 +240,6 @@ try {
 }
 
 header('Content-Type: application/json');
+ob_clean();
 echo json_encode($response);
 ?> 

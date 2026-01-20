@@ -10,13 +10,11 @@ $message_type = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_fullname = $_POST['fullname'] ?? '';
-    $new_contact_info = $_POST['contact_info'] ?? '';
+    $new_contact_info = $_POST['phone'] ?? '';
     $current_password = $_POST['current_password'] ?? '';
     $new_password = $_POST['new_password'] ?? '';
     $confirm_new_password = $_POST['confirm_new_password'] ?? '';
-    $task_limit = isset($_POST['task_limit']) ? intval($_POST['task_limit']) : 10;
 
-    // Basic validation
     if (empty($new_fullname) || empty($new_contact_info)) {
         $message = 'Full name and contact information cannot be empty.';
         $message_type = 'error';
@@ -59,24 +57,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($update_result['success']) {
-                // Update task limit
-                $stmt = $db->conn->prepare("UPDATE user_member SET task_limit = ? WHERE id = ?");
-                $stmt->bind_param("ii", $task_limit, $user_id);
-                $stmt->execute();
-                $stmt->close();
-
                 // Update session data to reflect changes immediately
-                // This might not be strictly necessary if navbar.php re-fetches from On_Session,
-                // but good practice if fullname is used elsewhere directly from $_SESSION.
-                // $_SESSION['fullname'] = $new_fullname;
-
-                // Re-fetch the On_Session array to get updated data for the current page load
                 $On_Session = $db->check_account($user_id, 'member');
-
-                $message = 'Profile updated successfully!';
+                $message = 'Profile updated successfully.';
                 $message_type = 'success';
+                $fullname = $new_fullname;
+                $contact_info = $new_contact_info;
             } else {
-                $message = 'Failed to update profile. Please try again. Error: ' . ($update_result['error'] ?? 'Unknown database error.');
+                $message = $update_result['message'] ?? 'Update failed.';
                 $message_type = 'error';
             }
         }
@@ -140,32 +128,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="form-group">
-            <label for="task_limit" class="block text-gray-700 text-sm font-bold mb-2">Task Limit (Max active tasks):</label>
-            <input type="number" id="task_limit" name="task_limit" value="<?= htmlspecialchars($On_Session[0]['task_limit'] ?? 10) ?>" min="1" required
-                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-        </div>
-
-        <div class="form-group">
             <label for="current_password" class="block text-gray-700 text-sm font-bold mb-2">Current Password (Required for password change):</label>
             <input type="password" id="current_password" name="current_password"
                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
         </div>
 
         <div class="form-group">
-            <label for="new_password" class="block text-gray-700 text-sm font-bold mb-2">New Password:</label>
-            <input type="password" id="new_password" name="new_password"
-                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-        </div>
-
-        <div class="form-group">
             <label for="confirm_new_password" class="block text-gray-700 text-sm font-bold mb-2">Confirm New Password:</label>
-            <input type="password" id="confirm_new_password" name="confirm_new_password"
-                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            <input type="password" id="confirm_new_password" name="confirm_new_password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
         </div>
-
-        <div class="flex items-center justify-between">
-            <button type="submit"
-                    class="btn-primary w-full py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+        <div class="form-group">
+            <button type="submit" class="btn-primary w-full">
                 Update Profile
             </button>
         </div>

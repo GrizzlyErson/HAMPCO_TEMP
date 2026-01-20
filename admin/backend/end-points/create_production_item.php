@@ -1,4 +1,5 @@
 <?php
+ob_start();
 // Prevent any output before JSON response
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
@@ -13,6 +14,7 @@ define('ALLOW_ACCESS', true);
 $db_path = __DIR__ . '/../../../function/db_connect.php';
 if (!file_exists($db_path)) {
     error_log("Database connection file not found at: " . $db_path);
+    ob_clean();
     echo json_encode([
         "success" => false,
         "message" => "Database configuration error: Connection file not found"
@@ -20,11 +22,11 @@ if (!file_exists($db_path)) {
     exit;
 }
 
-require_once $db_path;
-
 $response = ["success" => false, "message" => "Unknown error."];
 
 try {
+    require_once $db_path;
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $product_name = isset($_POST['product_name']) ? trim($_POST['product_name']) : '';
         $length = isset($_POST['length']) && $_POST['length'] !== '' ? floatval($_POST['length']) : 0;
@@ -37,6 +39,7 @@ try {
 
         if ($product_name === '' || !$quantity) {
             $response['message'] = 'Product name and quantity are required.';
+            ob_clean();
             echo json_encode($response);
             exit;
         }
@@ -62,7 +65,7 @@ try {
         }
 
         // Check if database connection is successful
-        if (!$conn) {
+        if (!isset($conn) || !$conn) {
             throw new Exception("Database connection failed: " . mysqli_connect_error());
         }
 
@@ -81,6 +84,7 @@ try {
 
         $prod_line_id = $stmt->insert_id;
         $stmt->close();
+        $stmt = null; // Prevent double closing in catch block
 
         // If a member was selected, assign the task to them
         if ($assigned_to && $deadline) {
@@ -100,24 +104,41 @@ try {
                 $role_row = $role_result->fetch_assoc();
 
                 // Check task limit
+                $task_limit = 10; // Default
                 $limit_sql = "SELECT task_limit FROM user_member WHERE id = ?";
                 $limit_stmt = $conn->prepare($limit_sql);
-                $limit_stmt->bind_param('i', $assigned_to);
-                $limit_stmt->execute();
-                $limit_res = $limit_stmt->get_result();
-                $limit_row = $limit_res->fetch_assoc();
-                $task_limit = $limit_row['task_limit'] ?? 10;
-                $limit_stmt->close();
+                if ($limit_stmt) {
+                    $limit_stmt->bind_param('i', $assigned_to);
+                    $limit_stmt->execute();
+                    $limit_res = $limit_stmt->get_result();
+                    if ($limit_res && $limit_row = $limit_res->fetch_assoc()) {
+                        $task_limit = $limit_row['task_limit'] ?? 10;
+                    }
+                    $limit_stmt->close();
+                }
 
+                $current_tasks = 0;
                 $count_sql = "SELECT COUNT(*) as count FROM task_assignments WHERE member_id = ? AND status IN ('pending', 'in_progress', 'submitted')";
                 $count_stmt = $conn->prepare($count_sql);
-                $count_stmt->bind_param('i', $assigned_to);
-                $count_stmt->execute();
-                $count_res = $count_stmt->get_result();
-                $current_tasks = $count_res->fetch_assoc()['count'];
-                $count_stmt->close();
+                if ($count_stmt) {
+                    $count_stmt->bind_param('i', $assigned_to);
+                    $count_stmt->execute();
+                    $count_res = $count_stmt->get_result();
+                    if ($count_res && $count_row = $count_res->fetch_assoc()) {
+                        $current_tasks = $count_row['count'];
+                    }
+                    $count_stmt->close();
+                }
 
                 if ($current_tasks >= $task_limit) {
+                    // Rollback: Delete the production line item we just created since assignment failed
+                    $del_sql = "DELETE FROM production_line WHERE prod_line_id = ?";
+                    $del_stmt = $conn->prepare($del_sql);
+                    if ($del_stmt) {
+                        $del_stmt->bind_param('i', $prod_line_id);
+                        $del_stmt->execute();
+                        $del_stmt->close();
+                    }
                     throw new Exception("Selected member has reached their task limit of $task_limit active tasks.");
                 }
 
@@ -150,17 +171,18 @@ try {
     } else {
         $response['message'] = 'Invalid request method.';
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     error_log("Production item creation error: " . $e->getMessage());
-    $response['message'] = 'An error occurred while processing your request: ' . $e->getMessage();
+    $response['message'] = $e->getMessage();
     
     // Close connections if they exist
-    if (isset($stmt) && $stmt) {
+    if (isset($stmt) && $stmt instanceof mysqli_stmt) {
         $stmt->close();
     }
-    if (isset($conn) && $conn) {
+    if (isset($conn) && $conn instanceof mysqli) {
         $conn->close();
     }
 }
 
+ob_clean();
 echo json_encode($response); 

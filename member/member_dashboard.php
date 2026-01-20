@@ -4,9 +4,10 @@ require_once "components/header.php";
 
 $db = new Database();
 $current_status = 'available';
+$task_limit = 10;
 
 try {
-    $stmt = $db->conn->prepare("SELECT availability_status FROM user_member WHERE id = ?");
+    $stmt = $db->conn->prepare("SELECT availability_status, task_limit FROM user_member WHERE id = ?");
     if ($stmt) {
         $member_id = $_SESSION['id'] ?? 0;
         $stmt->bind_param("i", $member_id);
@@ -14,6 +15,7 @@ try {
         $result = $stmt->get_result();
         if ($result && $row = $result->fetch_assoc()) {
             $current_status = $row['availability_status'] ?? 'available';
+            $task_limit = $row['task_limit'] ?? 10;
         }
         $stmt->close();
     }
@@ -33,6 +35,13 @@ try {
                         <h1 class="h3 mb-0 text-gray-800">DASHBOARD  </h1>
                         <div class="flex items-center space-x-3">
                             <i class="fa-solid fa-cart-plus"></i>
+                            
+                            <div class="bg-white rounded-lg shadow-sm p-2 flex items-center space-x-2 border border-gray-200">
+                                <span class="text-sm font-medium text-gray-600 pl-1">Task Limit:</span>
+                                <input type="number" id="dashboardTaskLimit" value="<?php echo $task_limit; ?>" min="1" class="w-16 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                                <button id="updateLimitBtn" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition h-full">Save</button>
+                            </div>
+
                             <div class="bg-white rounded-lg shadow-sm p-2 flex space-x-2">
                                 <button id="availableBtn" class="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 <?php echo $current_status === 'available' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'; ?>">
                                     Available
@@ -257,6 +266,66 @@ document.addEventListener('DOMContentLoaded', function() {
         created: []
     };
 
+    // Task Limit Update
+    const updateLimitBtn = document.getElementById('updateLimitBtn');
+    const taskLimitInput = document.getElementById('dashboardTaskLimit');
+
+    if (updateLimitBtn && taskLimitInput) {
+        updateLimitBtn.addEventListener('click', function() {
+            const newLimit = taskLimitInput.value;
+            if (newLimit < 1) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Limit',
+                    text: 'Task limit must be at least 1'
+                });
+                return;
+            }
+
+            const originalText = this.innerText;
+            this.disabled = true;
+            this.innerText = '...';
+
+            fetch('backend/end-points/update_task_limit.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `task_limit=${newLimit}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Task limit updated successfully',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Failed to update task limit'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred'
+                });
+            })
+            .finally(() => {
+                this.disabled = false;
+                this.innerText = originalText;
+            });
+        });
+    }
+
     function updateAvailabilityStatus(status) {
         if (availableBtn) availableBtn.disabled = true;
         if (unavailableBtn) unavailableBtn.disabled = true;
@@ -398,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error('Error fetching production tasks:', err);
                     return { success: false };
                 }),
-            fetch('backend/end-points/get_created_tasks.php')
+            fetch('backend/end-points/get_self_tasks.php')
                 .then(res => {
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     return res.json();
@@ -453,7 +522,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const created = [];
             if (createdData) {
                 if (createdData.success === false) {
-                    console.error('Backend reported error for created tasks:', createdData.message);
+                    console.warn('Backend reported error for created tasks:', createdData.message || 'No message provided');
                 } else if (createdData.success && Array.isArray(createdData.tasks)) {
                     createdData.tasks.forEach(task => {
                         created.push({

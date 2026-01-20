@@ -53,6 +53,46 @@ if ($member_role === 'knotter' || $member_role === 'warper') {
     exit;
 }
 
+// Check task limit before proceeding
+$limit_query = "SELECT task_limit FROM user_member WHERE id = ?";
+$stmt = $db->conn->prepare($limit_query);
+if ($stmt) {
+    $stmt->bind_param("i", $member_id);
+    $stmt->execute();
+    $limit_result = $stmt->get_result();
+    $limit_row = $limit_result->fetch_assoc();
+    $task_limit = $limit_row['task_limit'] ?? 10; // Default to 10 if not set
+    $stmt->close();
+} else {
+    $task_limit = 10;
+}
+
+// Count active tasks (self-assigned)
+$active_tasks = 0;
+$self_query = "SELECT COUNT(*) as count FROM member_self_tasks WHERE member_id = ? AND status IN ('pending', 'in_progress', 'submitted')";
+$stmt = $db->conn->prepare($self_query);
+if ($stmt) {
+    $stmt->bind_param("i", $member_id);
+    $stmt->execute();
+    $active_tasks += $stmt->get_result()->fetch_assoc()['count'];
+    $stmt->close();
+}
+
+// Count active tasks (assigned by admin)
+$assign_query = "SELECT COUNT(*) as count FROM task_assignments WHERE member_id = ? AND status IN ('pending', 'in_progress', 'submitted')";
+$stmt = $db->conn->prepare($assign_query);
+if ($stmt) {
+    $stmt->bind_param("i", $member_id);
+    $stmt->execute();
+    $active_tasks += $stmt->get_result()->fetch_assoc()['count'];
+    $stmt->close();
+}
+
+if ($active_tasks >= $task_limit) {
+    echo json_encode(['success' => false, 'message' => "Task limit reached. You have $active_tasks active tasks (Limit: $task_limit)."]);
+    exit;
+}
+
 try {
     // Generate a unique production ID
     $production_id = uniqid('PL', true);

@@ -950,17 +950,84 @@ document.addEventListener('DOMContentLoaded', function() {
                     location.reload();
                 });
             } else {
-                alert('Error: ' + data.message);
+                if (data.message && data.message.includes('task limit')) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Task Limit Reached',
+                        text: data.message
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message
+                    });
+                }
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while creating the task. Please check the console for details.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred while creating the task. Please check the console for details.'
+            });
         });
     });
 
     // Fetch initial production line data when page loads
     // The production line data is now fetched in PHP, so no need to fetch here
+
+    // Handle Task Assignment Form Submission (Assign Tasks Modal)
+    const taskAssignmentForm = document.getElementById('taskAssignmentForm');
+    if (taskAssignmentForm) {
+        taskAssignmentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch('backend/end-points/assign_tasks.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Tasks assigned successfully!',
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        document.getElementById('taskAssignmentModal').classList.add('hidden');
+                        location.reload();
+                    });
+                } else {
+                    if (data.message && data.message.includes('task limit')) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Task Limit Reached',
+                            text: data.message
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while assigning tasks.'
+                });
+            });
+        });
+    }
 });
 
 function updateWorkforceManagement() {
@@ -2295,11 +2362,29 @@ function submitReassignTask() {
             });
         } else {
             alert('Error: ' + (data.message || 'Failed to reassign task'));
+            if (data.message && data.message.includes('task limit')) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Task Limit Reached',
+                    text: data.message
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Failed to reassign task'
+                });
+            }
         }
     })
     .catch(error => {
         console.error('Error:', error);
         alert('An error occurred while reassigning the task');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while reassigning the task'
+        });
     });
 }
 
