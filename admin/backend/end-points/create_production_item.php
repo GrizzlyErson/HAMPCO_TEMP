@@ -98,6 +98,29 @@ try {
             
             if ($role_result && $role_result->num_rows > 0) {
                 $role_row = $role_result->fetch_assoc();
+
+                // Check task limit
+                $limit_sql = "SELECT task_limit FROM user_member WHERE id = ?";
+                $limit_stmt = $conn->prepare($limit_sql);
+                $limit_stmt->bind_param('i', $assigned_to);
+                $limit_stmt->execute();
+                $limit_res = $limit_stmt->get_result();
+                $limit_row = $limit_res->fetch_assoc();
+                $task_limit = $limit_row['task_limit'] ?? 10;
+                $limit_stmt->close();
+
+                $count_sql = "SELECT COUNT(*) as count FROM task_assignments WHERE member_id = ? AND status IN ('pending', 'in_progress', 'submitted')";
+                $count_stmt = $conn->prepare($count_sql);
+                $count_stmt->bind_param('i', $assigned_to);
+                $count_stmt->execute();
+                $count_res = $count_stmt->get_result();
+                $current_tasks = $count_res->fetch_assoc()['count'];
+                $count_stmt->close();
+
+                if ($current_tasks >= $task_limit) {
+                    throw new Exception("Selected member has reached their task limit of $task_limit active tasks.");
+                }
+
                 $member_role = $role_row['role'];
                 
                 // Insert task assignment

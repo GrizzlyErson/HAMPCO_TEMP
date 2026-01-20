@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $current_password = $_POST['current_password'] ?? '';
     $new_password = $_POST['new_password'] ?? '';
     $confirm_new_password = $_POST['confirm_new_password'] ?? '';
+    $task_limit = isset($_POST['task_limit']) ? intval($_POST['task_limit']) : 10;
 
     // Basic validation
     if (empty($new_fullname) || empty($new_contact_info)) {
@@ -58,6 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($update_result['success']) {
+                // Update task limit
+                $stmt = $db->conn->prepare("UPDATE user_member SET task_limit = ? WHERE id = ?");
+                $stmt->bind_param("ii", $task_limit, $user_id);
+                $stmt->execute();
+                $stmt->close();
+
                 // Update session data to reflect changes immediately
                 // This might not be strictly necessary if navbar.php re-fetches from On_Session,
                 // but good practice if fullname is used elsewhere directly from $_SESSION.
@@ -129,6 +136,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="form-group">
             <label for="phone" class="block text-gray-700 text-sm font-bold mb-2">Phone Number:</label>
             <input type="text" id="phone" name="phone" value="<?= htmlspecialchars($On_Session[0]['phone'] ?? '') ?>" required
+                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
+
+        <div class="form-group">
+            <label for="task_limit" class="block text-gray-700 text-sm font-bold mb-2">Task Limit (Max active tasks):</label>
+            <input type="number" id="task_limit" name="task_limit" value="<?= htmlspecialchars($On_Session[0]['task_limit'] ?? 10) ?>" min="1" required
                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
         </div>
 

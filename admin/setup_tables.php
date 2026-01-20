@@ -63,6 +63,12 @@ if ($db->conn->query($sql) === TRUE) {
     echo "Error creating table: " . $db->conn->error . "<br>";
 }
 
+// Check and add task_limit column to user_member if it doesn't exist
+$check_limit = mysqli_query($db->conn, "SHOW COLUMNS FROM user_member LIKE 'task_limit'");
+if (mysqli_num_rows($check_limit) == 0) {
+    mysqli_query($db->conn, "ALTER TABLE user_member ADD COLUMN task_limit INT DEFAULT 10");
+}
+
 // Create task_progress table
 $sql = "DROP TABLE IF EXISTS task_progress;
 CREATE TABLE task_progress (

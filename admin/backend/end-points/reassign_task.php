@@ -31,6 +31,12 @@ if (!$task_id || !$prod_line_id || !$new_member_id || !$deadline) {
 }
 
 try {
+    // Check task limit for new member
+    $limitCheck = $db->checkMemberTaskLimit($new_member_id);
+    if (!$limitCheck['allowed']) {
+        throw new Exception("New member has reached their task limit of " . $limitCheck['limit'] . " active tasks.");
+    }
+
     // Fetch the new member's role from user_member table
     $member_role_sql = "SELECT role FROM user_member WHERE id = ?";
     $stmt_role = $conn->prepare($member_role_sql);

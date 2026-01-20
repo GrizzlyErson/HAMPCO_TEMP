@@ -134,6 +134,12 @@ try {
         // Use array_unique to prevent duplicate knotter IDs
         $knotter_ids = array_unique($knotter_ids);
         foreach ($knotter_ids as $knotter_id) {
+            // Check task limit
+            $limitCheck = $db->checkMemberTaskLimit($knotter_id);
+            if (!$limitCheck['allowed']) {
+                throw new Exception("Member (ID: $knotter_id) has reached their task limit of " . $limitCheck['limit'] . " active tasks.");
+            }
+
             if (!empty($knotter_id)) {
                 $assignments[] = array(
                     'id' => $knotter_id,
@@ -146,6 +152,12 @@ try {
     }
     
     if ($warper_id) {
+        // Check task limit
+        $limitCheck = $db->checkMemberTaskLimit($warper_id);
+        if (!$limitCheck['allowed']) {
+            throw new Exception("Warper (ID: $warper_id) has reached their task limit of " . $limitCheck['limit'] . " active tasks.");
+        }
+
         $assignments[] = array(
             'id' => $warper_id,
             'role' => 'warper',
@@ -154,6 +166,12 @@ try {
         );
     }
     if ($weaver_id) {
+        // Check task limit
+        $limitCheck = $db->checkMemberTaskLimit($weaver_id);
+        if (!$limitCheck['allowed']) {
+            throw new Exception("Weaver (ID: $weaver_id) has reached their task limit of " . $limitCheck['limit'] . " active tasks.");
+        }
+
         $assignments[] = array(
             'id' => $weaver_id,
             'role' => 'weaver',

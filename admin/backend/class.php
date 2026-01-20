@@ -30,6 +30,30 @@ class global_class extends db_connect
         return $items;
     }
 
+    public function checkMemberTaskLimit($member_id) {
+        $stmt = $this->conn->prepare("SELECT task_limit FROM user_member WHERE id = ?");
+        $stmt->bind_param("i", $member_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $limit = 10; // Default
+        if ($row = $result->fetch_assoc()) {
+            $limit = $row['task_limit'] ?? 10;
+        }
+        $stmt->close();
+
+        $stmt = $this->conn->prepare("SELECT COUNT(*) as count FROM task_assignments WHERE member_id = ? AND status IN ('pending', 'in_progress', 'submitted')");
+        $stmt->bind_param("i", $member_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $current = 0;
+        if ($row = $result->fetch_assoc()) {
+            $current = $row['count'];
+        }
+        $stmt->close();
+
+        return ['allowed' => $current < $limit, 'current' => $current, 'limit' => $limit];
+    }
+
      public function list_stock_logs()
     {
         $stmt = $this->conn->prepare("
