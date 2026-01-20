@@ -230,37 +230,36 @@ function submitConfirmation(prodLineId, actualOutput, actualLength, actualWidth)
     })
     .then(response => response.json())
     .then(data => {
-        if (result.isConfirmed) {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: 'Task has been marked as completed.',
-                        showConfirmButton: false,
-                        timer: 1500
-                    }).then(() => {
-                        // Refresh the tasks table with force refresh to ensure DOM updates
-                        refreshTaskAssignments(true);
-                        if (typeof loadTaskCompletions === 'function') {
-                            loadTaskCompletions();
-                        }
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message || 'Failed to mark task as completed'
-                    });
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Task has been marked as completed.',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                // Refresh the tasks table with force refresh to ensure DOM updates
+                refreshTaskAssignments(true);
+                if (typeof loadTaskCompletions === 'function') {
+                    loadTaskCompletions();
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'An error occurred while marking the task as completed'
-                });
             });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'Failed to mark task as completed'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while marking the task as completed'
+        });
+    });
 }
 
 // Smart cache for real-time updates to avoid unnecessary DOM updates

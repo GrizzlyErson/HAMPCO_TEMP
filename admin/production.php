@@ -289,32 +289,31 @@
         })
         .then(response => response.json())
         .then(data => {
-            if (result.isConfirmed) {
-                    if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success!',
-                            text: 'Task completion has been confirmed',
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                        // Reload both tables to reflect the changes
-                        loadTaskCompletions();
-                        if (typeof loadTaskRequests === 'function') {
-                            loadTaskRequests();
-                        }
-                    } else {
-                        throw new Error(data.message || 'Failed to confirm task completion');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error confirming task completion:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: error.message || 'Failed to confirm task completion. Please try again.'
-                    });
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Task completion has been confirmed',
+                    showConfirmButton: false,
+                    timer: 1500
                 });
+                // Reload both tables to reflect the changes
+                loadTaskCompletions();
+                if (typeof loadTaskRequests === 'function') {
+                    loadTaskRequests();
+                }
+            } else {
+                throw new Error(data.message || 'Failed to confirm task completion');
+            }
+        })
+        .catch(error => {
+            console.error('Error confirming task completion:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Failed to confirm task completion. Please try again.'
+            });
+        });
     }
 
     // Load task requests when the tab is shown
