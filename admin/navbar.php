@@ -134,7 +134,7 @@
 
         function updateNotifications() {
             Promise.all([
-                fetch('backend/get_unverified_members.php').then(r => r.json()),
+                fetch('backend/end-points/get_unverified_members.php').then(r => r.json()),
                 fetch('backend/end-points/notifications.php?action=get').then(r => r.json())
             ])
             .then(([memberData, notifData]) => {

@@ -212,52 +212,84 @@
     }
 
     function confirmTaskCompletion(prodLineId, productName) {
-        let inputLabel = 'Actual Output';
-        let inputPlaceholder = 'Enter value';
-        
-        // Determine unit based on product
-        if (['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'].includes(productName)) {
-            inputLabel = 'Actual Weight Received (grams)';
-            inputPlaceholder = 'Enter weight in grams';
-        } else if (['Piña Seda', 'Pure Piña Cloth'].includes(productName)) {
-            inputLabel = 'Actual Length Received (meters)';
-            inputPlaceholder = 'Enter length in meters';
-        }
-
-        Swal.fire({
-            title: 'Confirm Task Completion',
-            text: `Please enter the ${inputLabel.toLowerCase()} for ${productName}`,
-            icon: 'info',
-            input: 'number',
-            inputLabel: inputLabel,
-            inputPlaceholder: inputPlaceholder,
-            inputAttributes: {
-                min: '0',
-                step: '0.01'
-            },
-            showCancelButton: true,
-            confirmButtonColor: '#10B981',
-            cancelButtonColor: '#EF4444',
-            confirmButtonText: 'Confirm & Complete',
-            cancelButtonText: 'Cancel',
-            preConfirm: (value) => {
-                if (!value) {
-                    Swal.showValidationMessage('You need to enter a value!')
+        if (['Piña Seda', 'Pure Piña Cloth'].includes(productName)) {
+            // For fabrics, ask for both Length and Width
+            Swal.fire({
+                title: 'Confirm Task Completion',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-4 text-sm text-gray-600">Please enter the actual dimensions received for <b>${productName}</b>:</p>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Actual Length (meters)</label>
+                            <input id="swal-length" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter length" type="number" step="0.01" min="0">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Actual Width (inches)</label>
+                            <input id="swal-width" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter width" type="number" step="0.01" min="0">
+                        </div>
+                    </div>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#10B981',
+                cancelButtonColor: '#EF4444',
+                confirmButtonText: 'Confirm & Complete',
+                cancelButtonText: 'Cancel',
+                preConfirm: () => {
+                    const length = document.getElementById('swal-length').value;
+                    const width = document.getElementById('swal-width').value;
+                    if (!length || !width) {
+                        Swal.showValidationMessage('Please enter both length and width');
+                    }
+                    return { length: length, width: width };
                 }
-                return value;
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const formData = new FormData();
-                formData.append('prod_line_id', prodLineId);
-                formData.append('actual_output', result.value);
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitConfirmation(prodLineId, null, result.value.length, result.value.width);
+                }
+            });
+        } else {
+            // For weight-based products
+            Swal.fire({
+                title: 'Confirm Task Completion',
+                text: `Please enter the actual weight received (grams) for ${productName}`,
+                icon: 'info',
+                input: 'number',
+                inputLabel: 'Actual Weight (grams)',
+                inputPlaceholder: 'Enter weight',
+                inputAttributes: { min: '0', step: '0.01' },
+                showCancelButton: true,
+                confirmButtonColor: '#10B981',
+                cancelButtonColor: '#EF4444',
+                confirmButtonText: 'Confirm & Complete',
+                preConfirm: (value) => {
+                    if (!value) Swal.showValidationMessage('You need to enter a value!');
+                    return value;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitConfirmation(prodLineId, result.value, null, null);
+                }
+            });
+        }
+    }
 
-                fetch('backend/end-points/confirm_task_completion.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
+    function submitConfirmation(prodLineId, actualOutput, actualLength, actualWidth) {
+        let body = `production_id=${prodLineId}`;
+        if (actualOutput) body += `&actual_output=${actualOutput}`;
+        if (actualLength) body += `&actual_length=${actualLength}`;
+        if (actualWidth) body += `&actual_width=${actualWidth}`;
+
+        fetch('backend/end-points/confirm_task_completion.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: body
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (result.isConfirmed) {
                     if (data.success) {
                         Swal.fire({
                             icon: 'success',
@@ -283,8 +315,6 @@
                         text: error.message || 'Failed to confirm task completion. Please try again.'
                     });
                 });
-            }
-        });
     }
 
     // Load task requests when the tab is shown

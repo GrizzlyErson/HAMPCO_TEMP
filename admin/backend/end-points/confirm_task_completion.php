@@ -1,5 +1,8 @@
 <?php
 ob_start();
+// Prevent any output before JSON response
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
 session_start();
 require_once '../../../function/connection.php';
 
@@ -19,6 +22,8 @@ try {
 
     $production_id = $_POST['production_id'];
     $actual_output = isset($_POST['actual_output']) ? floatval($_POST['actual_output']) : 0;
+    $actual_length = isset($_POST['actual_length']) ? floatval($_POST['actual_length']) : 0;
+    $actual_width = isset($_POST['actual_width']) ? floatval($_POST['actual_width']) : 0;
 
     // Get database connection
     $db = new mysqli($host, $username, $password, $dbname);
@@ -158,24 +163,36 @@ try {
         }
 
         // Update actual output in database if provided
-        if ($actual_output > 0) {
+        if ($actual_output > 0 || ($actual_length > 0 && $actual_width > 0)) {
             $product_name = $task['product_name'];
             $is_weight_based = in_array($product_name, ['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk']);
             $is_length_based = in_array($product_name, ['Piña Seda', 'Pure Piña Cloth']);
 
             // Update production_line
             $update_pl_sql = "";
-            if ($is_weight_based) {
+            $params = [];
+            $types = "";
+
+            if ($is_weight_based && $actual_output > 0) {
                 $update_pl_sql = "UPDATE production_line SET weight_g = ? WHERE prod_line_id = ?";
+                $params = [$actual_output, $production_id];
+                $types = "ds";
                 $task['weight_g'] = $actual_output; // Update local variable for later use
             } elseif ($is_length_based) {
-                $update_pl_sql = "UPDATE production_line SET length_m = ? WHERE prod_line_id = ?";
-                $task['length_m'] = $actual_output; // Update local variable
+                // Use specific dimensions if provided, otherwise fallback to actual_output as length
+                $len = $actual_length > 0 ? $actual_length : $actual_output;
+                $wid = $actual_width > 0 ? $actual_width : $task['width_m'];
+                
+                $update_pl_sql = "UPDATE production_line SET length_m = ?, width_m = ? WHERE prod_line_id = ?";
+                $params = [$len, $wid, $production_id];
+                $types = "dds";
+                $task['length_m'] = $len;
+                $task['width_m'] = $wid;
             }
 
             if ($update_pl_sql) {
                 $stmt_pl = $db->prepare($update_pl_sql);
-                $stmt_pl->bind_param("ds", $actual_output, $production_id);
+                $stmt_pl->bind_param($types, ...$params);
                 $stmt_pl->execute();
                 $stmt_pl->close();
             }
@@ -183,14 +200,21 @@ try {
             // Update member_self_tasks if applicable
             if ($task['task_type'] === 'self_assigned') {
                 $update_mst_sql = "";
-                if ($is_weight_based) {
+                $mst_params = [];
+                $mst_types = "";
+
+                if ($is_weight_based && $actual_output > 0) {
                     $update_mst_sql = "UPDATE member_self_tasks SET weight_g = ? WHERE production_id = ?";
+                    $mst_params = [$actual_output, $production_id];
+                    $mst_types = "ds";
                 } elseif ($is_length_based) {
-                    $update_mst_sql = "UPDATE member_self_tasks SET length_m = ? WHERE production_id = ?";
+                    $update_mst_sql = "UPDATE member_self_tasks SET length_m = ?, width_in = ? WHERE production_id = ?";
+                    $mst_params = [$task['length_m'], $task['width_m'], $production_id];
+                    $mst_types = "dds";
                 }
                 if ($update_mst_sql) {
                     $stmt_mst = $db->prepare($update_mst_sql);
-                    $stmt_mst->bind_param("ds", $actual_output, $production_id);
+                    $stmt_mst->bind_param($mst_types, ...$mst_params);
                     $stmt_mst->execute();
                     $stmt_mst->close();
                 }
@@ -417,7 +441,6 @@ try {
 
                     // Calculate total amount based on product type
                     $total_amount = 0.00;
-                    if ($weight_g > 0) {
                     if ($weight_g > 0 && in_array($pl_details['product_name'], ['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'])) {
                         $total_amount = $weight_g * $unit_rate;
                     } elseif ($length_m > 0 && $width_m > 0) {
