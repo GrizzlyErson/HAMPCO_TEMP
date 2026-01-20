@@ -18,6 +18,7 @@ try {
     }
 
     $production_id = $_POST['production_id'];
+    $actual_output = isset($_POST['actual_output']) ? floatval($_POST['actual_output']) : 0;
 
     // Get database connection
     $db = new mysqli($host, $username, $password, $dbname);
@@ -154,6 +155,46 @@ try {
             error_log("Broad search result: " . json_encode($broad_task));
             
             throw new Exception("Task not found or not submitted. Expected status 'submitted' for task_id: " . $production_id);
+        }
+
+        // Update actual output in database if provided
+        if ($actual_output > 0) {
+            $product_name = $task['product_name'];
+            $is_weight_based = in_array($product_name, ['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk']);
+            $is_length_based = in_array($product_name, ['Piña Seda', 'Pure Piña Cloth']);
+
+            // Update production_line
+            $update_pl_sql = "";
+            if ($is_weight_based) {
+                $update_pl_sql = "UPDATE production_line SET weight_g = ? WHERE prod_line_id = ?";
+                $task['weight_g'] = $actual_output; // Update local variable for later use
+            } elseif ($is_length_based) {
+                $update_pl_sql = "UPDATE production_line SET length_m = ? WHERE prod_line_id = ?";
+                $task['length_m'] = $actual_output; // Update local variable
+            }
+
+            if ($update_pl_sql) {
+                $stmt_pl = $db->prepare($update_pl_sql);
+                $stmt_pl->bind_param("ds", $actual_output, $production_id);
+                $stmt_pl->execute();
+                $stmt_pl->close();
+            }
+
+            // Update member_self_tasks if applicable
+            if ($task['task_type'] === 'self_assigned') {
+                $update_mst_sql = "";
+                if ($is_weight_based) {
+                    $update_mst_sql = "UPDATE member_self_tasks SET weight_g = ? WHERE production_id = ?";
+                } elseif ($is_length_based) {
+                    $update_mst_sql = "UPDATE member_self_tasks SET length_m = ? WHERE production_id = ?";
+                }
+                if ($update_mst_sql) {
+                    $stmt_mst = $db->prepare($update_mst_sql);
+                    $stmt_mst->bind_param("ds", $actual_output, $production_id);
+                    $stmt_mst->execute();
+                    $stmt_mst->close();
+                }
+            }
         }
 
         // Update Inventory (Processed Materials or Finished Products)
@@ -377,6 +418,7 @@ try {
                     // Calculate total amount based on product type
                     $total_amount = 0.00;
                     if ($weight_g > 0) {
+                    if ($weight_g > 0 && in_array($pl_details['product_name'], ['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'])) {
                         $total_amount = $weight_g * $unit_rate;
                     } elseif ($length_m > 0 && $width_m > 0) {
                         $total_amount = $length_m * $width_m * $unit_rate;
