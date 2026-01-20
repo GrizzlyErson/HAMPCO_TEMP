@@ -38,6 +38,8 @@ try {
             $material_name = $req_material['material_name'];
             $available_quantity = 0;
             $unit = '';
+            $display_category = $material_type;
+            $display_name = $material_name;
 
             if ($material_type == 'raw') {
                 // Handle mapping for specific material names that imply categories
@@ -45,10 +47,17 @@ try {
                 $params = [];
                 $types = "";
 
-                if (stripos($material_name, 'Liniwan') !== false && stripos($material_name, 'Pina') !== false) {
+                // Check if product implies a specific category of Piña Loose
+                $is_pina_material = stripos($material_name, 'Pina') !== false || stripos($material_name, 'Piña') !== false;
+
+                if (($is_pina_material && stripos($product_name, 'Knotted Liniwan') !== false) || (stripos($material_name, 'Liniwan') !== false && $is_pina_material)) {
                     $query .= " AND raw_materials_name = 'Piña Loose' AND category = 'Liniwan/Washout'";
-                } elseif (stripos($material_name, 'Bastos') !== false && stripos($material_name, 'Pina') !== false) {
+                    $display_name = 'Piña Loose';
+                    $display_category = 'Liniwan/Washout';
+                } elseif (($is_pina_material && stripos($product_name, 'Knotted Bastos') !== false) || (stripos($material_name, 'Bastos') !== false && $is_pina_material)) {
                     $query .= " AND raw_materials_name = 'Piña Loose' AND category = 'Bastos'";
+                    $display_name = 'Piña Loose';
+                    $display_category = 'Bastos';
                 } elseif ($material_name === 'Pina Loose' || $material_name === 'Piña Loose') {
                     $query .= " AND raw_materials_name = 'Piña Loose'";
                 } else {
@@ -84,8 +93,8 @@ try {
             }
 
             $response['materials'][] = [
-                'name' => $material_name,
-                'category' => $material_type,
+                'name' => $display_name,
+                'category' => $display_category,
                 'available_quantity' => $available_quantity,
                 'unit' => $unit,
                 'required' => true // Mark as required for the product
