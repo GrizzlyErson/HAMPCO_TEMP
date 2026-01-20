@@ -224,7 +224,7 @@ try {
                                                 <tr>
                                                     <th scope="col" style="font-size: 12px;">Production ID</th>
                                                     <th scope="col" style="font-size: 12px;">Product Name</th>
-                                                    <th scope="col" style="font-size: 12px;">Weight (g)</th>
+                                                    <th scope="col" style="font-size: 12px;">Measurements</th>
                                                     <th scope="col" style="font-size: 12px;">Status</th>
                                                     <th scope="col" style="font-size: 12px;">Raw Materials</th>
                                                     <th scope="col" style="font-size: 12px;">Date Created</th>
@@ -997,16 +997,28 @@ function loadTasksCreated() {
 
                     const statusLabel = task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ');
 
+                    let measurementDisplay = '-';
+                    if (task.weight_g && parseFloat(task.weight_g) > 0) {
+                        measurementDisplay = `${task.weight_g} g`;
+                    } else if (task.length_m || task.width_in) {
+                        const length = task.length_m ? `${task.length_m}m` : '-';
+                        const width = task.width_in ? `${task.width_in}"` : '-';
+                        const qty = task.quantity ? `(${task.quantity}pcs)` : '';
+                        measurementDisplay = `${length} x ${width} ${qty}`;
+                    } else if (task.quantity) {
+                         measurementDisplay = `${task.quantity} pcs`;
+                    }
+
                     return `
                         <tr>
                             <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap;">${task.production_id || '-'}</td>
                             <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${task.product_name}</td>
-                            <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap; text-align: center;">${task.weight_g}</td>
+                            <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap; text-align: center;">${measurementDisplay}</td>
                             <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap;">
                                 <span class="badge ${statusBadgeClass}" style="font-size: 11px; padding: 3px 6px;">${statusLabel}</span>
                             </td>
                             <td style="font-size: 12px; padding: 6px 10px; white-space: nowrap;">
-                                <button onclick="viewTaskMaterials('${task.product_name}', ${task.weight_g})" 
+                                <button onclick="viewTaskMaterials('${task.product_name}', ${task.weight_g || 0})" 
                                     class="btn btn-sm btn-info" style="font-size: 11px; padding: 2px 6px;">
                                     View
                                 </button>
