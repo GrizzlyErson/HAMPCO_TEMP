@@ -5,6 +5,9 @@ date_default_timezone_set('Asia/Manila');
 
 class global_class extends db_connect
 {
+    // Traditional unit conversion: 1 sikapat = 3.2 grams
+    const SIKAPAT_TO_GRAMS = 3.2;
+
     public function __construct()
     {
         $this->connect();
@@ -52,6 +55,23 @@ class global_class extends db_connect
         $stmt->close();
 
         return ['allowed' => $current < $limit, 'current' => $current, 'limit' => $limit];
+    }
+
+    public function getPendingPayments($member_id) {
+        $stmt = $this->conn->prepare("SELECT * FROM payment_records WHERE member_id = ? AND payment_status = 'Pending' ORDER BY date_created DESC");
+        $stmt->bind_param("i", $member_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stmt->close();
+        return $result;
+    }
+
+    public function convertSikapatToGrams($sikapat) {
+        return $sikapat * self::SIKAPAT_TO_GRAMS;
+    }
+
+    public function convertGramsToSikapat($grams) {
+        return ($grams > 0) ? $grams / self::SIKAPAT_TO_GRAMS : 0;
     }
 
      public function list_stock_logs()

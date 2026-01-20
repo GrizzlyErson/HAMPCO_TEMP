@@ -27,3 +27,20 @@ ADD COLUMN IF NOT EXISTS date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 -- This fixes the issue where weaver tasks with 'Piña Seda' or 'Pure Piña Cloth' products weren't being captured
 ALTER TABLE task_approval_requests
 MODIFY COLUMN product_name enum('Knotted Liniwan','Knotted Bastos','Warped Silk','Piña Seda','Pure Piña Cloth') NOT NULL; 
+
+-- Create payment_records table to ensure workers get paid only after product is finished
+CREATE TABLE IF NOT EXISTS payment_records (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    member_id INT NOT NULL,
+    production_id VARCHAR(50) NOT NULL,
+    length_m DECIMAL(10, 2),
+    width_m DECIMAL(10, 2),
+    weight_g DECIMAL(10, 2),
+    quantity INT DEFAULT 1,
+    unit_rate DECIMAL(10, 2) NOT NULL,
+    total_amount DECIMAL(10, 2) NOT NULL,
+    is_self_assigned TINYINT(1) DEFAULT 0,
+    payment_status ENUM('Pending', 'Paid', 'Cancelled') DEFAULT 'Pending',
+    date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_member_payment (member_id, payment_status)
+);

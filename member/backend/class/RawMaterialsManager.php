@@ -2,8 +2,35 @@
 class RawMaterialsManager {
     private $db;
 
+    // A sikapat is a traditional unit of measurement equal to 3.2 grams
+    const SIKAPAT_TO_GRAMS = 3.2;
+
     public function __construct($db) {
         $this->db = $db;
+    }
+
+    /**
+     * Convert Sikapat to Grams
+     * Example: 4.5 sikapat * 3.2 = 14.4 grams (approx 14.5)
+     */
+    public function convertSikapatToGrams($sikapat) {
+        return $sikapat * self::SIKAPAT_TO_GRAMS;
+    }
+
+    /**
+     * Calculate wastage statistics
+     * Example: Start 55g, Waste 10g -> Used 45g. Waste % = 10/55 = ~18%
+     */
+    public function calculateWastageStats($start_weight, $actual_waste) {
+        $used_weight = $start_weight - $actual_waste;
+        $waste_percentage = ($start_weight > 0) ? ($actual_waste / $start_weight) * 100 : 0;
+        
+        return [
+            'start_weight' => $start_weight,
+            'waste_weight' => $actual_waste,
+            'used_weight' => $used_weight,
+            'waste_percentage' => round($waste_percentage, 2)
+        ];
     }
 
     public function calculateRequiredMaterials($product_name, $weight_g) {
@@ -12,6 +39,7 @@ class RawMaterialsManager {
         switch ($product_name) {
             case 'Knotted Liniwan':
                 // For Knotted Liniwan, we need 122% of the target weight in Piña Loose (Liniwan/Washout)
+                // This aligns with ~18% wastage (e.g., 55g start -> 45g finish = 10g waste. 10/55 = 18%)
                 $materials[] = [
                     'name' => 'Piña Loose',
                     'category' => 'Liniwan/Washout',
@@ -21,6 +49,7 @@ class RawMaterialsManager {
                 
             case 'Knotted Bastos':
                 // For Knotted Bastos, we need 122% of the target weight in Piña Loose (Bastos)
+                // This aligns with ~18% wastage
                 $materials[] = [
                     'name' => 'Piña Loose',
                     'category' => 'Bastos',
