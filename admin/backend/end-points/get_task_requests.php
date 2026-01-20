@@ -15,21 +15,22 @@ try {
     // Query to get all task requests with member details, excluding approved/rejected tasks
     // Left join with member_self_tasks to get product_name if it's not available in task_approval_requests
     $query = "SELECT 
-        tar.id as request_id,
-        tar.production_id,
-        tar.member_id,
-        COALESCE(tar.product_name, mst.product_name) as product_name,
-        COALESCE(tar.weight_g, mst.weight_g) as weight_g,
-        COALESCE(tar.quantity, mst.quantity) as quantity,
-        tar.date_created,
-        tar.status,
+        mst.id as request_id,
+        mst.production_id,
+        mst.member_id,
+        mst.product_name,
+        mst.weight_g,
+        mst.quantity,
+        mst.length_m,
+        mst.width_in,
+        mst.date_created,
+        mst.status,
         um.fullname as member_name,
         um.role
-    FROM task_approval_requests tar
-    JOIN user_member um ON tar.member_id = um.id
-    LEFT JOIN member_self_tasks mst ON tar.production_id = mst.production_id AND tar.member_id = mst.member_id
-    WHERE tar.status = 'pending'
-    ORDER BY tar.date_created DESC";
+    FROM member_self_tasks mst
+    JOIN user_member um ON mst.member_id = um.id
+    WHERE mst.status = 'pending'
+    ORDER BY mst.date_created DESC";
 
     $result = mysqli_query($db->conn, $query);
 
@@ -46,6 +47,8 @@ try {
             'role' => ucfirst($row['role']),
             'product_name' => $row['product_name'],
             'weight_g' => $row['weight_g'],
+            'length_m' => $row['length_m'],
+            'width_in' => $row['width_in'],
             'quantity' => $row['quantity'],
             'date_created' => date('Y-m-d H:i', strtotime($row['date_created'])),
             'status' => $row['status'],

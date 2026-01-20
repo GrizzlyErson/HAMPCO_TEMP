@@ -13,7 +13,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight (g)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight / Size</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Created</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -73,13 +73,21 @@
                     return;
                 }
 
-                tableBody.innerHTML = data.map(request => `
+                tableBody.innerHTML = data.map(request => {
+                    let measurement = (request.weight_g && parseFloat(request.weight_g) > 0) ? `${request.weight_g} g` : '-';
+                    if (request.role.toLowerCase() === 'weaver') {
+                        if (request.length_m && request.width_in) {
+                            measurement = `${request.length_m}m x ${request.width_in}in`;
+                        }
+                    }
+
+                    return `
                     <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 text-sm font-mono">${request.request_id}</td>
+                        <td class="px-6 py-4 text-sm font-mono">${request.production_id}</td>
                         <td class="px-6 py-4 text-sm">${request.member_name}</td>
                         <td class="px-6 py-4 text-sm">${request.role}</td>
-                        <td class="px-6 py-4 text-sm">${request.product_type}</td>
-                        <td class="px-6 py-4 text-sm">${request.weight_g || '-'}</td>
+                        <td class="px-6 py-4 text-sm">${request.product_name}</td>
+                        <td class="px-6 py-4 text-sm">${measurement}</td>
                         <td class="px-6 py-4 text-sm">${request.quantity || '1'}</td>
                         <td class="px-6 py-4 text-sm">${request.request_date}</td>
                         <td class="px-6 py-4 text-sm">
@@ -102,7 +110,7 @@
                             ` : '-'}
                         </td>
                     </tr>
-                `).join('');
+                `}).join('');
             })
             .catch(error => {
                 console.error('Error loading task requests:', error);
@@ -215,31 +223,24 @@
         if (['Piña Seda', 'Pure Piña Cloth'].includes(productName)) {
             // For fabrics, ask for both Length and Width
             Swal.fire({
-                title: 'Confirm Task Completion',
-                html: `
+                title: '
                     <div class="text-left">
-                        <p class="mb-4 text-sm text-gray-600">Please enter the actual dimensions received for <b>${productName}</b>:</p>
-                        <div class="mb-3">
+                        <p class="mb-4 tes
                             <label class="block text-sm font-medium text-gray-700 mb-1">Actual Length (meters)</label>
-                            <input id="swal-length" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter length" type="number" step="0.01" min="0">
+                            <input id="swal-length" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter verified length" type="number" step="0.01" min="0">
                         </div>
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Actual Width (inches)</label>
-                            <input id="swal-width" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter width" type="number" step="0.01" min="0">
+                        <div class="mb-3"> 
+                            <input id="swal-width" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter verified width" type="number" step="0.01" min="0">
                         </div>
                     </div>
-                `,
-                icon: 'info',
+                `,i
                 showCancelButton: true,
                 confirmButtonColor: '#10B981',
-                cancelButtonColor: '#EF4444',
-                confirmButtonText: 'Confirm & Complete',
-                cancelButtonText: 'Cancel',
+                cancelButtonColor: '#6B7280',
+                confirmuttonText: 'Cancel',
                 preConfirm: () => {
-                    const length = document.getElementById('swal-length').value;
-                    const width = document.getElementById('swal-width').value;
-                    if (!length || !width) {
-                        Swal.showValidationMessage('Please enter both length and width');
+                    const length = document.!
+                        Swal.showValidationMessage('Please enter both verified length and width');
                     }
                     return { length: length, width: width };
                 }
@@ -247,36 +248,30 @@
                 if (result.isConfirmed) {
                     submitConfirmation(prodLineId, null, result.value.length, result.value.width);
                 }
-            });
         } else {
             // For weight-based products
             Swal.fire({
-                title: 'Confirm Task Completion',
-                text: `Please enter the actual weight received (grams) for ${productName}`,
-                icon: 'info',
-                input: 'number',
-                inputLabel: 'Actual Weight (grams)',
-                inputPlaceholder: 'Enter weight',
-                inputAttributes: { min: '0', step: '0.01' },
-                showCancelButton: true,
-                confirmButtonColor: '#10B981',
-                cancelButtonColor: '#EF4444',
-                confirmButtonText: 'Confirm & Complete',
-                preConfirm: (value) => {
-                    if (!value) Swal.showValidationMessage('You need to enter a value!');
-                    return value;
+                title: 'Verify Product Weight',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-4 text-sm text-gray-600">Please weigh the product <b>${productName}</b> and enter the actual weight in grams. This will be used for wastage calculation and inventory.</p>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Actual Weight (grams)</label>
+                            <input id="swal-weight" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter verified weight" type="number" step="0.01" min="0">
+                      :y',
+                preConfirm: () => {
+                    const weight = document.getElementById('swal-weight').value;
+                    if (!weight) {
+                        Swal.showValidationMessage('Please enter the verified weight!');
+                    }
+                    return weight;
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
                     submitConfirmation(prodLineId, result.value, null, null);
                 }
             });
-        }
-    }
-
-    function submitConfirmation(prodLineId, actualOutput, actualLength, actualWidth) {
-        let body = `production_id=${prodLineId}`;
-        if (actualOutput) body += `&actual_output=${actualOutput}`;
+        } `&actual_output=${actualOutput}`;
         if (actualLength) body += `&actual_length=${actualLength}`;
         if (actualWidth) body += `&actual_width=${actualWidth}`;
 

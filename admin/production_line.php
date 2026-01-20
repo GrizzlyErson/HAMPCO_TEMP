@@ -143,31 +143,31 @@ function confirmTaskCompletion(prodLineId, productName) {
     if (['Piña Seda', 'Pure Piña Cloth'].includes(productName)) {
         // For fabrics, ask for both Length and Width
         Swal.fire({
-            title: 'Confirm Task Completion',
+            title: 'Verify Product Dimensions',
             html: `
                 <div class="text-left">
-                    <p class="mb-4 text-sm text-gray-600">Please enter the actual dimensions received for <b>${productName}</b>:</p>
+                    <p class="mb-4 text-sm text-gray-600">Please verify the actual dimensions for <b>${productName}</b> before adding to inventory.</p>
                     <div class="mb-3">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Actual Length (meters)</label>
-                        <input id="swal-length" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter length" type="number" step="0.01" min="0">
+                        <input id="swal-length" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter verified length" type="number" step="0.01" min="0">
                     </div>
                     <div class="mb-3">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Actual Width (inches)</label>
-                        <input id="swal-width" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter width" type="number" step="0.01" min="0">
+                        <input id="swal-width" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter verified width" type="number" step="0.01" min="0">
                     </div>
                 </div>
             `,
-            icon: 'info',
+            icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#10B981',
-            cancelButtonColor: '#EF4444',
-            confirmButtonText: 'Confirm & Complete',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Verify & Add to Inventory',
             cancelButtonText: 'Cancel',
             preConfirm: () => {
                 const length = document.getElementById('swal-length').value;
                 const width = document.getElementById('swal-width').value;
                 if (!length || !width) {
-                    Swal.showValidationMessage('Please enter both length and width');
+                    Swal.showValidationMessage('Please enter both verified length and width');
                 }
                 return { length: length, width: width };
             }
@@ -179,20 +179,27 @@ function confirmTaskCompletion(prodLineId, productName) {
     } else {
         // For weight-based products
         Swal.fire({
-            title: 'Confirm Task Completion',
-            text: `Please enter the actual weight received (grams) for ${productName}`,
-            icon: 'info',
-            input: 'number',
-            inputLabel: 'Actual Weight (grams)',
-            inputPlaceholder: 'Enter weight',
-            inputAttributes: { min: '0', step: '0.01' },
+            title: 'Verify Product Weight',
+            html: `
+                <div class="text-left">
+                    <p class="mb-4 text-sm text-gray-600">Please weigh the product <b>${productName}</b> and enter the actual weight in grams. This will be used for wastage calculation and inventory.</p>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Actual Weight (grams)</label>
+                        <input id="swal-weight" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter verified weight" type="number" step="0.01" min="0">
+                    </div>
+                </div>
+            `,
+            icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#10B981',
-            cancelButtonColor: '#EF4444',
-            confirmButtonText: 'Confirm & Complete',
-            preConfirm: (value) => {
-                if (!value) Swal.showValidationMessage('You need to enter a value!');
-                return value;
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Verify & Add to Inventory',
+            preConfirm: () => {
+                const weight = document.getElementById('swal-weight').value;
+                if (!weight) {
+                    Swal.showValidationMessage('Please enter the verified weight!');
+                }
+                return weight;
             }
         }).then((result) => {
             if (result.isConfirmed) {
@@ -556,6 +563,13 @@ function refreshTaskApprovalRequests() {
                 const statusClass = request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                   request.status === 'approved' ? 'bg-green-100 text-green-800' :
                                   'bg-red-100 text-red-800';
+                
+                let measurement = (request.weight_g && parseFloat(request.weight_g) > 0) ? `${request.weight_g} g` : '-';
+                if (request.role && request.role.toLowerCase() === 'weaver') {
+                    if (request.length_m && request.width_in) {
+                        measurement = `${request.length_m}m x ${request.width_in}in`;
+                    }
+                }
 
                 return `
                     <tr class="hover:bg-gray-50">
@@ -563,7 +577,7 @@ function refreshTaskApprovalRequests() {
                         <td class="px-6 py-4 whitespace-nowrap text-sm">${request.member_name}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">${request.role}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">${request.product_name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">${request.weight_g || '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">${measurement}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">${request.date_created}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 text-xs rounded-full font-medium ${statusClass}">
@@ -2171,7 +2185,7 @@ function updateEditFormFieldsVisibility(selectedProduct) {
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Member Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Role</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Product Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Weight (g)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Weight / Size</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Created</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
