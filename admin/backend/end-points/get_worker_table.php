@@ -13,6 +13,12 @@ try {
             um.role,
             um.availability_status,
             um.date_created,
+            COALESCE(um.task_limit, 10) as task_limit,
+            (
+                (SELECT COUNT(*) FROM task_assignments ta_sub WHERE ta_sub.member_id = um.id AND ta_sub.status IN ('pending', 'in_progress', 'submitted', 'reassigned'))
+                +
+                (SELECT COUNT(*) FROM member_self_tasks mst WHERE mst.member_id = um.id AND mst.status IN ('pending', 'in_progress', 'submitted'))
+            ) as active_tasks_count,
             COALESCE(SUM(CASE WHEN ta.status = 'completed' THEN 1 ELSE 0 END), 0) AS tasks_completed,
             COALESCE(COUNT(DISTINCT CASE 
                 WHEN ta.status IN ('completed','in_progress','submitted') THEN DATE(ta.updated_at)
@@ -57,7 +63,9 @@ try {
             'lastActive' => $lastActive ? date('Y-m-d', strtotime($lastActive)) : null,
             'status' => $hasActiveTask ? 'active' : 'inactive',
             'availability' => $row['availability_status'] ?? 'available',
-            'hasActiveTask' => $hasActiveTask
+            'hasActiveTask' => $hasActiveTask,
+            'taskLimit' => (int)$row['task_limit'],
+            'activeTasks' => (int)$row['active_tasks_count']
         ];
     }
 
@@ -72,4 +80,3 @@ try {
         'message' => $e->getMessage()
     ]);
 }
-

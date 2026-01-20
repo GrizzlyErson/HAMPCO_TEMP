@@ -4,14 +4,27 @@ require_once dirname(__FILE__) . "/../class.php";
 
 $db = new global_class();
 
-$query = "SELECT id, id_number, fullname, email, phone, role, sex, status, availability_status FROM user_member WHERE status = '1' ORDER BY fullname ASC";
+$query = "
+    SELECT 
+        um.id, 
+        um.id_number, 
+        um.fullname, 
+        um.email, 
+        um.phone, 
+        um.role, 
+        um.sex, 
+        um.status, 
+        um.availability_status
+    FROM user_member um 
+    WHERE um.status = '1' 
+    ORDER BY um.fullname ASC
+";
 $result = $db->conn->query($query);
 
 if ($result) {
     while ($row = $result->fetch_assoc()) {
         $availabilityClass = $row['availability_status'] === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
         $availabilityText = ucfirst($row['availability_status']);
-        
         echo "<tr class='border-b border-gray-200 hover:bg-gray-100'>";
         echo "<td class='py-3 px-4 truncate max-w-24'>" . htmlspecialchars($row['id_number']) . "</td>";
         echo "<td class='py-3 px-4 truncate max-w-32'>" . htmlspecialchars($row['fullname']) . "</td>";

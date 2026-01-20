@@ -542,7 +542,7 @@ $(document).ready(function() {
 
                                                     ` : task.status === 'in_progress' ? `
 
-                                                        <button onclick="submitTask('${task.production_id}')" 
+                                                        <button onclick="showSubmitSummary('${task.production_id}', '${task.product_name}')" 
 
                                                         class="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm py-2 px-4 rounded">
 
@@ -668,8 +668,7 @@ $(document).ready(function() {
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                     ${task.status === 'in_progress' ? `
                                     <button class="submit-task-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md" 
-                                            data-prod-id="${task.prod_line_id}"
-                                            data-prod-name="${task.product_name}">
+                                            onclick="showSubmitSummary('${task.prod_line_id}', '${task.product_name}')">
                                         Submit
                                     </button>
                                     ` : ''}
@@ -826,125 +825,6 @@ $(document).ready(function() {
         });
     });
 
-
-    // Handle submit button clicks using jQuery delegation
-    $('#assignedTasksTable').on('click', '.submit-task-btn', function(e) {
-        e.preventDefault();
-        const $button = $(this);
-        const prodId = $button.data('prod-id');
-        const prodName = $button.data('prod-name');
-        
-        // Show confirmation dialog
-        Swal.fire({
-            title: 'Submit Task',
-            text: `Are you sure you want to submit the task for ${prodName}?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, submit it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Disable button and show loading state
-                $button.prop('disabled', true)
-                       .html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...')
-                       .addClass('opacity-50');
-                
-                // Send request to backend
-                $.ajax({
-                    url: './backend/end-points/submit_task.php',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        prod_line_id: prodId
-                    }),
-                    beforeSend: function() {
-                        // Disable button and show loading state
-                        $button.prop('disabled', true)
-                               .html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...')
-                               .addClass('opacity-50');
-                    },
-                    success: function(response) {
-                        try {
-                            // Parse response if it's a string
-                            if (typeof response === 'string') {
-                                response = JSON.parse(response);
-                            }
-                            
-                            if (response.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Success!',
-                                    text: response.message || 'Product has been submitted to the admin.',
-                                    showConfirmButton: false,
-                                    timer: 1500
-                                }).then(() => {
-                                    // Refresh the page to update the status
-                                    window.location.reload();
-                                });
-                            } else {
-                                console.error('Server error:', response.message); // Debug log
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: response.message || 'Failed to submit task'
-                                });
-                                // Reset button state
-                                $button.prop('disabled', false)
-                                       .text('Submit')
-                                       .removeClass('opacity-50');
-                            }
-                        } catch (e) {
-                            console.error('Error parsing response:', e);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'Invalid response from server. Please try again.'
-                            });
-                            // Reset button state
-                            $button.prop('disabled', false)
-                                   .text('Submit')
-                                   .removeClass('opacity-50');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        // Log the full error details
-                        console.error('AJAX error:', {
-                            status: status,
-                            error: error,
-                            response: xhr.responseText,
-                            xhr: xhr
-                        });
-                        
-                        let errorMessage = 'An error occurred while submitting the task.';
-                        
-                        // Try to extract error message from response if possible
-                        try {
-                            if (xhr.responseText) {
-                                const response = JSON.parse(xhr.responseText);
-                                if (response.message) {
-                                    errorMessage = response.message;
-                                }
-                            }
-                        } catch (e) {
-                            console.error('Error parsing error response:', e);
-                        }
-                        
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: errorMessage + ' Please try again.'
-                        });
-                        
-                        // Reset button state
-                        $button.prop('disabled', false)
-                               .text('Submit')
-                               .removeClass('opacity-50');
-                    }
-                });
-            }
-        });
-    });
 
     // Availability buttons functionality
     const availableBtn = document.getElementById('availableBtn');
@@ -1470,22 +1350,6 @@ function startTask(productionId) {
     });
 }
 
-function submitTask(productionId) {
-    Swal.fire({
-        title: 'Submit Task',
-        text: 'Are you sure you want to submit this task?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, submit it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            updateTaskStatus(productionId, 'submit');
-        }
-    });
-}
-
 function deleteTask(productionId) {
     Swal.fire({
         title: 'Delete Task',
@@ -1536,6 +1400,115 @@ function updateTaskStatus(productionId, action) {
             title: 'Error',
             text: error.message || `Failed to ${action} task. Please try again.`
         });
+    });
+}
+
+function showSubmitSummary(prodLineId, prodName) {
+    // Determine fields based on product name
+    const isWeightBased = ['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'].includes(prodName);
+    const isDimensionsBased = ['Piña Seda', 'Pure Piña Cloth'].includes(prodName);
+
+    let inputFields = '';
+    if (isWeightBased) {
+        inputFields = `
+            <div class="mb-4 text-left">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Actual Weight (grams)</label>
+                <input type="number" id="actual_weight" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter actual weight" step="0.01" min="0">
+            </div>
+        `;
+    } else if (isDimensionsBased) {
+        inputFields = `
+            <div class="mb-4 text-left">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Actual Length (meters)</label>
+                <input type="number" id="actual_length" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter actual length" step="0.01" min="0">
+            </div>
+            <div class="mb-4 text-left">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Actual Width (inches)</label>
+                <input type="number" id="actual_width" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter actual width" step="0.01" min="0">
+            </div>
+        `;
+    }
+
+    Swal.fire({
+        title: 'Task Submission Summary',
+        html: `
+            <div class="text-sm text-gray-600 mb-4">
+                Please verify the details below before submitting.
+            </div>
+            <div class="bg-gray-50 p-3 rounded mb-4 text-left">
+                <p><strong>Product:</strong> ${prodName}</p>
+                <p><strong>ID:</strong> ${prodLineId}</p>
+            </div>
+            ${inputFields}
+            <div class="mb-4 text-left">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Remarks / Self-Rating</label>
+                <textarea id="task_notes" class="swal2-textarea" style="margin: 0; width: 100%;" placeholder="Optional notes or self-rating..." rows="3"></textarea>
+            </div>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Confirm & Submit',
+        preConfirm: () => {
+            const notes = document.getElementById('task_notes').value;
+            let data = { notes: notes };
+
+            if (isWeightBased) {
+                const weight = document.getElementById('actual_weight').value;
+                if (!weight) {
+                    Swal.showValidationMessage('Please enter the actual weight');
+                    return false;
+                }
+                data.actual_weight = weight;
+            } else if (isDimensionsBased) {
+                const length = document.getElementById('actual_length').value;
+                const width = document.getElementById('actual_width').value;
+                if (!length || !width) {
+                    Swal.showValidationMessage('Please enter both length and width');
+                    return false;
+                }
+                data.actual_length = length;
+                data.actual_width = width;
+            }
+            return data;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            submitTaskData(prodLineId, result.value);
+        }
+    });
+}
+
+function submitTaskData(prodLineId, data) {
+    // Remove 'PL' prefix and leading zeros if present for backend compatibility
+    const numericId = prodLineId.toString().replace('PL', '').replace(/^0+/, '');
+    
+    const payload = {
+        prod_line_id: numericId,
+        ...data
+    };
+
+    fetch('backend/end-points/submit_task.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire('Success!', 'Task submitted successfully.', 'success').then(() => {
+                window.location.reload();
+            });
+        } else {
+            Swal.fire('Error!', data.message || 'Failed to submit task.', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error!', 'An error occurred while submitting.', 'error');
     });
 }
 

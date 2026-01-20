@@ -128,6 +128,62 @@ try {
 
         error_log("Submission check - Total tasks: {$total_tasks}, Submitted tasks: {$submitted_tasks}");
 
+        // Update production line with actual measurements if provided
+        if (isset($data['actual_weight']) || (isset($data['actual_length']) && isset($data['actual_width']))) {
+            $update_pl_sql = "UPDATE production_line SET ";
+            $pl_params = [];
+            $pl_types = "";
+
+            if (isset($data['actual_weight'])) {
+                $update_pl_sql .= "weight_g = ?, ";
+                $pl_params[] = floatval($data['actual_weight']);
+                $pl_types .= "d";
+            }
+            if (isset($data['actual_length']) && isset($data['actual_width'])) {
+                $update_pl_sql .= "length_m = ?, width_m = ?, ";
+                $pl_params[] = floatval($data['actual_length']);
+                $pl_params[] = floatval($data['actual_width']);
+                $pl_types .= "dd";
+            }
+
+            // Remove trailing comma and space
+            $update_pl_sql = rtrim($update_pl_sql, ", ");
+            $update_pl_sql .= " WHERE prod_line_id = ?";
+            $pl_params[] = $prod_line_id;
+            $pl_types .= "i";
+
+            $stmt_pl = $conn->prepare($update_pl_sql);
+            // PDO binding is different from mysqli, doing manual bind for PDO
+            // But wait, the context shows this file uses PDO ($conn->prepare).
+            // Let's stick to PDO syntax.
+            
+            $update_pl_sql = "UPDATE production_line SET ";
+            $update_values = [];
+            
+            if (isset($data['actual_weight'])) {
+                $update_pl_sql .= "weight_g = :weight, ";
+                $update_values[':weight'] = floatval($data['actual_weight']);
+            }
+            if (isset($data['actual_length']) && isset($data['actual_width'])) {
+                $update_pl_sql .= "length_m = :length, width_m = :width, ";
+                $update_values[':length'] = floatval($data['actual_length']);
+                $update_values[':width'] = floatval($data['actual_width']);
+            }
+            
+            $update_pl_sql = rtrim($update_pl_sql, ", ");
+            $update_pl_sql .= " WHERE prod_line_id = :prod_id";
+            $update_values[':prod_id'] = $prod_line_id;
+            
+            if (!empty($update_values) && count($update_values) > 1) { // Ensure at least one field + ID
+                $stmt_pl = $conn->prepare($update_pl_sql);
+                if ($stmt_pl->execute($update_values)) {
+                    error_log("Production line measurements updated");
+                } else {
+                    error_log("Failed to update production line measurements: " . implode(", ", $stmt_pl->errorInfo()));
+                }
+            }
+        }
+
         // Update production line status to 'submitted' only if all tasks are submitted
         if ($total_tasks === $submitted_tasks) {
         $update_prod = $conn->prepare("

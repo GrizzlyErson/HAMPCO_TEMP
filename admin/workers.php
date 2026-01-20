@@ -56,6 +56,7 @@ include 'components/header.php';
                         <th class="px-6 py-3 text-left font-semibold text-gray-700">ID</th>
                         <th class="px-6 py-3 text-left font-semibold text-gray-700">Name</th>
                         <th class="px-6 py-3 text-left font-semibold text-gray-700">Role</th>
+                        <th class="px-6 py-3 text-center font-semibold text-gray-700">Task Capacity</th>
                         <th class="px-6 py-3 text-center font-semibold text-gray-700">Tasks Completed</th>
                         <th class="px-6 py-3 text-center font-semibold text-gray-700">Days Worked</th>
                         <th class="px-6 py-3 text-center font-semibold text-gray-700">Last Active</th>
@@ -89,7 +90,7 @@ async function loadWorkers() {
     if (tbody) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                <td colspan="8" class="px-6 py-4 text-center text-gray-500">
                     Loading workers...
                 </td>
             </tr>`;
@@ -109,7 +110,7 @@ async function loadWorkers() {
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-red-600">
+                    <td colspan="8" class="px-6 py-4 text-center text-red-600">
                         ${error.message || 'An unexpected error occurred while loading workers.'}
                     </td>
                 </tr>`;
@@ -131,7 +132,11 @@ function renderWorkers(workers) {
     }
 
     emptyState.classList.add('hidden');
-    tbody.innerHTML = workers.map(worker => `
+    tbody.innerHTML = workers.map(worker => {
+        const remaining = Math.max(0, worker.taskLimit - worker.activeTasks);
+        const capacityClass = remaining > 0 ? 'text-green-600' : 'text-red-600';
+        
+        return `
         <tr class="hover:bg-gray-50 transition">
             <td class="px-6 py-3 text-gray-800 font-semibold">
                 ${worker.memberCode ? worker.memberCode : `#${worker.id.toString().padStart(3, '0')}`}
@@ -144,6 +149,9 @@ function renderWorkers(workers) {
                       'bg-green-100 text-green-800'}">
                     ${worker.role}
                 </span>
+            </td>
+            <td class="px-6 py-3 text-center font-semibold ${capacityClass}">
+                ${remaining} / ${worker.taskLimit}
             </td>
             <td class="px-6 py-3 text-center">
                 <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-800 font-semibold text-sm">
@@ -161,7 +169,8 @@ function renderWorkers(workers) {
             </td>
 
         </tr>
-    `).join('');
+    `
+    }).join('');
 }
 
 function renderStatusBadge(worker) {

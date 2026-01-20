@@ -823,10 +823,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const tasksTab = document.getElementById('tasksTab');
     const workforceTab = document.getElementById('workforceTab');
     const monitoringContent = document.getElementById('monitoringContent');
+    const wasteTab = document.getElementById('wasteTab');
     const tasksContent = document.getElementById('tasksContent');
     const workforceContent = document.getElementById('workforceContent');
     const memberTaskRequestsTab = document.getElementById('memberTaskRequestsTab');
     const memberTaskRequestsContent = document.getElementById('memberTaskRequestsContent');
+    const wasteContent = document.getElementById('wasteContent');
 
     function switchTab(activeTab, activeContent, ...inactive) {
         if (activeTab) {
@@ -857,37 +859,46 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('activeTab', tabName);
     }
 
-    if (monitoringTab && monitoringContent && tasksTab && tasksContent && workforceTab && workforceContent && memberTaskRequestsTab && memberTaskRequestsContent) {
+    if (monitoringTab && monitoringContent && tasksTab && tasksContent && workforceTab && workforceContent && memberTaskRequestsTab && memberTaskRequestsContent && wasteTab && wasteContent) {
         // Set initial active tab
         switch(activeTab) {
             case 'tasks':
-                switchTab(tasksTab, tasksContent, monitoringTab, monitoringContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent);
+                switchTab(tasksTab, tasksContent, monitoringTab, monitoringContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent, wasteTab, wasteContent);
                 break;
             case 'workforce':
-                switchTab(workforceTab, workforceContent, monitoringTab, monitoringContent, tasksTab, tasksContent, memberTaskRequestsTab, memberTaskRequestsContent);
+                switchTab(workforceTab, workforceContent, monitoringTab, monitoringContent, tasksTab, tasksContent, memberTaskRequestsTab, memberTaskRequestsContent, wasteTab, wasteContent);
                 break;
             case 'memberTaskRequests':
-                switchTab(memberTaskRequestsTab, memberTaskRequestsContent, monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent);
+                switchTab(memberTaskRequestsTab, memberTaskRequestsContent, monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent, wasteTab, wasteContent);
+                break;
+            case 'waste':
+                switchTab(wasteTab, wasteContent, monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent);
+                loadWasteReport();
                 break;
             default: // 'monitoring'
-                switchTab(monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent);
+                switchTab(monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent, wasteTab, wasteContent);
         }
 
         monitoringTab.addEventListener('click', () => {
-            switchTab(monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent);
+            switchTab(monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent, wasteTab, wasteContent);
             updateURL('monitoring');
         });
         tasksTab.addEventListener('click', () => {
-            switchTab(tasksTab, tasksContent, monitoringTab, monitoringContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent);
+            switchTab(tasksTab, tasksContent, monitoringTab, monitoringContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent, wasteTab, wasteContent);
             updateURL('tasks');
         });
         workforceTab.addEventListener('click', () => {
-            switchTab(workforceTab, workforceContent, monitoringTab, monitoringContent, tasksTab, tasksContent, memberTaskRequestsTab, memberTaskRequestsContent);
+            switchTab(workforceTab, workforceContent, monitoringTab, monitoringContent, tasksTab, tasksContent, memberTaskRequestsTab, memberTaskRequestsContent, wasteTab, wasteContent);
             updateURL('workforce');
         });
         memberTaskRequestsTab.addEventListener('click', () => {
-            switchTab(memberTaskRequestsTab, memberTaskRequestsContent, monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent);
+            switchTab(memberTaskRequestsTab, memberTaskRequestsContent, monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent, wasteTab, wasteContent);
             updateURL('memberTaskRequests');
+        });
+        wasteTab.addEventListener('click', () => {
+            switchTab(wasteTab, wasteContent, monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent);
+            updateURL('waste');
+            loadWasteReport();
         });
     }
 
@@ -921,16 +932,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const newTab = urlParams.get('tab') || 'monitoring';
         switch(newTab) {
             case 'tasks':
-                switchTab(tasksTab, tasksContent, monitoringTab, monitoringContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent);
+                switchTab(tasksTab, tasksContent, monitoringTab, monitoringContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent, wasteTab, wasteContent);
                 break;
             case 'workforce':
-                switchTab(workforceTab, workforceContent, monitoringTab, monitoringContent, tasksTab, tasksContent, memberTaskRequestsTab, memberTaskRequestsContent);
+                switchTab(workforceTab, workforceContent, monitoringTab, monitoringContent, tasksTab, tasksContent, memberTaskRequestsTab, memberTaskRequestsContent, wasteTab, wasteContent);
                 break;
             case 'memberTaskRequests':
-                switchTab(memberTaskRequestsTab, memberTaskRequestsContent, monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent);
+                switchTab(memberTaskRequestsTab, memberTaskRequestsContent, monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent, wasteTab, wasteContent);
+                break;
+            case 'waste':
+                switchTab(wasteTab, wasteContent, monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent);
+                loadWasteReport();
                 break;
             default:
-                switchTab(monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent);
+                switchTab(monitoringTab, monitoringContent, tasksTab, tasksContent, workforceTab, workforceContent, memberTaskRequestsTab, memberTaskRequestsContent, wasteTab, wasteContent);
         }
     });
 
@@ -1087,6 +1102,46 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+function loadWasteReport() {
+    const tableBody = document.querySelector('#wasteTable tbody');
+    tableBody.innerHTML = '<tr><td colspan="10" class="px-6 py-4 text-center text-gray-500">Loading data...</td></tr>';
+
+    fetch('backend/end-points/get_material_waste_report.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data.length > 0) {
+                tableBody.innerHTML = data.data.map(item => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">${item.prod_id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.product}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.member}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.duration}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.actual_output}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">${item.wastage}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.wastage_rate}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱${item.labor_cost.toFixed(2)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱${item.material_cost.toFixed(2)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">₱${item.total_cost.toFixed(2)}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="px-6 py-4 text-center text-gray-500">
+                            No completed production records found.
+                        </td>
+                    </tr>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading waste report:', error);
+            tableBody.innerHTML = `
+                <tr><td colspan="10" class="px-6 py-4 text-center text-red-500">Error loading data.</td></tr>
+            `;
+        });
+}
 
 function updateWorkforceManagement() {
     fetch('backend/end-points/get_members_availability.php')
@@ -1676,6 +1731,9 @@ function updateEditFormFieldsVisibility(selectedProduct) {
                 <button id="workforceTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                     Workforce Management
                 </button>
+                <button id="wasteTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    Material Waste & Cost
+                </button>
             </nav>
             <!-- Live Update Indicator with Manual Refresh -->
             <div class="flex items-center space-x-4">
@@ -2066,6 +2124,34 @@ function updateEditFormFieldsVisibility(selectedProduct) {
                     <!-- Members will be populated here -->
                 </ul>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Material Waste & Cost Tab Content -->
+<div id="wasteContent" class="tab-content hidden">
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-6">Production Waste & Cost Analysis</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200" id="wasteTable">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Production ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actual Output</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Est. Wastage</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wastage Rate</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Labor Cost</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Est. Material Cost</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Cost</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr><td colspan="10" class="px-6 py-4 text-center text-gray-500">Loading data...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
