@@ -1531,11 +1531,11 @@ function updateEditFormFieldsVisibility(selectedProduct) {
                     </div>
                 </div>
 
-                <!-- Row 4: Available Materials -->
+                <!-- Row 4: Available Materials & Required Materials -->
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Available Materials</label>
-                    <div id="materialsList" class="p-2 border rounded-md max-h-32 overflow-y-auto bg-gray-50">
-                        <div class="text-sm text-gray-500">Select a product to view materials</div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Materials Reference</label>
+                    <div id="materialsList" class="p-3 border rounded-md max-h-56 overflow-y-auto bg-gray-50 text-xs">
+                        <div class="text-sm text-gray-500">Select a product to view required and available materials</div>
                     </div>
                 </div>
 
@@ -2467,6 +2467,216 @@ function updateEditFormFieldsVisibility(selectedProduct) {
 <script src="assets/js/task-completions.js"></script>
 
 <script>
+// Function to calculate required materials based on form inputs
+function calculateRequiredMaterials(productName) {
+    const length = parseFloat(document.getElementById('length')?.value) || 0;
+    const width = parseFloat(document.getElementById('width')?.value) || 0;
+    const quantity = parseFloat(document.getElementById('quantity')?.value) || 1;
+    const weight = parseFloat(document.getElementById('weight')?.value) || 0;
+    
+    const calculations = {
+        'Piña Seda': {
+            title: 'PIÑA SEDA MATERIAL CALCULATION',
+            baseRequirements: {
+                description: 'For 1 meter, 30 inches width, quantity = 1:',
+                materials: [
+                    { name: 'Knotted Liniwan', perUnit: 15, unit: 'g per meter' },
+                    { name: 'Warped Silk', perUnit: 7, unit: 'g per meter' }
+                ]
+            },
+            calculated: function() {
+                if (length <= 0) return null;
+                return {
+                    description: `For ${length} meter(s), 30 inches width, quantity = ${quantity}:`,
+                    materials: [
+                        { 
+                            name: 'Knotted Liniwan', 
+                            total: (length * 15 * quantity).toFixed(2), 
+                            unit: 'g',
+                            formula: `${length}m × 15g × ${quantity} = ${(length * 15 * quantity).toFixed(2)}g`
+                        },
+                        { 
+                            name: 'Warped Silk', 
+                            total: (length * 7 * quantity).toFixed(2), 
+                            unit: 'g',
+                            formula: `${length}m × 7g × ${quantity} = ${(length * 7 * quantity).toFixed(2)}g`
+                        }
+                    ]
+                };
+            }
+        },
+        'Pure Piña Cloth': {
+            title: 'PURE PIÑA CLOTH MATERIAL CALCULATION',
+            baseRequirements: {
+                description: 'For 1 meter, 30 inches width, quantity = 1:',
+                materials: [
+                    { name: 'Knotted Liniwan', perUnit: 15, unit: 'g per meter' },
+                    { name: 'Warped Silk', perUnit: 7, unit: 'g per meter' }
+                ]
+            },
+            calculated: function() {
+                if (length <= 0) return null;
+                return {
+                    description: `For ${length} meter(s), 30 inches width, quantity = ${quantity}:`,
+                    materials: [
+                        { 
+                            name: 'Knotted Liniwan', 
+                            total: (length * 15 * quantity).toFixed(2), 
+                            unit: 'g',
+                            formula: `${length}m × 15g × ${quantity} = ${(length * 15 * quantity).toFixed(2)}g`
+                        },
+                        { 
+                            name: 'Warped Silk', 
+                            total: (length * 7 * quantity).toFixed(2), 
+                            unit: 'g',
+                            formula: `${length}m × 7g × ${quantity} = ${(length * 7 * quantity).toFixed(2)}g`
+                        }
+                    ]
+                };
+            }
+        },
+        'Knotted Liniwan': {
+            title: 'KNOTTED LINIWAN MATERIAL CALCULATION',
+            baseRequirements: {
+                description: 'Raw materials needed (per meter):',
+                materials: [
+                    { name: 'Raw Loose Liniwan', perUnit: 15, unit: 'g per meter' },
+                    { name: 'Sikapat', perUnit: 4.5, unit: 'pieces per meter' }
+                ]
+            },
+            calculated: function() {
+                if (weight <= 0) return null;
+                // Standard is 15g per meter, so calculate meters equivalent
+                const meterEquivalent = (weight / 15).toFixed(3);
+                return {
+                    description: `For ${weight}g of product (≈ ${meterEquivalent} meter equivalent):`,
+                    materials: [
+                        { 
+                            name: 'Raw Loose Liniwan', 
+                            total: weight.toFixed(2), 
+                            unit: 'g',
+                            formula: `${weight}g (standard for ${meterEquivalent}m)`
+                        },
+                        { 
+                            name: 'Sikapat', 
+                            total: (4.5 * meterEquivalent).toFixed(2), 
+                            unit: 'pieces',
+                            formula: `4.5 × ${meterEquivalent}m = ${(4.5 * meterEquivalent).toFixed(2)} pieces`
+                        }
+                    ]
+                };
+            }
+        },
+        'Knotted Bastos': {
+            title: 'KNOTTED BASTOS MATERIAL CALCULATION',
+            baseRequirements: {
+                description: 'Raw materials needed (per meter):',
+                materials: [
+                    { name: 'Raw Loose Bastos', perUnit: 15, unit: 'g per meter' },
+                    { name: 'Sikapat', perUnit: 4.5, unit: 'pieces per meter' }
+                ]
+            },
+            calculated: function() {
+                if (weight <= 0) return null;
+                // Standard is 15g per meter, so calculate meters equivalent
+                const meterEquivalent = (weight / 15).toFixed(3);
+                return {
+                    description: `For ${weight}g of product (≈ ${meterEquivalent} meter equivalent):`,
+                    materials: [
+                        { 
+                            name: 'Raw Loose Bastos', 
+                            total: weight.toFixed(2), 
+                            unit: 'g',
+                            formula: `${weight}g (standard for ${meterEquivalent}m)`
+                        },
+                        { 
+                            name: 'Sikapat', 
+                            total: (4.5 * meterEquivalent).toFixed(2), 
+                            unit: 'pieces',
+                            formula: `4.5 × ${meterEquivalent}m = ${(4.5 * meterEquivalent).toFixed(2)} pieces`
+                        }
+                    ]
+                };
+            }
+        },
+        'Warped Silk': {
+            title: 'WARPED SILK MATERIAL CALCULATION',
+            baseRequirements: {
+                description: 'Standard processed material:',
+                materials: [
+                    { name: 'Warped Silk', perUnit: 32, unit: 'g per meter' }
+                ]
+            },
+            calculated: function() {
+                if (weight <= 0) return null;
+                const meterEquivalent = (weight / 32).toFixed(3);
+                return {
+                    description: `For ${weight}g of product (≈ ${meterEquivalent} meter equivalent):`,
+                    materials: [
+                        { 
+                            name: 'Warped Silk', 
+                            total: weight.toFixed(2), 
+                            unit: 'g',
+                            formula: `${weight}g (standard for ${meterEquivalent}m)`
+                        }
+                    ]
+                };
+            }
+        }
+    };
+    
+    return calculations[productName] || null;
+}
+
+// Function to get required materials formula for a product
+function getRequiredMaterialsInfo(productName) {
+    const materialsInfo = {
+        'Piña Seda': {
+            title: 'PIÑA SEDA REQUIREMENTS',
+            description: 'For 1 meter, 30 inches width, quantity = 1:',
+            materials: [
+                { name: 'Knotted Liniwan', amount: '15g' },
+                { name: 'Warped Silk', amount: '7g' }
+            ]
+        },
+        'Pure Piña Cloth': {
+            title: 'PURE PIÑA CLOTH REQUIREMENTS',
+            description: 'For 1 meter, 30 inches width, quantity = 1:',
+            materials: [
+                { name: 'Knotted Liniwan', amount: '15g' },
+                { name: 'Warped Silk', amount: '7g' }
+            ]
+        },
+        'Knotted Liniwan': {
+            title: 'KNOTTED LINIWAN REQUIREMENTS',
+            description: 'Raw materials needed:',
+            materials: [
+                { name: 'Raw Loose Liniwan', amount: '1 meter ≈ 15g (standard)' },
+                { name: 'Sikapat', amount: '1 sikapat = 3.5g' }
+            ],
+            note: '4.5 sikapat = 1 meter ≈ 15g'
+        },
+        'Knotted Bastos': {
+            title: 'KNOTTED BASTOS REQUIREMENTS',
+            description: 'Raw materials needed:',
+            materials: [
+                { name: 'Raw Loose Bastos', amount: '1 meter ≈ 15g (standard)' },
+                { name: 'Sikapat', amount: '1 sikapat = 3.5g' }
+            ],
+            note: '4.5 sikapat = 1 meter ≈ 15g'
+        },
+        'Warped Silk': {
+            title: 'WARPED SILK REQUIREMENTS',
+            description: 'Standard processed material:',
+            materials: [
+                { name: 'Warped Silk', amount: '32 grams per 1 meter' }
+            ]
+        }
+    };
+    
+    return materialsInfo[productName] || null;
+}
+
 // Function to fetch and display available materials
 function updateMaterialsList(productName) {
     const materialsListDiv = document.getElementById('materialsList');
@@ -2481,8 +2691,66 @@ function updateMaterialsList(productName) {
         .then(response => response.json())
         .then(data => {
             materialsListDiv.innerHTML = ''; // Clear previous content
-
+            
+            // Add calculated materials info
+            const calculations = calculateRequiredMaterials(productName);
+            if (calculations) {
+                const calculatedSection = document.createElement('div');
+                calculatedSection.className = 'mb-4 pb-4 border-b';
+                
+                let calculatedHTML = `
+                    <div class="text-xs font-bold text-green-700 mb-2">${calculations.title}</div>
+                `;
+                
+                // Show calculated totals if values are entered
+                const calculated = calculations.calculated();
+                if (calculated) {
+                    calculatedHTML += `
+                        <div class="text-xs text-gray-600 mb-2 bg-green-50 p-2 rounded">${calculated.description}</div>
+                        <div class="space-y-1 bg-green-50 p-2 rounded">
+                    `;
+                    
+                    calculated.materials.forEach(material => {
+                        calculatedHTML += `
+                            <div class="text-xs text-gray-700">
+                                <div class="font-semibold text-green-700">• ${material.name}: <span class="text-lg">${material.total} ${material.unit}</span></div>
+                                <div class="text-xs text-gray-600 ml-3">Formula: ${material.formula}</div>
+                            </div>
+                        `;
+                    });
+                    
+                    calculatedHTML += '</div>';
+                } else {
+                    // Show base requirements if no values entered yet
+                    const base = calculations.baseRequirements;
+                    calculatedHTML += `
+                        <div class="text-xs text-gray-600 mb-2">${base.description}</div>
+                        <div class="space-y-1">
+                    `;
+                    
+                    base.materials.forEach(material => {
+                        calculatedHTML += `
+                            <div class="text-xs text-gray-700 flex justify-between">
+                                <span>• ${material.name}</span>
+                                <span class="font-semibold text-green-600">${material.perUnit} ${material.unit}</span>
+                            </div>
+                        `;
+                    });
+                    
+                    calculatedHTML += '</div>';
+                }
+                
+                calculatedSection.innerHTML = calculatedHTML;
+                materialsListDiv.appendChild(calculatedSection);
+            }
+            
+            // Add available materials header
             if (data.success && data.materials && data.materials.length > 0) {
+                const availableHeader = document.createElement('div');
+                availableHeader.className = 'text-xs font-bold text-blue-700 mb-2';
+                availableHeader.textContent = 'AVAILABLE MATERIALS IN STOCK';
+                materialsListDiv.appendChild(availableHeader);
+                
                 data.materials.forEach(material => {
                     const materialItem = document.createElement('div');
                     materialItem.className = 'flex items-center justify-between py-1';
@@ -2499,15 +2767,23 @@ function updateMaterialsList(productName) {
                     }
 
                     materialItem.innerHTML = `
-                        <span class="text-sm text-gray-700">${materialNameDisplay}</span>
-                        <span class="text-sm font-medium ${textColorClass}">
+                        <span class="text-xs text-gray-700">${materialNameDisplay}</span>
+                        <span class="text-xs font-medium ${textColorClass}">
                             ${availabilityText}
                         </span>
                     `;
                     materialsListDiv.appendChild(materialItem);
                 });
             } else {
-                materialsListDiv.innerHTML = `<div class="text-sm text-gray-500">${data.message || 'No materials information available for this product.'}</div>`;
+                if (calculations) {
+                    // Only show error if we have calculated materials but no available materials
+                    const noMaterialsNote = document.createElement('div');
+                    noMaterialsNote.className = 'text-xs text-gray-500 italic mt-2';
+                    noMaterialsNote.textContent = 'No stock information available';
+                    materialsListDiv.appendChild(noMaterialsNote);
+                } else {
+                    materialsListDiv.innerHTML = `<div class="text-sm text-gray-500">${data.message || 'No materials information available for this product.'}</div>`;
+                }
             }
         })
         .catch(error => {
@@ -2892,6 +3168,24 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update materials list based on selected product
         updateMaterialsList(selectedProduct);
     });
+
+    // Add event listeners to recalculate materials when dimensions/weight change
+    const lengthInput = document.getElementById('length');
+    const widthInput = document.getElementById('width');
+    const quantityInput = document.getElementById('quantity');
+    const weightInput = document.getElementById('weight');
+    
+    const onMaterialsFieldChange = function() {
+        const selectedProduct = productNameSelect.value;
+        if (selectedProduct) {
+            updateMaterialsList(selectedProduct);
+        }
+    };
+    
+    if (lengthInput) lengthInput.addEventListener('input', onMaterialsFieldChange);
+    if (widthInput) widthInput.addEventListener('input', onMaterialsFieldChange);
+    if (quantityInput) quantityInput.addEventListener('input', onMaterialsFieldChange);
+    if (weightInput) weightInput.addEventListener('input', onMaterialsFieldChange);
 
     // Handle Create Task Form Submission
     document.getElementById('createTaskForm').addEventListener('submit', function(e) {
