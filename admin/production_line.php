@@ -138,6 +138,51 @@ function fetchProductionLineData() {
     // This function is no longer needed as data is fetched in PHP
 }
 
+// Function to open task completion verification modal
+function openTaskCompletionVerificationModal(prodLineId, productName, expectedLength, expectedWidth, expectedWeight) {
+    const modal = document.getElementById('taskCompletionVerificationModal');
+    const form = document.getElementById('taskCompletionForm');
+    
+    // Set product line ID
+    document.getElementById('taskCompletionProdLineId').value = prodLineId;
+    
+    // Set product name
+    document.getElementById('taskCompletionProductName').textContent = productName;
+    
+    // Reset form
+    form.reset();
+    
+    // Determine product type and show appropriate fields
+    const isKnottedProduct = ['Knotted Liniwan', 'Knotted Bastos'].includes(productName);
+    const isWarpedSilk = productName === 'Warped Silk';
+    const isDimensionsProduct = ['Piña Seda', 'Pure Piña Cloth'].includes(productName);
+    
+    const dimensionsSection = document.getElementById('taskCompletionDimensionsSection');
+    const weightSection = document.getElementById('taskCompletionWeightSection');
+    
+    if (isKnottedProduct || isWarpedSilk) {
+        // Show weight section
+        dimensionsSection.classList.add('hidden');
+        weightSection.classList.remove('hidden');
+        document.getElementById('taskCompletionExpectedWeight').textContent = expectedWeight ? expectedWeight + ' g' : '-';
+        document.getElementById('taskCompletionActualWeight').required = true;
+        document.getElementById('taskCompletionActualLength').required = false;
+        document.getElementById('taskCompletionActualWidth').required = false;
+    } else {
+        // Show dimensions section
+        dimensionsSection.classList.remove('hidden');
+        weightSection.classList.add('hidden');
+        document.getElementById('taskCompletionExpectedLength').textContent = expectedLength ? expectedLength + ' m' : '-';
+        document.getElementById('taskCompletionExpectedWidth').textContent = expectedWidth ? expectedWidth + ' in' : '-';
+        document.getElementById('taskCompletionActualWeight').required = false;
+        document.getElementById('taskCompletionActualLength').required = true;
+        document.getElementById('taskCompletionActualWidth').required = true;
+    }
+    
+    // Show modal
+    modal.classList.remove('hidden');
+}
+
 // Function to confirm task completion
 function confirmTaskCompletion(prodLineId, productName) {
     if (['Piña Seda', 'Pure Piña Cloth'].includes(productName)) {
@@ -467,7 +512,7 @@ function refreshTaskAssignments(forceRefresh = false) {
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                             ${item.status !== 'completed' ? `
                                 <div class="flex flex-col items-center space-y-2">
-                                    <button onclick="confirmTaskCompletion('${item.raw_id}', '${item.product_name.replace(/'/g, "\\'")}')" 
+                                    <button onclick="openTaskCompletionVerificationModal('${item.raw_id}', '${item.product_name.replace(/'/g, "\\'")}'${fullItemData ? `, '${fullItemData.length_m || ''}', '${fullItemData.width_m || ''}', '${fullItemData.weight_g || ''}'` : ', , , '})" 
                                         class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-md transition-colors w-full text-xs ${displayStatus !== 'submitted' ? 'opacity-50 cursor-not-allowed' : ''}"
                                         ${displayStatus !== 'submitted' ? 'disabled' : ''}>
                                         Confirm
@@ -990,80 +1035,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Update the form submission to handle quantity
-    document.getElementById('createTaskForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        const selectedProduct = formData.get('product_name');
-        const assignedTo = formData.get('assigned_to');
-        const deadline = formData.get('deadline');
-        
-        // Validate required fields
-        if (!selectedProduct) {
-            alert('Please select a product');
-            return;
-        }
-        
-        if (!assignedTo) {
-            alert('Please assign this task to a member');
-            return;
-        }
-        
-        if (!deadline) {
-            alert('Please set a deadline for this task');
-            return;
-        }
-        
-        // Set quantity to 1 for Knotted products and Warped Silk
-        if (selectedProduct === 'Knotted Liniwan' || selectedProduct === 'Knotted Bastos' || selectedProduct === 'Warped Silk') {
-            formData.set('quantity', '1');
-        }
-        
-        fetch('backend/end-points/create_production_item.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: 'Task created and assigned successfully!',
-                    showConfirmButton: false,
-                    timer: 1500
-                }).then(() => {
-                    document.getElementById('createTaskModal').classList.add('hidden');
-                    this.reset();
-                    location.reload();
-                });
-            } else {
-                if (data.message && data.message.includes('task limit')) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Task Limit Reached',
-                        text: data.message
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message
-                    });
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'An error occurred while creating the task. Please check the console for details.'
-            });
-        });
-    });
-
-    // Fetch initial production line data when page loads
-    // The production line data is now fetched in PHP, so no need to fetch here
+    // Note: Form submission is handled in the second DOMContentLoaded event listener below
 
     // Handle Task Assignment Form Submission (Assign Tasks Modal)
     const taskAssignmentForm = document.getElementById('taskAssignmentForm');
@@ -1577,6 +1549,158 @@ function updateEditFormFieldsVisibility(selectedProduct) {
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Task Confirmation Modal -->
+<div id="confirmTaskModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-[1001] p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-gray-200 bg-blue-50">
+            <h3 class="text-xl font-semibold text-gray-800">Confirm Task Details</h3>
+            <p class="text-sm text-gray-600 mt-1">Please review the task details before creating</p>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6 overflow-y-auto max-h-[70vh]">
+            <div class="space-y-4">
+                <!-- Product Name -->
+                <div class="border-b pb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                    <p id="confirmProductName" class="text-base text-gray-900 font-semibold bg-gray-50 p-3 rounded-md">-</p>
+                </div>
+                
+                <!-- Assigned Member -->
+                <div class="border-b pb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
+                    <p id="confirmAssignedTo" class="text-base text-gray-900 bg-gray-50 p-3 rounded-md">-</p>
+                </div>
+                
+                <!-- Dimensions/Weight Section -->
+                <div id="confirmDimensionsSection" class="border-b pb-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Length (m)</label>
+                            <p id="confirmLength" class="text-base text-gray-900 bg-gray-50 p-3 rounded-md">-</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Width (in)</label>
+                            <p id="confirmWidth" class="text-base text-gray-900 bg-gray-50 p-3 rounded-md">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Weight Section (for Knotted/Warped) -->
+                <div id="confirmWeightSection" class="border-b pb-4 hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Weight (g)</label>
+                    <p id="confirmWeight" class="text-base text-gray-900 bg-gray-50 p-3 rounded-md">-</p>
+                </div>
+                
+                <!-- Quantity -->
+                <div class="border-b pb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                    <p id="confirmQuantity" class="text-base text-gray-900 bg-gray-50 p-3 rounded-md">-</p>
+                </div>
+                
+                <!-- Deadline -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
+                    <p id="confirmDeadline" class="text-base text-gray-900 bg-gray-50 p-3 rounded-md">-</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+            <button type="button" id="editTaskDetailsBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Edit Details
+            </button>
+            <button type="button" id="confirmCreateTaskBtn" class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                Confirm & Create Task
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Task Completion Verification Modal -->
+<div id="taskCompletionVerificationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-[1001] p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-gray-200 bg-green-50">
+            <h3 class="text-xl font-semibold text-gray-800">Verify Product Measurements</h3>
+            <p class="text-sm text-gray-600 mt-1">Please verify the actual measurements/weight received from the member</p>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6 overflow-y-auto max-h-[70vh]">
+            <form id="taskCompletionForm" class="space-y-4">
+                <input type="hidden" id="taskCompletionProdLineId" name="prod_line_id">
+                
+                <!-- Product Name Display -->
+                <div class="border-b pb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                    <p id="taskCompletionProductName" class="text-base text-gray-900 font-semibold bg-gray-50 p-3 rounded-md">-</p>
+                </div>
+                
+                <!-- Expected vs Actual Dimensions Section -->
+                <div id="taskCompletionDimensionsSection" class="border-b pb-4">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Expected Dimensions</h4>
+                    <div class="grid grid-cols-2 gap-4 mb-4 bg-blue-50 p-3 rounded-md">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Expected Length (m)</label>
+                            <p id="taskCompletionExpectedLength" class="text-sm text-gray-900">-</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Expected Width (in)</label>
+                            <p id="taskCompletionExpectedWidth" class="text-sm text-gray-900">-</p>
+                        </div>
+                    </div>
+                    
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Actual Dimensions (Enter Verified Values)</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="taskCompletionActualLength" class="block text-xs font-medium text-gray-700 mb-1">Actual Length (m) *</label>
+                            <input type="number" id="taskCompletionActualLength" name="actual_length" step="0.01" min="0" class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm py-2" required>
+                        </div>
+                        <div>
+                            <label for="taskCompletionActualWidth" class="block text-xs font-medium text-gray-700 mb-1">Actual Width (in) *</label>
+                            <input type="number" id="taskCompletionActualWidth" name="actual_width" step="0.01" min="0" class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm py-2" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Expected vs Actual Weight Section -->
+                <div id="taskCompletionWeightSection" class="border-b pb-4 hidden">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Expected Weight</h4>
+                    <div class="bg-blue-50 p-3 rounded-md mb-4">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Expected Weight (g)</label>
+                        <p id="taskCompletionExpectedWeight" class="text-sm text-gray-900">-</p>
+                    </div>
+                    
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Actual Weight (Enter Verified Value)</h4>
+                    <div>
+                        <label for="taskCompletionActualWeight" class="block text-xs font-medium text-gray-700 mb-1">Actual Weight (g) *</label>
+                        <input type="number" id="taskCompletionActualWeight" name="actual_weight" step="0.01" min="0" class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm py-2" required>
+                    </div>
+                </div>
+                
+                <!-- Variance Notes -->
+                <div>
+                    <label for="taskCompletionNotes" class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                    <textarea id="taskCompletionNotes" name="notes" rows="3" placeholder="Add any notes about measurements discrepancies or observations..." class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm py-2"></textarea>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+            <button type="button" id="cancelTaskCompletionBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                Cancel
+            </button>
+            <button type="button" id="submitTaskCompletionBtn" class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                Verify & Add to Inventory
+            </button>
         </div>
     </div>
 </div>
@@ -2635,9 +2759,67 @@ function setMinDeadlineDate() {
     document.getElementById('deadline').value = defaultDeadline;
 }
 
+// Function to show task confirmation modal
+function showTaskConfirmation(productName, memberName, length, width, weight, quantity, deadline, selectedProduct) {
+    const confirmTaskModal = document.getElementById('confirmTaskModal');
+    const createTaskModal = document.getElementById('createTaskModal');
+    
+    // Populate confirmation modal fields
+    document.getElementById('confirmProductName').textContent = productName;
+    document.getElementById('confirmAssignedTo').textContent = memberName;
+    
+    // Format deadline to readable format
+    const deadlineDate = new Date(deadline);
+    const formattedDeadline = deadlineDate.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    document.getElementById('confirmDeadline').textContent = formattedDeadline;
+    
+    // Handle different product types
+    const isKnottedProduct = ['Knotted Liniwan', 'Knotted Bastos'].includes(selectedProduct);
+    const isWarpedSilk = selectedProduct === 'Warped Silk';
+    const isDimensionsProduct = ['Piña Seda', 'Pure Piña Cloth'].includes(selectedProduct);
+    
+    const confirmDimensionsSection = document.getElementById('confirmDimensionsSection');
+    const confirmWeightSection = document.getElementById('confirmWeightSection');
+    
+    if (isKnottedProduct || isWarpedSilk) {
+        // Show weight, hide dimensions
+        confirmDimensionsSection.classList.add('hidden');
+        confirmWeightSection.classList.remove('hidden');
+        document.getElementById('confirmWeight').textContent = weight && weight !== '-' ? weight + ' g' : '-';
+        document.getElementById('confirmQuantity').textContent = '1';
+    } else if (isDimensionsProduct) {
+        // Show dimensions and quantity, hide weight
+        confirmDimensionsSection.classList.remove('hidden');
+        confirmWeightSection.classList.add('hidden');
+        document.getElementById('confirmLength').textContent = length && length !== '-' ? length + ' m' : '-';
+        document.getElementById('confirmWidth').textContent = width && width !== '-' ? width + ' in' : '-';
+        document.getElementById('confirmQuantity').textContent = quantity && quantity !== '-' ? quantity : '1';
+    } else {
+        // Show dimensions and quantity
+        confirmDimensionsSection.classList.remove('hidden');
+        confirmWeightSection.classList.add('hidden');
+        document.getElementById('confirmLength').textContent = length && length !== '-' ? length + ' m' : '-';
+        document.getElementById('confirmWidth').textContent = width && width !== '-' ? width + ' in' : '-';
+        document.getElementById('confirmQuantity').textContent = quantity && quantity !== '-' ? quantity : '1';
+    }
+    
+    // Hide create task modal and show confirmation modal
+    createTaskModal.classList.add('hidden');
+    confirmTaskModal.classList.remove('hidden');
+}
+
 // Initialize the create task form
 // Initialize search functionality for assigned tasks
 document.addEventListener('DOMContentLoaded', function() {
+    // Store form data for confirmation (declare here for scope with confirmation handlers)
+    let pendingTaskFormData = null;
+
     // Initialize search and filter event listeners
     const searchInput = document.getElementById('searchInput');
     const statusFilter = document.getElementById('statusFilter');
@@ -2709,6 +2891,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Update materials list based on selected product
         updateMaterialsList(selectedProduct);
+    });
+
+    // Handle Create Task Form Submission
+    document.getElementById('createTaskForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const selectedProduct = formData.get('product_name');
+        const assignedTo = formData.get('assigned_to');
+        const deadline = formData.get('deadline');
+        
+        // Validate required fields
+        if (!selectedProduct) {
+            alert('Please select a product');
+            return;
+        }
+        
+        if (!assignedTo) {
+            alert('Please assign this task to a member');
+            return;
+        }
+        
+        if (!deadline) {
+            alert('Please set a deadline for this task');
+            return;
+        }
+        
+        // Set quantity to 1 for Knotted products and Warped Silk
+        if (selectedProduct === 'Knotted Liniwan' || selectedProduct === 'Knotted Bastos' || selectedProduct === 'Warped Silk') {
+            formData.set('quantity', '1');
+        }
+        
+        // Get member name from the select option text
+        const assignedToSelect = document.getElementById('assigned_to');
+        const selectedOption = assignedToSelect.options[assignedToSelect.selectedIndex];
+        const memberName = selectedOption ? selectedOption.text : 'Unknown';
+        
+        // Store the form data for confirmation
+        pendingTaskFormData = formData;
+        
+        // Populate confirmation modal with form details
+        showTaskConfirmation(
+            selectedProduct,
+            memberName,
+            formData.get('length') || '-',
+            formData.get('width') || '-',
+            formData.get('weight') || '-',
+            formData.get('quantity') || '1',
+            deadline,
+            selectedProduct
+        );
     });
 
     // Handle reassign task modal
@@ -2831,6 +3063,115 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // Handle confirmation modal buttons
+    const confirmTaskModal = document.getElementById('confirmTaskModal');
+    const editTaskDetailsBtn = document.getElementById('editTaskDetailsBtn');
+    const confirmCreateTaskBtn = document.getElementById('confirmCreateTaskBtn');
+
+    // Edit Details Button - goes back to create task modal
+    editTaskDetailsBtn.addEventListener('click', function() {
+        confirmTaskModal.classList.add('hidden');
+        createTaskModal.classList.remove('hidden');
+    });
+
+    // Confirm Create Task Button - submits the form
+    confirmCreateTaskBtn.addEventListener('click', function() {
+        if (!pendingTaskFormData) {
+            alert('Form data is missing. Please try again.');
+            return;
+        }
+
+        fetch('backend/end-points/create_production_item.php', {
+            method: 'POST',
+            body: pendingTaskFormData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Task created and assigned successfully!',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    document.getElementById('createTaskModal').classList.add('hidden');
+                    confirmTaskModal.classList.add('hidden');
+                    document.getElementById('createTaskForm').reset();
+                    pendingTaskFormData = null;
+                    location.reload();
+                });
+            } else {
+                if (data.message && data.message.includes('task limit')) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Task Limit Reached',
+                        text: data.message
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Failed to create task'
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred while creating the task. Please check the console for details.'
+            });
+        });
+    });
+
+    // Handle task completion verification modal buttons
+    const taskCompletionVerificationModal = document.getElementById('taskCompletionVerificationModal');
+    const cancelTaskCompletionBtn = document.getElementById('cancelTaskCompletionBtn');
+    const submitTaskCompletionBtn = document.getElementById('submitTaskCompletionBtn');
+    const taskCompletionForm = document.getElementById('taskCompletionForm');
+
+    // Close modal
+    cancelTaskCompletionBtn.addEventListener('click', function() {
+        taskCompletionVerificationModal.classList.add('hidden');
+        taskCompletionForm.reset();
+    });
+
+    // Submit task completion
+    submitTaskCompletionBtn.addEventListener('click', function() {
+        // Validate form fields
+        const prodLineId = document.getElementById('taskCompletionProdLineId').value;
+        const productName = document.getElementById('taskCompletionProductName').textContent;
+        const isKnottedProduct = ['Knotted Liniwan', 'Knotted Bastos'].includes(productName);
+        const isWarpedSilk = productName === 'Warped Silk';
+        
+        let actualLength, actualWidth, actualWeight;
+        
+        if (isKnottedProduct || isWarpedSilk) {
+            actualWeight = document.getElementById('taskCompletionActualWeight').value;
+            if (!actualWeight) {
+                alert('Please enter the actual weight');
+                return;
+            }
+        } else {
+            actualLength = document.getElementById('taskCompletionActualLength').value;
+            actualWidth = document.getElementById('taskCompletionActualWidth').value;
+            if (!actualLength || !actualWidth) {
+                alert('Please enter both actual length and width');
+                return;
+            }
+        }
+
+        // Submit the confirmation
+        submitConfirmation(prodLineId, actualWeight, actualLength, actualWidth);
+        
+        // Close modal
+        taskCompletionVerificationModal.classList.add('hidden');
+        taskCompletionForm.reset();
+    });
 
     // Handle form submission
     // Note: Form submission is handled in the DOMContentLoaded event listener above

@@ -611,8 +611,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (dimensionFields) dimensionFields.classList.remove('hidden');
             if (weightField) weightField.classList.add('hidden');
             if (quantityField) quantityField.classList.remove('hidden');
-            if (dimensionFields?.querySelector('#length')) dimensionFields.querySelector('#length').required = true;
-            if (dimensionFields?.querySelector('#width')) dimensionFields.querySelector('#width').required = true;
+            if (dimensionFields?.querySelector('#length')) {
+                const lenInput = dimensionFields.querySelector('#length');
+                lenInput.required = true;
+                if (!lenInput.value || lenInput.value == '0') lenInput.value = '1';
+            }
+            if (dimensionFields?.querySelector('#width')) {
+                const widInput = dimensionFields.querySelector('#width');
+                widInput.required = true;
+                if (!widInput.value || widInput.value == '0') widInput.value = '30';
+            }
             if (quantityField?.querySelector('input')) quantityField.querySelector('input').required = true;
         } else if (selected === 'Knotted Liniwan' || selected === 'Knotted Bastos' || selected === 'Warped Silk') {
             if (dimensionFields) dimensionFields.classList.add('hidden');
@@ -695,6 +703,57 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!isValid) {
                 Swal.fire('Validation Error', 'Please fill in all required fields.', 'error');
+                if (submitBtn) submitBtn.disabled = false;
+                return;
+            }
+
+            // Confirmation Modal
+            let confirmHtml = '<div class="text-left space-y-2">';
+            if (currentActionType === 'create_product') {
+                confirmHtml += `<p><strong>Product:</strong> ${productNameSelect.value}</p>`;
+                
+                if (!dimensionFields.classList.contains('hidden')) {
+                    const len = dimensionFields.querySelector('#length').value;
+                    const wid = dimensionFields.querySelector('#width').value;
+                    confirmHtml += `<p><strong>Length:</strong> ${len}</p>`;
+                    confirmHtml += `<p><strong>Width:</strong> ${wid}</p>`;
+                }
+                
+                if (!weightField.classList.contains('hidden')) {
+                    const w = weightField.querySelector('#weight').value;
+                    confirmHtml += `<p><strong>Weight:</strong> ${w}</p>`;
+                }
+                
+                if (!quantityField.classList.contains('hidden')) {
+                    const q = quantityField.querySelector('input').value;
+                    confirmHtml += `<p><strong>Quantity:</strong> ${q}</p>`;
+                }
+            } else {
+                const prodText = reassignProdLineSelect.options[reassignProdLineSelect.selectedIndex]?.text || 'Unknown';
+                confirmHtml += `<p><strong>Reassigning Task:</strong> ${prodText}</p>`;
+            }
+            confirmHtml += '</div>';
+
+            let confirmResult;
+            try {
+                confirmResult = await Swal.fire({
+                    title: 'Confirm Task Details',
+                    html: confirmHtml,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, Create Task',
+                    cancelButtonText: 'Edit'
+                });
+            } catch (error) {
+                console.error('Confirmation modal error:', error);
+                // If modal fails, abort submission to be safe
+                if (submitBtn) submitBtn.disabled = false;
+                return;
+            }
+
+            if (!confirmResult.isConfirmed) {
                 if (submitBtn) submitBtn.disabled = false;
                 return;
             }
