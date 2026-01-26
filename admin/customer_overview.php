@@ -109,6 +109,261 @@ include "components/header.php";
         </div>
     </div>
 
+    <!-- CORE ANALYTICS SECTION -->
+    <!-- Row 1: Stock & Inventory Alerts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Critical Stock Alerts -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">🚨 Critical Stock Alerts</h2>
+            <div id="criticalStockAlerts" class="space-y-3">
+                <!-- Will be populated dynamically -->
+                <div class="p-4 bg-red-50 border-l-4 border-red-500 rounded">
+                    <p class="text-sm text-gray-600">Raw Fiber (Balete)</p>
+                    <p class="font-bold text-red-700">450g / 2000g</p>
+                    <div class="w-full bg-gray-300 rounded-full h-2 mt-2">
+                        <div class="bg-red-600 h-2 rounded-full" style="width: 22.5%"></div>
+                    </div>
+                    <p class="text-xs text-red-600 mt-1">⚠️ Below critical threshold - Reorder immediately</p>
+                </div>
+                <div class="p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded">
+                    <p class="text-sm text-gray-600">Finished Cloth (Piña Seda)</p>
+                    <p class="font-bold text-yellow-700">8.5m / 20m</p>
+                    <div class="w-full bg-gray-300 rounded-full h-2 mt-2">
+                        <div class="bg-yellow-500 h-2 rounded-full" style="width: 42.5%"></div>
+                    </div>
+                    <p class="text-xs text-yellow-700 mt-1">⚠️ Running low - Schedule restock</p>
+                </div>
+                <div class="p-4 bg-green-50 border-l-4 border-green-500 rounded">
+                    <p class="text-sm text-gray-600">Raw Fiber (Libacao)</p>
+                    <p class="font-bold text-green-700">1850g / 2000g</p>
+                    <div class="w-full bg-gray-300 rounded-full h-2 mt-2">
+                        <div class="bg-green-600 h-2 rounded-full" style="width: 92.5%"></div>
+                    </div>
+                    <p class="text-xs text-green-700 mt-1">✓ Healthy stock level</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Composition -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">📊 Inventory Composition</h2>
+            <div class="flex gap-6">
+                <div class="flex-1">
+                    <canvas id="inventoryCompositionChart"></canvas>
+                </div>
+                <div class="flex-1 space-y-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Raw Fiber (Grams)</p>
+                        <p class="text-2xl font-bold text-blue-600">5,200g</p>
+                        <p class="text-xs text-gray-500">62% of total inventory</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Finished Cloth (Meters)</p>
+                        <p class="text-2xl font-bold text-purple-600">18.5m</p>
+                        <p class="text-xs text-gray-500">38% of total inventory</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Wastage & Performance -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Material Wastage Analytics -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">♻️ Wastage Analytics</h2>
+            <div class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="font-semibold text-gray-800">Knotters (Thread Production)</p>
+                        <p class="text-sm text-gray-600">Last 30 days</p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <p class="text-xs text-gray-600">Fiber Issued</p>
+                            <p class="text-lg font-bold text-blue-600">2,500g</p>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-600">Thread Returned</p>
+                            <p class="text-lg font-bold text-green-600">2,350g</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 p-2 bg-red-50 rounded">
+                        <p class="text-xs text-red-700"><strong>Wastage: 150g (6%)</strong> - Within acceptable range</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="font-semibold text-gray-800">Weavers (Cloth Production)</p>
+                        <p class="text-sm text-gray-600">Last 30 days</p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <p class="text-xs text-gray-600">Thread Issued</p>
+                            <p class="text-lg font-bold text-blue-600">2,350g</p>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-600">Cloth Produced</p>
+                            <p class="text-lg font-bold text-green-600">14.2m</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 p-2 bg-green-50 rounded">
+                        <p class="text-xs text-green-700"><strong>Efficiency: 94%</strong> - Excellent conversion ratio</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Member Productivity Leaderboard -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">🏆 Top Performing Members</h2>
+            <div id="topPerformersList" class="space-y-3">
+                <!-- Placeholder data -->
+                <div class="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
+                    <div>
+                        <p class="font-semibold text-gray-800">Maria Santos</p>
+                        <p class="text-xs text-gray-600">Knotter • Active</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-blue-600">98%</p>
+                        <p class="text-xs text-gray-600">45/45 tasks</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between bg-green-50 p-3 rounded-lg">
+                    <div>
+                        <p class="font-semibold text-gray-800">Juan dela Cruz</p>
+                        <p class="text-xs text-gray-600">Weaver • Active</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-green-600">96%</p>
+                        <p class="text-xs text-gray-600">43/45 tasks</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between bg-purple-50 p-3 rounded-lg">
+                    <div>
+                        <p class="font-semibold text-gray-800">Rosa Reyes</p>
+                        <p class="text-xs text-gray-600">Knotter • Active</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-purple-600">92%</p>
+                        <p class="text-xs text-gray-600">41/45 tasks</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 3: Task Progress & Order Fulfillment -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Active Task Progress -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">⏳ Active Production Tasks</h2>
+            <div id="taskProgressList" class="space-y-4">
+                <!-- Placeholder tasks -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="font-semibold text-gray-800">Order #2024-001: 3kg Piña Seda Cloth</p>
+                        <p class="text-xs font-bold text-blue-600">65% Complete</p>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-blue-600 h-3 rounded-full" style="width: 65%"></div>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-1">Deadline: Mar 15, 2026 (45 days remaining)</p>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="font-semibold text-gray-800">Order #2024-002: 2kg Warped Silk</p>
+                        <p class="text-xs font-bold text-yellow-600">35% Complete</p>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-yellow-500 h-3 rounded-full" style="width: 35%"></div>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-1">Deadline: Mar 20, 2026 (50 days remaining)</p>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="font-semibold text-gray-800">Order #2024-003: 1.5kg Knotted Liniwan</p>
+                        <p class="text-xs font-bold text-green-600">90% Complete</p>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-green-600 h-3 rounded-full" style="width: 90%"></div>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-1">Deadline: Feb 28, 2026 (25 days remaining)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Fulfillment Timeline -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">📦 Order Fulfillment Timeline</h2>
+            <div class="space-y-4">
+                <div class="flex gap-4">
+                    <div class="flex flex-col items-center">
+                        <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                        <div class="h-16 w-1 bg-green-600 mt-2"></div>
+                    </div>
+                    <div class="pt-2">
+                        <p class="font-semibold text-gray-800">Order Recorded</p>
+                        <p class="text-xs text-gray-600">Jan 26, 2026</p>
+                        <p class="text-sm text-gray-700 mt-1">Customer places order</p>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4">
+                    <div class="flex flex-col items-center">
+                        <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                        <div class="h-16 w-1 bg-green-600 mt-2"></div>
+                    </div>
+                    <div class="pt-2">
+                        <p class="font-semibold text-gray-800">Production Started</p>
+                        <p class="text-xs text-gray-600">Jan 30, 2026 (4 days)</p>
+                        <p class="text-sm text-gray-700 mt-1">Raw materials assigned</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="flex flex-col items-center">
+                        <div class="w-10 h-10 bg-yellow-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                        <div class="h-16 w-1 bg-yellow-500 mt-2"></div>
+                    </div>
+                    <div class="pt-2">
+                        <p class="font-semibold text-gray-800">In Production</p>
+                        <p class="text-xs text-gray-600">Today (65% complete)</p>
+                        <p class="text-sm text-gray-700 mt-1">Currently being processed</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="flex flex-col items-center">
+                        <div class="w-10 h-10 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center font-bold">4</div>
+                    </div>
+                    <div class="pt-2">
+                        <p class="font-semibold text-gray-800">Shipment Scheduled</p>
+                        <p class="text-xs text-gray-600">Est. Feb 15, 2026</p>
+                        <p class="text-sm text-gray-700 mt-1">Awaiting completion</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p class="text-sm font-semibold text-blue-900">Average Fulfillment Time</p>
+                    <p class="text-2xl font-bold text-blue-600 mt-1">45 days</p>
+                    <p class="text-xs text-blue-700 mt-1">From order to shipment (based on recent orders)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Charts Row 2 -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <!-- Top Products -->
@@ -265,6 +520,7 @@ let charts = {};
 
 document.addEventListener('DOMContentLoaded', function() {
     loadDashboardData();
+    initializeInventoryChart();
     
     document.getElementById('salesTrendPeriod').addEventListener('change', function() {
         updateSalesTrendChart(this.value);
@@ -444,6 +700,43 @@ function renderTopProductsChart(data) {
             },
             scales: {
                 x: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+function initializeInventoryChart() {
+    const ctx = document.getElementById('inventoryCompositionChart');
+    if (!ctx) return;
+    
+    if (window.charts && window.charts.inventoryComposition) {
+        window.charts.inventoryComposition.destroy();
+    }
+    
+    if (!window.charts) window.charts = {};
+    
+    window.charts.inventoryComposition = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Raw Fiber (Grams)', 'Finished Cloth (Meters)'],
+            datasets: [{
+                data: [62, 38],
+                backgroundColor: ['#3b82f6', '#a855f7'],
+                borderColor: ['#1e40af', '#6d28d9'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: { size: 12 }
+                    }
+                }
             }
         }
     });

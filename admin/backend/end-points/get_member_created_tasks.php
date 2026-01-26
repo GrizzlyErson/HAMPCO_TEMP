@@ -19,10 +19,11 @@ try {
                 mst.length_m,
                 mst.width_in,
                 mst.date_created,
-                mst.status
+                mst.status,
+                mst.approval_status
             FROM member_self_tasks mst
             LEFT JOIN user_member um ON mst.member_id = um.id
-            WHERE mst.status = 'pending'
+            WHERE mst.approval_status = 'pending'
             ORDER BY mst.date_created DESC";
             
     $result = $conn->query($sql);

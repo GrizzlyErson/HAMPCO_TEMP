@@ -1,12 +1,13 @@
 <?php
-header('Content-Type: application/json');
 session_start();
+header('Content-Type: application/json');
 
 // Include database connection
 require_once '../dbconnect.php';
 
 // Check if user is admin
-if (!isset($_SESSION['admin_id'])) {
+if (!isset($_SESSION['id']) || $_SESSION['user_type'] !== 'admin') {
+    http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit();
 }
@@ -22,19 +23,21 @@ if ($task_id <= 0) {
 
 try {
     // Update member_self_task status to 'rejected'
-    $stmt = $db->prepare("UPDATE member_self_tasks SET status = 'rejected' WHERE id = ?");
+    $stmt = $db->conn->prepare("UPDATE member_self_tasks SET status = 'rejected' WHERE id = ?");
+    if (!$stmt) {
+        throw new Exception('Prepare failed: ' . $db->conn->error);
+    }
     $stmt->bind_param("i", $task_id);
     
     if ($stmt->execute()) {
-        echo json_encode(['success' => true, 'message' => 'Task rejected']);
+        echo json_encode(['success' => true, 'message' => 'Task rejected successfully']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to reject task']);
     }
     
     $stmt->close();
 } catch (Exception $e) {
+    http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
-
-$db->close();
 ?>

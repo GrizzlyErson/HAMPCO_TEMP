@@ -1,12 +1,13 @@
 <?php
-header('Content-Type: application/json');
 session_start();
+header('Content-Type: application/json');
 
 // Include database connection
 require_once '../dbconnect.php';
 
 // Check if user is admin
-if (!isset($_SESSION['admin_id'])) {
+if (!isset($_SESSION['id']) || $_SESSION['user_type'] !== 'admin') {
+    http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit();
 }
@@ -21,20 +22,22 @@ if ($member_id <= 0) {
 }
 
 try {
-    // Mark member as rejected (set member_verify to -1)
-    $stmt = $db->prepare("UPDATE user_member SET member_verify = -1 WHERE id = ?");
+    // Mark member as rejected (set status to -1)
+    $stmt = $db->conn->prepare("UPDATE user_member SET status = -1 WHERE id = ?");
+    if (!$stmt) {
+        throw new Exception('Prepare failed: ' . $db->conn->error);
+    }
     $stmt->bind_param("i", $member_id);
     
     if ($stmt->execute()) {
-        echo json_encode(['success' => true, 'message' => 'Member rejected']);
+        echo json_encode(['success' => true, 'message' => 'Member rejected successfully']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to reject member']);
     }
     
     $stmt->close();
 } catch (Exception $e) {
+    http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
-
-$db->close();
 ?>

@@ -687,7 +687,7 @@ require_once "components/header.php";
                     if (memberTasksList) {
                         if (memberTasksCount > 0) {
                             memberTasksList.innerHTML = memberTasksData.data.map(task => `
-                                <li style="padding: 12px; background-color: #dbeafe; border-radius: 6px; border: 1px solid #bfdbfe; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;" 
+                                <li data-task-id="${task.id}" style="padding: 12px; background-color: #dbeafe; border-radius: 6px; border: 1px solid #bfdbfe; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;" 
                                     onmouseover="this.style.backgroundColor='#93c5fd'" 
                                     onmouseout="this.style.backgroundColor='#dbeafe'">
                                     <div>
@@ -1354,6 +1354,7 @@ require_once "components/header.php";
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify({ member_id: memberId })
         })
         .then(response => response.json())
@@ -1377,6 +1378,7 @@ require_once "components/header.php";
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify({ member_id: memberId })
         })
         .then(response => response.json())
@@ -1400,13 +1402,25 @@ require_once "components/header.php";
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify({ task_id: taskId })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 alertify.success('Member task approved!');
-                updateNotifications();
+                // Remove the task from the DOM immediately
+                const memberTasksList = document.getElementById('memberCreatedTasksList');
+                if (memberTasksList) {
+                    const taskElement = memberTasksList.querySelector(`li[data-task-id="${taskId}"]`);
+                    if (taskElement) {
+                        taskElement.style.transition = 'opacity 0.3s ease';
+                        taskElement.style.opacity = '0';
+                        setTimeout(() => taskElement.remove(), 300);
+                    }
+                }
+                // Update notifications after a short delay to be sure
+                setTimeout(updateNotifications, 500);
             } else {
                 alertify.error('Error approving task: ' + (data.message || 'Unknown error'));
             }
@@ -1423,6 +1437,7 @@ require_once "components/header.php";
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify({ task_id: taskId })
         })
         .then(response => response.json())
@@ -1446,6 +1461,7 @@ require_once "components/header.php";
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify({ task_id: taskId })
         })
         .then(response => response.json())
@@ -1469,6 +1485,7 @@ require_once "components/header.php";
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify({ task_id: taskId })
         })
         .then(response => response.json())

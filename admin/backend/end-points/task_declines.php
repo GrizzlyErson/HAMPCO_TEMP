@@ -2,102 +2,69 @@
 session_start();
 header('Content-Type: application/json');
 
-require_once "../class.php";
-require_once "../helpers/task_decline_helper.php";
+require_once "../dbconnect.php";
 
 try {
-    $db = new global_class();
-    $conn = $db->conn;
-
-    if (!$conn) {
-        throw new Exception('Database connection failed.');
+    // Check if user is logged in
+    if (!isset($_SESSION['id']) || $_SESSION['user_type'] !== 'admin') {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+        exit();
     }
 
-    ensureTaskDeclineTable($conn);
+    // Ensure the decline_reason and decline_status columns exist
+    $alterTableQuery = "
+        ALTER TABLE task_assignments 
+        ADD COLUMN IF NOT EXISTS decline_reason TEXT NULL,
+        ADD COLUMN IF NOT EXISTS decline_status VARCHAR(20) NULL DEFAULT NULL
+    ";
+    $db->conn->query($alterTableQuery);
 
     $action = $_GET['action'] ?? $_POST['action'] ?? 'list';
 
     switch ($action) {
-        case 'count':
-            $countSql = "SELECT 
-                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending,
-                SUM(CASE WHEN status = 'responded' THEN 1 ELSE 0 END) AS awaiting_member
-            FROM task_decline_notifications";
-            $countResult = $conn->query($countSql);
-            $counts = $countResult ? $countResult->fetch_assoc() : ['pending' => 0, 'awaiting_member' => 0];
-            echo json_encode([
-                'success' => true,
-                'counts' => [
-                    'pending' => intval($counts['pending'] ?? 0),
-                    'awaiting_member' => intval($counts['awaiting_member'] ?? 0),
-                ]
-            ]);
-            break;
-
-        case 'respond':
-            $declineId = intval($_POST['decline_id'] ?? 0);
-            $message = trim($_POST['message'] ?? '');
-
-            if ($declineId <= 0 || $message === '') {
-                throw new Exception('Decline ID and message are required.');
-            }
-
-            saveDeclineAdminMessage($conn, $declineId, $message);
-
-            echo json_encode([
-                'success' => true,
-                'message' => 'Explanation sent to member.'
-            ]);
-            break;
-
         case 'list':
         default:
             $statusFilter = $_GET['status'] ?? 'all';
-            $validStatuses = ['pending', 'responded', 'acknowledged', 'all'];
-            if (!in_array($statusFilter, $validStatuses, true)) {
-                $statusFilter = 'all';
-            }
-
+            
+            // Get declined tasks from task_assignments table
             $query = "
                 SELECT 
-                    tdn.id,
-                    tdn.task_assignment_id,
-                    tdn.prod_line_id,
-                    CONCAT('PL', LPAD(tdn.prod_line_id, 4, '0')) AS production_code,
+                    ta.id,
+                    ta.prod_line_id,
+                    CONCAT('PL', LPAD(ta.prod_line_id, 4, '0')) AS production_code,
                     pl.product_name,
                     um.fullname AS member_name,
                     um.member_role,
-                    tdn.member_reason,
-                    tdn.admin_message,
-                    tdn.status,
-                    tdn.declined_at,
-                    tdn.admin_message_at
-                FROM task_decline_notifications tdn
-                LEFT JOIN production_line pl ON tdn.prod_line_id = pl.prod_line_id
-                LEFT JOIN user_member um ON tdn.member_id = um.id
+                    ta.decline_reason AS member_reason,
+                    ta.updated_at AS declined_at
+                FROM task_assignments ta
+                LEFT JOIN production_line pl ON ta.prod_line_id = pl.prod_line_id
+                LEFT JOIN user_member um ON ta.member_id = um.id
+                WHERE ta.status = 'declined'
             ";
 
-            if ($statusFilter !== 'all') {
-                $query .= " WHERE tdn.status = ? ";
+            if ($statusFilter === 'pending') {
+                $query .= " AND ta.decline_status IS NULL ";
+            } elseif ($statusFilter === 'cleared') {
+                $query .= " AND ta.decline_status = 'cleared' ";
             }
 
-            $query .= " ORDER BY tdn.declined_at DESC LIMIT 50";
+            $query .= " ORDER BY ta.updated_at DESC LIMIT 50";
 
-            $stmt = $conn->prepare($query);
+            $stmt = $db->conn->prepare($query);
             if (!$stmt) {
-                throw new Exception('Failed to prepare decline query: ' . $conn->error);
-            }
-
-            if ($statusFilter !== 'all') {
-                $stmt->bind_param('s', $statusFilter);
+                throw new Exception('Failed to prepare query: ' . $db->conn->error);
             }
 
             $stmt->execute();
             $result = $stmt->get_result();
             $declines = [];
+            
             while ($row = $result->fetch_assoc()) {
                 $declines[] = $row;
             }
+            
             $stmt->close();
 
             echo json_encode([
@@ -106,16 +73,30 @@ try {
                 'count' => count($declines)
             ]);
             break;
-            $stmt->close();
 
+        case 'clear_all':
+            // Mark all declined notifications as cleared
+            $updateQuery = "UPDATE task_assignments SET decline_status = 'cleared' WHERE status = 'declined' AND decline_status IS NULL";
+            $stmt = $db->conn->prepare($updateQuery);
+            if (!$stmt) {
+                throw new Exception('Failed to prepare update query: ' . $db->conn->error);
+            }
+            
+            $stmt->execute();
+            $affected = $stmt->affected_rows;
+            $stmt->close();
+            
             echo json_encode([
                 'success' => true,
-                'declines' => $declines
+                'message' => 'Declined notifications cleared',
+                'affected' => $affected
             ]);
             break;
     }
+
 } catch (Exception $e) {
     http_response_code(400);
+    error_log('task_declines.php error: ' . $e->getMessage());
     echo json_encode([
         'success' => false,
         'error' => $e->getMessage()

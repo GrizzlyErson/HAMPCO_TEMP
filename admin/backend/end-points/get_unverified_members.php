@@ -12,7 +12,7 @@ try {
     if ($unverified && $unverified->num_rows > 0) {
         while ($row = $unverified->fetch_assoc()) {
             $members[] = [
-                'id' => $row['umid'],
+                'member_id' => $row['umid'],
                 'member_fullname' => $row['umfullname'],
                 'member_role' => $row['umrole'],
                 'member_phone' => $row['umphone'],
