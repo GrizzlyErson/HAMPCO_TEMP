@@ -28,7 +28,8 @@ try {
     error_log("Decoded data: " . print_r($data, true));
 
     if (!isset($data['prod_line_id'])) {
-        throw new Exception('Production line ID is required');
+        error_log("Missing prod_line_id. Data received: " . print_r($data, true));
+        throw new Exception('Production line ID is required. Received data: ' . json_encode($data));
     }
 
     $member_id = $_SESSION['id'];
@@ -47,52 +48,101 @@ try {
     }
 
     try {
-        // First check if the task is actually in progress
+        // First check if the task is a self-assigned task or assigned task
+        // Try member_self_tasks first - search by numeric production_id
+        // The production_id might be stored as "PL0077" or as integer 77
         $check_task = $conn->prepare("
-            SELECT status 
-            FROM task_assignments 
+            SELECT status, 'self' as task_type, production_id
+            FROM member_self_tasks 
             WHERE member_id = ? 
-            AND prod_line_id = ?
+            AND (production_id = ? OR production_id = CONCAT('PL', LPAD(?, 4, '0')))
         ");
         
         if (!$check_task) {
-            throw new Exception("Failed to prepare task check query: " . implode(", ", $conn->errorInfo()));
+            throw new Exception("Failed to prepare self-task check query: " . implode(", ", $conn->errorInfo()));
         }
 
         $check_task->bindParam(1, $member_id, PDO::PARAM_INT);
         $check_task->bindParam(2, $prod_line_id, PDO::PARAM_INT);
+        $check_task->bindParam(3, $prod_line_id, PDO::PARAM_INT);
         if (!$check_task->execute()) {
-            throw new Exception("Failed to check task status: " . implode(", ", $check_task->errorInfo()));
+            throw new Exception("Failed to check self-task status: " . implode(", ", $check_task->errorInfo()));
         }
 
         $result = $check_task->fetch(PDO::FETCH_ASSOC);
+        $task_type = 'self';
+
+        // If not found in self_tasks, try task_assignments
         if (!$result) {
+            $check_task = $conn->prepare("
+                SELECT status, 'assigned' as task_type
+                FROM task_assignments 
+                WHERE member_id = ? 
+                AND prod_line_id = ?
+            ");
+            
+            if (!$check_task) {
+                throw new Exception("Failed to prepare task check query: " . implode(", ", $conn->errorInfo()));
+            }
+
+            $check_task->bindParam(1, $member_id, PDO::PARAM_INT);
+            $check_task->bindParam(2, $prod_line_id, PDO::PARAM_INT);
+            if (!$check_task->execute()) {
+                throw new Exception("Failed to check task status: " . implode(", ", $check_task->errorInfo()));
+            }
+
+            $result = $check_task->fetch(PDO::FETCH_ASSOC);
+            $task_type = 'assigned';
+        }
+
+        if (!$result) {
+            error_log("Task not found for member_id: $member_id, prod_line_id: $prod_line_id");
             throw new Exception("Task not found");
         }
 
         $task_status = $result['status'];
-        error_log("Current task status: $task_status");
+        error_log("Current task status: $task_status (task_type: $task_type)");
 
         if ($task_status !== 'in_progress') {
             throw new Exception("Task cannot be submitted because it is not in progress (current status: " . $task_status . ")");
         }
 
-        // Update task_assignments status to submitted
-        $update_task = $conn->prepare("
-            UPDATE task_assignments 
-            SET status = 'submitted',
-                updated_at = NOW()
-            WHERE member_id = ? 
-            AND prod_line_id = ? 
-            AND status = 'in_progress'
-        ");
+        // Update task status based on task type
+        if ($task_type === 'self') {
+            $update_task = $conn->prepare("
+                UPDATE member_self_tasks 
+                SET status = 'submitted',
+                    date_submitted = NOW()
+                WHERE member_id = ? 
+                AND (production_id = ? OR production_id = CONCAT('PL', LPAD(?, 4, '0')))
+                AND status = 'in_progress'
+            ");
+            $update_task->bindParam(1, $member_id, PDO::PARAM_INT);
+            $update_task->bindParam(2, $prod_line_id, PDO::PARAM_INT);
+            $update_task->bindParam(3, $prod_line_id, PDO::PARAM_INT);
+        } else {
+            $update_task = $conn->prepare("
+                UPDATE task_assignments 
+                SET status = 'submitted',
+                    updated_at = NOW()
+                WHERE member_id = ? 
+                AND prod_line_id = ? 
+                AND status = 'in_progress'
+            ");
+            $update_task->bindParam(1, $member_id, PDO::PARAM_INT);
+            $update_task->bindParam(2, $prod_line_id, PDO::PARAM_INT);
+        }
 
         if (!$update_task) {
             throw new Exception("Failed to prepare task update query: " . implode(", ", $conn->errorInfo()));
         }
 
-        $update_task->bindParam(1, $member_id, PDO::PARAM_INT);
-        $update_task->bindParam(2, $prod_line_id, PDO::PARAM_INT);
+        // Only bind parameters if not already bound for self-tasks
+        if ($task_type !== 'self') {
+            $update_task->bindParam(1, $member_id, PDO::PARAM_INT);
+            $update_task->bindParam(2, $prod_line_id, PDO::PARAM_INT);
+        }
+
         if (!$update_task->execute()) {
             throw new Exception("Failed to update task status: " . implode(", ", $update_task->errorInfo()));
         }

@@ -542,7 +542,7 @@ $(document).ready(function() {
 
                                                     ` : task.status === 'in_progress' ? `
 
-                                                        <button onclick="showSubmitSummary('${task.production_id}', '${task.product_name}')" 
+                                                        <button onclick="showSubmitSummary('${task.production_id}', '${task.product_name}', 'self')" 
 
                                                         class="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm py-2 px-4 rounded">
 
@@ -668,7 +668,7 @@ $(document).ready(function() {
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                     ${task.status === 'in_progress' ? `
                                     <button class="submit-task-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md" 
-                                            onclick="showSubmitSummary('${task.prod_line_id}', '${task.product_name}')">
+                                            onclick="showSubmitSummary('${task.prod_line_id}', '${task.product_name}', 'assigned')">
                                         Submit
                                     </button>
                                     ` : ''}
@@ -1403,7 +1403,16 @@ function updateTaskStatus(productionId, action) {
     });
 }
 
-function showSubmitSummary(prodLineId, prodName) {
+function showSubmitSummary(prodLineId, prodName, taskType = 'assigned') {
+    console.log('showSubmitSummary called with:', { prodLineId, prodName, taskType }); // Debug
+    
+    // Validate inputs
+    if (!prodLineId || !prodName) {
+        Swal.fire('Error!', 'Invalid task information. Please refresh the page and try again.', 'error');
+        console.error('Invalid inputs:', { prodLineId, prodName, taskType });
+        return;
+    }
+    
     // Determine fields based on product name
     const isWeightBased = ['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'].includes(prodName);
     const isDimensionsBased = ['Piña Seda', 'Pure Piña Cloth'].includes(prodName);
@@ -1474,20 +1483,34 @@ function showSubmitSummary(prodLineId, prodName) {
             return data;
         }
     }).then((result) => {
+        console.log('Swal result:', { result, taskType }); // Debug
         if (result.isConfirmed) {
-            submitTaskData(prodLineId, result.value);
+            submitTaskData(prodLineId, result.value, taskType);
         }
     });
 }
 
-function submitTaskData(prodLineId, data) {
-    // Remove 'PL' prefix and leading zeros if present for backend compatibility
-    const numericId = prodLineId.toString().replace('PL', '').replace(/^0+/, '');
+function submitTaskData(prodLineId, data, taskType = 'assigned') {
+    // Convert to string and remove 'PL' prefix and leading zeros if present
+    const cleanId = prodLineId.toString().replace('PL', '').replace(/^0+/, '');
+    const numericId = parseInt(cleanId);
+    
+    console.log('submitTaskData - Raw input:', { prodLineId, taskType, cleanId, numericId }); // Debug
+    
+    // Validate that we have a valid numeric ID
+    if (isNaN(numericId) || numericId === 0) {
+        Swal.fire('Error!', 'Invalid task ID. Please try again.', 'error');
+        console.error('Invalid numeric ID:', prodLineId, 'cleaned to:', cleanId, 'converted to:', numericId);
+        return;
+    }
     
     const payload = {
         prod_line_id: numericId,
         ...data
     };
+
+    console.log('Submitting task with payload:', payload); // Debug log
+    console.log('Payload as JSON:', JSON.stringify(payload)); // Debug
 
     fetch('backend/end-points/submit_task.php', {
         method: 'POST',
@@ -1496,8 +1519,12 @@ function submitTaskData(prodLineId, data) {
         },
         body: JSON.stringify(payload)
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status); // Debug
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data); // Debug
         if (data.success) {
             Swal.fire('Success!', 'Task submitted successfully.', 'success').then(() => {
                 window.location.reload();
@@ -1507,7 +1534,7 @@ function submitTaskData(prodLineId, data) {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('Fetch error:', error);
         Swal.fire('Error!', 'An error occurred while submitting.', 'error');
     });
 }
