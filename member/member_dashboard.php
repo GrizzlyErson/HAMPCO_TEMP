@@ -745,40 +745,118 @@ document.addEventListener('DOMContentLoaded', function() {
                 notificationDot.style.display = hasNotifications ? 'block' : 'none';
             }
 
-            // Render Assigned Tasks
+            // Render Assigned Tasks (with all statuses)
             if (assignedTasksList) {
                 if (assignedCount > 0) {
-                    assignedTasksList.innerHTML = assignedTasksData.assignments.map(task => `
-                        <li style="padding: 12px; background-color: #e8f5e9; border-radius: 6px; border: 1px solid #c8e6c9; margin-bottom: 8px; cursor: pointer; transition: all 0.3s ease;" 
-                            class="notification-item assigned-task-notification" 
-                            data-task-id="${task.id}" 
-                            data-prod-id="${task.prod_line_id}"
-                            onmouseover="this.style.backgroundColor='#a5d6a7'" 
-                            onmouseout="this.style.backgroundColor='#e8f5e9'">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <div style="flex: 1;">
-                                    <h4 style="font-weight: 600; color: #1b5e20; margin: 0; font-size: 14px;">New Assignment: ${escapeHtml(task.product_name)}</h4>
-                                    <p style="font-size: 12px; color: #388e3c; margin: 4px 0 0 0;">Production ID: ${escapeHtml(task.prod_line_id)}</p>
-                                    <p style="font-size: 12px; color: #388e3c; margin: 4px 0 0 0;">Role: ${escapeHtml(task.role)}</p>
-                                    <p style="font-size: 12px; color: #388e3c; margin: 4px 0 0 0;">Deadline: ${new Date(task.deadline).toLocaleDateString()}</p>
+                    assignedTasksList.innerHTML = assignedTasksData.assignments.map(task => {
+                        let bgColor = '#e8f5e9';
+                        let borderColor = '#c8e6c9';
+                        let textColor = '#1b5e20';
+                        let hoverColor = '#a5d6a7';
+                        let badgeBg = '#66bb6a';
+                        let badgeText = 'New';
+                        let statusIcon = '📋';
+                        
+                        // Determine colors based on task status
+                        if (task.status === 'in_progress') {
+                            bgColor = '#fff3e0';
+                            borderColor = '#ffe0b2';
+                            textColor = '#e65100';
+                            hoverColor = '#ffcc80';
+                            badgeBg = '#ff9800';
+                            badgeText = 'In Progress';
+                            statusIcon = '⚙️';
+                        } else if (task.status === 'submitted') {
+                            bgColor = '#e3f2fd';
+                            borderColor = '#bbdefb';
+                            textColor = '#01579b';
+                            hoverColor = '#90caf9';
+                            badgeBg = '#2196f3';
+                            badgeText = 'Submitted';
+                            statusIcon = '✓';
+                        } else if (task.status === 'approved') {
+                            bgColor = '#e8f5e9';
+                            borderColor = '#c8e6c9';
+                            textColor = '#1b5e20';
+                            hoverColor = '#a5d6a7';
+                            badgeBg = '#4caf50';
+                            badgeText = 'Approved';
+                            statusIcon = '✓✓';
+                        } else if (task.status === 'declined') {
+                            bgColor = '#ffebee';
+                            borderColor = '#ffcdd2';
+                            textColor = '#b71c1c';
+                            hoverColor = '#ef9a9a';
+                            badgeBg = '#f44336';
+                            badgeText = 'Declined';
+                            statusIcon = '✕';
+                        }
+                        
+                        let declineReasonHtml = '';
+                        if (task.status === 'declined' && task.decline_reason) {
+                            declineReasonHtml = `
+                                <button class="view-decline-reason-btn" 
+                                    data-id="${task.id}" 
+                                    data-prod="${encodeURIComponent(task.prod_line_id || '')}" 
+                                    data-product="${encodeURIComponent(task.product_name || '')}" 
+                                    data-member="${encodeURIComponent(task.member_name || '')}"
+                                    data-reason="${encodeURIComponent(task.decline_reason || '')}"
+                                    style="align-self: flex-start; margin-top: 8px; padding: 6px 10px; background-color: #dc2626; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                    View Decline Reason
+                                </button>`;
+                        }
+                        
+                        return `
+                            <li style="padding: 12px; background-color: ${bgColor}; border-radius: 6px; border: 1px solid ${borderColor}; margin-bottom: 8px; cursor: pointer; transition: all 0.3s ease;" 
+                                class="notification-item assigned-task-notification" 
+                                data-task-id="${task.id}" 
+                                data-prod-id="${task.prod_line_id}"
+                                data-status="${task.status || 'pending'}"
+                                onmouseover="this.style.backgroundColor='${hoverColor}'" 
+                                onmouseout="this.style.backgroundColor='${bgColor}'">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div style="flex: 1;">
+                                        <h4 style="font-weight: 600; color: ${textColor}; margin: 0; font-size: 14px;">${statusIcon} Task ${badgeText}: ${escapeHtml(task.product_name)}</h4>
+                                        <p style="font-size: 12px; color: ${textColor}; margin: 4px 0 0 0;">Production ID: ${escapeHtml(task.prod_line_id)}</p>
+                                        <p style="font-size: 12px; color: ${textColor}; margin: 4px 0 0 0;">Role: ${escapeHtml(task.role)}</p>
+                                        <p style="font-size: 12px; color: ${textColor}; margin: 4px 0 0 0;">Deadline: ${new Date(task.deadline).toLocaleDateString()}</p>
+                                    </div>
+                                    <span style="padding: 4px 8px; background-color: ${badgeBg}; color: white; border-radius: 9999px; font-size: 12px; white-space: nowrap; margin-left: 8px;">${badgeText}</span>
                                 </div>
-                                <span style="padding: 4px 8px; background-color: #66bb6a; color: white; border-radius: 9999px; font-size: 12px; white-space: nowrap; margin-left: 8px;">New</span>
-                            </div>
-                        </li>
-                    `).join('');
+                                ${declineReasonHtml}
+                            </li>
+                        `;
+                    }).join('');
 
                     assignedTasksList.querySelectorAll('.assigned-task-notification').forEach(item => {
                         item.addEventListener('click', function() {
                             const taskId = this.dataset.taskId;
                             const prodId = this.dataset.prodId;
-                            // Mark as read and redirect to production page for this task
-                            markNotificationRead(taskId, 'assigned_task'); // Assuming notification_id is task.id and type
+                            markNotificationRead(taskId, 'assigned_task');
                             window.location.href = `production.php?tab=assigned&prod_id=${prodId}`;
+                        });
+                    });
+                    
+                    assignedTasksList.querySelectorAll('.view-decline-reason-btn').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const declineId = this.dataset.id;
+                            const production = decodeURIComponent(this.dataset.prod || '');
+                            const productName = decodeURIComponent(this.dataset.product || '');
+                            const memberName = decodeURIComponent(this.dataset.member || '');
+                            const reason = decodeURIComponent(this.dataset.reason || '');
+                            showDeclineReasonModal({
+                                id: declineId,
+                                production,
+                                productName,
+                                memberName,
+                                reason
+                            });
                         });
                     });
 
                 } else {
-                    assignedTasksList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new task assignments</li>';
+                    assignedTasksList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No task assignments</li>';
                 }
             }
 
@@ -786,15 +864,29 @@ document.addEventListener('DOMContentLoaded', function() {
             if (taskApprovalList) {
                 if (approvalCount > 0) {
                     taskApprovalList.innerHTML = taskApprovalData.notifications.map(notif => {
-                        const isApproved = notif.status === 'approved';
-                        const bgColor = isApproved ? '#e0f2f7' : '#ffebee';
-                        const borderColor = isApproved ? '#b2ebf2' : '#ffcdd2';
-                        const textColor = isApproved ? '#006064' : '#c62828';
-                        const badgeBg = isApproved ? '#4dd0e1' : '#ef5350';
-                        const badgeText = isApproved ? 'Approved' : 'Rejected';
+                        let isApproved = notif.status === 'approved';
+                        let isDeclined = notif.status === 'declined' || notif.notification_type === 'task_decline';
+                        
+                        let bgColor = '#e0f2f7';
+                        let borderColor = '#b2ebf2';
+                        let textColor = '#006064';
+                        let hoverColor = '#80deea';
+                        let badgeBg = '#4dd0e1';
+                        let badgeText = 'Approved';
+                        let statusIcon = '✓✓';
+                        
+                        if (isDeclined) {
+                            bgColor = '#ffebee';
+                            borderColor = '#ffcdd2';
+                            textColor = '#c62828';
+                            hoverColor = '#ef9a9a';
+                            badgeBg = '#ef5350';
+                            badgeText = 'Declined';
+                            statusIcon = '✕';
+                        }
 
                         let declineReasonHtml = '';
-                        if (notif.reason && !isApproved) {
+                        if (notif.reason && (isDeclined || notif.status === 'rejected')) {
                              declineReasonHtml = `
                                 <button class="view-decline-reason-btn" 
                                     data-id="${notif.id}" 
@@ -811,11 +903,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             <li style="padding: 12px; background-color: ${bgColor}; border-radius: 6px; border: 1px solid ${borderColor}; margin-bottom: 8px; cursor: pointer; transition: all 0.3s ease;" 
                                 class="notification-item approval-notification" 
                                 data-notification-id="${notif.id}"
-                                onmouseover="this.style.backgroundColor='${isApproved ? '#80deea' : '#ef9a9a'}'" 
+                                onmouseover="this.style.backgroundColor='${hoverColor}'" 
                                 onmouseout="this.style.backgroundColor='${bgColor}'">
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                     <div style="flex: 1;">
-                                        <h4 style="font-weight: 600; color: ${textColor}; margin: 0; font-size: 14px;">Task ${badgeText}: ${escapeHtml(notif.product_name)}</h4>
+                                        <h4 style="font-weight: 600; color: ${textColor}; margin: 0; font-size: 14px;">${statusIcon} Task ${badgeText}: ${escapeHtml(notif.product_name)}</h4>
                                         <p style="font-size: 12px; color: ${textColor}; margin: 4px 0 0 0;">Production ID: ${escapeHtml(notif.production_id)}</p>
                                         <p style="font-size: 12px; color: ${textColor}; margin: 4px 0 0 0;">Submitted: ${new Date(notif.submitted_at).toLocaleDateString()}</p>
                                     </div>
@@ -835,7 +927,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     taskApprovalList.querySelectorAll('.view-decline-reason-btn').forEach(btn => {
                         btn.addEventListener('click', function(e) {
-                            e.stopPropagation(); // Prevent parent li click
+                            e.stopPropagation();
                             const declineId = this.dataset.id;
                             const production = decodeURIComponent(this.dataset.prod || '');
                             const productName = decodeURIComponent(this.dataset.product || '');
@@ -852,7 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
 
                 } else {
-                    taskApprovalList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new task approval updates</li>';
+                    taskApprovalList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No task approval updates</li>';
                 }
             }
         })
@@ -868,8 +960,8 @@ document.addEventListener('DOMContentLoaded', function() {
         updateNotifications();
     }, 500);
 
-    // Check for new notifications every 30 seconds
-    setInterval(updateNotifications, 30000);
+    // Check for new notifications every 10 seconds for real-time updates
+    setInterval(updateNotifications, 10000);
 
     const notificationBell = document.querySelector('button[title="Notifications"]');
     if (notificationBell) {

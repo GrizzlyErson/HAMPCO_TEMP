@@ -1,10 +1,12 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-require_once '../../function/database.php';
-require_once '../../backend/class.php';
+require_once '../dbconnect.php';
+require_once '../class.php';
 
-$db = new Database();
+$db = new global_class();
+$conn = $db->conn;
+
 $member_id = $_SESSION['id'] ?? 0;
 
 if ($member_id === 0) {
@@ -36,9 +38,9 @@ try {
             ORDER BY
                 tar.submitted_at DESC";
 
-    $stmt_approvals = $db->conn->prepare($sql_approvals);
+    $stmt_approvals = $conn->prepare($sql_approvals);
     if (!$stmt_approvals) {
-        throw new Exception("Prepare failed for approvals: " . $db->conn->error);
+        throw new Exception("Prepare failed for approvals: " . $conn->error);
     }
     $stmt_approvals->bind_param("i", $member_id);
     $stmt_approvals->execute();
@@ -71,9 +73,9 @@ try {
             ORDER BY
                 ta.updated_at DESC";
 
-    $stmt_declines = $db->conn->prepare($sql_declines);
+    $stmt_declines = $conn->prepare($sql_declines);
     if (!$stmt_declines) {
-        throw new Exception("Prepare failed for declines: " . $db->conn->error);
+        throw new Exception("Prepare failed for declines: " . $conn->error);
     }
     $stmt_declines->bind_param("i", $member_id);
     $stmt_declines->execute();

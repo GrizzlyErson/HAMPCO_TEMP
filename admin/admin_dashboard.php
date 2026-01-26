@@ -50,8 +50,8 @@ require_once "components/header.php";
                         <h1 class="h3 mb-0 text-gray-800">Admin Dashboard</h1>
 
                         <!-- Notification Bell Icon -->
-                    <button class="relative focus:outline-none" title="Notifications">
-                        <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button class="relative focus:outline-none" title="Notifications" style="background: none; border: none; cursor: pointer; padding: 10px; z-index: 10000; position: relative;">
+                        <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 32px; height: 32px;">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
@@ -61,7 +61,7 @@ require_once "components/header.php";
                     </div>
 
                     <!-- Notification Modal -->
-                    <div id="notificationModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 9999; display: flex; justify-content: center; align-items: center;">
+                    <div id="notificationModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 9999; flex-direction: column; justify-content: center; align-items: center;">
                         <div style="width: 100%; max-width: 500px; background-color: white; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; max-height: 600px; margin: 20px;">
                             <!-- Modal Header -->
                             <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #e5e7eb;">
@@ -85,6 +85,14 @@ require_once "components/header.php";
                                 <div style="margin-bottom: 24px;">
                                     <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Order Notifications</h4>
                                     <ul id="orderNotificationsList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                                        <li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Member Created Tasks Section -->
+                                <div style="margin-bottom: 24px;">
+                                    <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">New Member Tasks</h4>
+                                    <ul id="memberCreatedTasksList" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
                                         <li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>
                                     </ul>
                                 </div>
@@ -531,9 +539,11 @@ require_once "components/header.php";
                 // Show loading state
                 const unverifiedList = document.getElementById('unverifiedMembersList');
                 const ordersList = document.getElementById('orderNotificationsList');
+                const memberTasksList = document.getElementById('memberCreatedTasksList');
                 const declinedList = document.getElementById('declinedTasksList');
                 if (unverifiedList) unverifiedList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>';
                 if (ordersList) ordersList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>';
+                if (memberTasksList) memberTasksList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>';
                 if (declinedList) declinedList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">Loading...</li>';
                 
                 Promise.all([
@@ -555,6 +565,15 @@ require_once "components/header.php";
                             console.error('Error fetching notifications:', e);
                             return { notifications: [] };
                         }),
+                    fetch('backend/end-points/get_member_created_tasks.php')
+                        .then(r => {
+                            console.log('Get member created tasks response status:', r.status);
+                            return r.json();
+                        })
+                        .catch(e => {
+                            console.error('Error fetching member created tasks:', e);
+                            return { success: false, data: [] };
+                        }),
                     fetch('backend/end-points/task_declines.php?action=list&status=pending')
                         .then(r => {
                             console.log('Get declined tasks response status:', r.status);
@@ -568,8 +587,8 @@ require_once "components/header.php";
                             return { success: false, declines: [], error: e.message };
                         })
                 ])
-                .then(([memberData, notifData, declineData]) => {
-                    console.log('Notification data:', memberData, notifData, declineData);
+                .then(([memberData, notifData, memberTasksData, declineData]) => {
+                    console.log('Notification data:', memberData, notifData, memberTasksData, declineData);
                     
                     const notificationBell = document.querySelector('button[title="Notifications"]');
                     if (!notificationBell) {
@@ -580,16 +599,18 @@ require_once "components/header.php";
                     const notificationDot = notificationBell.querySelector('span');
                     const unverifiedList = document.getElementById('unverifiedMembersList');
                     const ordersList = document.getElementById('orderNotificationsList');
+                    const memberTasksList = document.getElementById('memberCreatedTasksList');
                     const declinedList = document.getElementById('declinedTasksList');
                     
                     // Check if we have notifications
                     const memberCount = Array.isArray(memberData) ? memberData.length : 0;
                     const notificationCount = (notifData && notifData.notifications) ? notifData.notifications.length : 0;
+                    const memberTasksCount = (memberTasksData && memberTasksData.success && Array.isArray(memberTasksData.data)) ? memberTasksData.data.length : 0;
                     const declineItems = (declineData && declineData.success && Array.isArray(declineData.declines)) ? declineData.declines : [];
                     const declineCount = declineItems.length;
-                    const hasNotifications = memberCount > 0 || notificationCount > 0 || declineCount > 0;
+                    const hasNotifications = memberCount > 0 || notificationCount > 0 || memberTasksCount > 0 || declineCount > 0;
                     
-                    console.log('Has notifications:', hasNotifications, '(members:', memberCount, 'orders:', notificationCount, 'declines:', declineCount, ')');
+                    console.log('Has notifications:', hasNotifications, '(members:', memberCount, 'orders:', notificationCount, 'memberTasks:', memberTasksCount, 'declines:', declineCount, ')');
                     
                     // Update notification dot visibility
                     if (notificationDot) {
@@ -600,7 +621,7 @@ require_once "components/header.php";
                     if (unverifiedList) {
                         if (Array.isArray(memberData) && memberData.length > 0) {
                             unverifiedList.innerHTML = memberData.map(member => `
-                                <li style="padding: 12px; background-color: #fffbeb; border-radius: 6px; border: 1px solid #fef3c7; margin-bottom: 8px; cursor: pointer; transition: all 0.3s ease;" class="notification-item" data-member-id="${member.member_id}" onmouseover="this.style.backgroundColor='#fef08a'" onmouseout="this.style.backgroundColor='#fffbeb'">
+                                <li style="padding: 12px; background-color: #fffbeb; border-radius: 6px; border: 1px solid #fef3c7; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;" class="notification-item" data-member-id="${member.member_id}" onmouseover="this.style.backgroundColor='#fef08a'" onmouseout="this.style.backgroundColor='#fffbeb'">
                                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                         <div style="flex: 1;">
                                             <h4 style="font-weight: 600; color: #1f2937; margin: 0; font-size: 14px;">${member.member_fullname}</h4>
@@ -609,13 +630,28 @@ require_once "components/header.php";
                                         </div>
                                         <span style="padding: 4px 8px; background-color: #fcd34d; color: #92400e; border-radius: 9999px; font-size: 12px; white-space: nowrap; margin-left: 8px;">Pending</span>
                                     </div>
+                                    <div style="display: flex; gap: 6px;">
+                                        <button class="verify-member-btn" data-member-id="${member.member_id}" style="flex: 1; padding: 6px 10px; background-color: #10b981; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; transition: background-color 0.3s;" onclick="event.stopPropagation();">✓ Verify</button>
+                                        <button class="reject-member-btn" data-member-id="${member.member_id}" style="flex: 1; padding: 6px 10px; background-color: #ef4444; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; transition: background-color 0.3s;" onclick="event.stopPropagation();">✕ Reject</button>
+                                        <button style="flex: 1; padding: 6px 10px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; transition: background-color 0.3s;" onclick="event.stopPropagation(); window.location.href='member.php';">View</button>
+                                    </div>
                                 </li>
                             `).join('');
                             
-                            // Add click handlers for member verification notifications
-                            unverifiedList.querySelectorAll('.notification-item').forEach(item => {
-                                item.addEventListener('click', function() {
-                                    window.location.href = 'member.php';
+                            // Add click handlers for member verification buttons
+                            unverifiedList.querySelectorAll('.verify-member-btn').forEach(btn => {
+                                btn.addEventListener('click', function() {
+                                    const memberId = this.getAttribute('data-member-id');
+                                    verifyMember(memberId);
+                                });
+                            });
+                            
+                            unverifiedList.querySelectorAll('.reject-member-btn').forEach(btn => {
+                                btn.addEventListener('click', function() {
+                                    const memberId = this.getAttribute('data-member-id');
+                                    if (confirm('Are you sure you want to reject this member?')) {
+                                        rejectMember(memberId);
+                                    }
                                 });
                             });
                         } else {
@@ -647,14 +683,54 @@ require_once "components/header.php";
                         }
                     }
 
+                    // Update member created tasks notifications
+                    if (memberTasksList) {
+                        if (memberTasksCount > 0) {
+                            memberTasksList.innerHTML = memberTasksData.data.map(task => `
+                                <li style="padding: 12px; background-color: #dbeafe; border-radius: 6px; border: 1px solid #bfdbfe; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;" 
+                                    onmouseover="this.style.backgroundColor='#93c5fd'" 
+                                    onmouseout="this.style.backgroundColor='#dbeafe'">
+                                    <div>
+                                        <h4 style="font-weight: 600; color: #1e40af; margin: 0; font-size: 14px;">📌 ${escapeHtml(task.product_name)}</h4>
+                                        <p style="font-size: 12px; color: #1e3a8a; margin: 4px 0 0 0;">Created by: ${escapeHtml(task.member_name)} (${escapeHtml(task.member_role)})</p>
+                                        <p style="font-size: 12px; color: #1e3a8a; margin: 4px 0 0 0;">Quantity: ${task.quantity} • Weight: ${task.weight_g}g</p>
+                                        <p style="font-size: 11px; color: #6b7280; margin: 4px 0 0 0;">Created: ${new Date(task.date_created).toLocaleString()}</p>
+                                    </div>
+                                    <div style="display: flex; gap: 6px;">
+                                        <button class="approve-task-btn" data-task-id="${task.id}" style="flex: 1; padding: 6px 10px; background-color: #10b981; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; transition: background-color 0.3s;" onclick="event.stopPropagation();">✓ Approve</button>
+                                        <button class="reject-task-btn" data-task-id="${task.id}" style="flex: 1; padding: 6px 10px; background-color: #ef4444; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; transition: background-color 0.3s;" onclick="event.stopPropagation();">✕ Reject</button>
+                                        <button style="flex: 1; padding: 6px 10px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; transition: background-color 0.3s;" onclick="event.stopPropagation(); window.location.href='production_line.php?search=${encodeURIComponent(task.product_name)}';">View</button>
+                                    </div>
+                                </li>
+                            `).join('');
+                            
+                            // Add click handlers for member task buttons
+                            memberTasksList.querySelectorAll('.approve-task-btn').forEach(btn => {
+                                btn.addEventListener('click', function() {
+                                    const taskId = this.getAttribute('data-task-id');
+                                    approveMemberTask(taskId);
+                                });
+                            });
+                            
+                            memberTasksList.querySelectorAll('.reject-task-btn').forEach(btn => {
+                                btn.addEventListener('click', function() {
+                                    const taskId = this.getAttribute('data-task-id');
+                                    if (confirm('Are you sure you want to reject this task?')) {
+                                        rejectMemberTask(taskId);
+                                    }
+                                });
+                            });
+                        } else {
+                            memberTasksList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new member created tasks</li>';
+                        }
+                    }
+
                     // Update declined task notifications
                     if (declinedList) {
                         if (declineCount > 0) {
                             declinedList.innerHTML = declineItems.map(decline => {
-                                const link = `production_line.php?tab=tasks&status=declined&search=${encodeURIComponent(decline.production_code || '')}`;
                                 return `
-                                <li style="padding: 12px; background-color: #fee2e2; border-radius: 6px; border: 1px solid #fecaca; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px; cursor: pointer;" 
-                                    onclick="window.location.href='${link}'"
+                                <li style="padding: 12px; background-color: #fee2e2; border-radius: 6px; border: 1px solid #fecaca; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;" 
                                     onmouseover="this.style.backgroundColor='#fecaca'" 
                                     onmouseout="this.style.backgroundColor='#fee2e2'">
                                     <div>
@@ -663,15 +739,27 @@ require_once "components/header.php";
                                         ${decline.member_reason ? `<p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">Reason: ${escapeHtml(decline.member_reason)}</p>` : ''}
                                         <p style="font-size: 11px; color: #6b7280; margin: 4px 0 0 0;">Declined: ${new Date(decline.declined_at).toLocaleString()}</p>
                                     </div>
-                                    <button class="respond-decline-btn" 
-                                        data-id="${decline.id}" 
-                                        data-prod="${encodeURIComponent(decline.production_code || '')}" 
-                                        data-product="${encodeURIComponent(decline.product_name || '')}" 
-                                        data-member="${encodeURIComponent(decline.member_name || '')}"
-                                        style="align-self: flex-start; padding: 6px 10px; background-color: #dc2626; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;"
-                                        onclick="event.stopPropagation();">
-                                        Add Explanation
-                                    </button>
+                                    <div style="display: flex; gap: 6px;">
+                                        <button class="respond-decline-btn" 
+                                            data-id="${decline.id}" 
+                                            data-prod="${encodeURIComponent(decline.production_code || '')}" 
+                                            data-product="${encodeURIComponent(decline.product_name || '')}" 
+                                            data-member="${encodeURIComponent(decline.member_name || '')}"
+                                            style="flex: 1; padding: 6px 10px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; transition: background-color 0.3s;"
+                                            onclick="event.stopPropagation();">
+                                            Add Explanation
+                                        </button>
+                                        <button class="reassign-task-btn" 
+                                            data-id="${decline.id}" 
+                                            data-product="${encodeURIComponent(decline.product_name || '')}"
+                                            style="flex: 1; padding: 6px 10px; background-color: #8b5cf6; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; transition: background-color 0.3s;"
+                                            onclick="event.stopPropagation();">
+                                            Reassign
+                                        </button>
+                                        <button style="flex: 1; padding: 6px 10px; background-color: #6b7280; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; transition: background-color 0.3s;" onclick="event.stopPropagation(); clearDeclineNotification(${decline.id}); updateNotifications();">
+                                            Clear
+                                        </button>
+                                    </div>
                                 </li>
                             `}).join('');
 
@@ -687,6 +775,16 @@ require_once "components/header.php";
                                         productName,
                                         memberName
                                     });
+                                });
+                            });
+
+                            declinedList.querySelectorAll('.reassign-task-btn').forEach(btn => {
+                                btn.addEventListener('click', function() {
+                                    const taskId = this.getAttribute('data-id');
+                                    const product = decodeURIComponent(this.getAttribute('data-product') || '');
+                                    if (confirm('Reassign task to another member?')) {
+                                        reassignTask(taskId);
+                                    }
                                 });
                             });
                         } else {
@@ -714,27 +812,78 @@ require_once "components/header.php";
                 updateNotifications();
             }, 500);
 
-            // Check for new notifications every 30 seconds
-            setInterval(updateNotifications, 30000);
+            // Check for new notifications every 10 seconds for real-time updates
+            setInterval(updateNotifications, 10000);
 
-            const notificationBell = document.querySelector('button[title="Notifications"]');
-            if (notificationBell) {
-                notificationBell.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const modal = document.getElementById('notificationModal');
-                    if (modal) {
-                        const currentDisplay = modal.style.display;
-                        const isHidden = currentDisplay === 'none' || currentDisplay === '';
-                        modal.style.display = isHidden ? 'flex' : 'none';
-                        if (isHidden) {
-                            updateNotifications(); // Refresh notifications when opening modal
+            // Handle "Clear All Notifications" button
+            const markAllReadBtn = document.getElementById('markAllRead');
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', function() {
+                    // Clear all notification lists
+                    const unverifiedList = document.getElementById('unverifiedMembersList');
+                    const ordersList = document.getElementById('orderNotificationsList');
+                    const memberTasksList = document.getElementById('memberCreatedTasksList');
+                    const declinedList = document.getElementById('declinedTasksList');
+                    
+                    if (unverifiedList) unverifiedList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No pending verifications</li>';
+                    if (ordersList) ordersList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new order notifications</li>';
+                    if (memberTasksList) memberTasksList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No new member created tasks</li>';
+                    if (declinedList) declinedList.innerHTML = '<li style="padding: 12px; color: #9ca3af; text-align: center; font-size: 14px;">No declined assignments</li>';
+                    
+                    // Hide notification dot
+                    const notificationBell = document.querySelector('button[title="Notifications"]');
+                    if (notificationBell) {
+                        const notificationDot = notificationBell.querySelector('span');
+                        if (notificationDot) {
+                            notificationDot.style.display = 'none';
                         }
                     }
+                    
+                    // Show success message
+                    alertify.success('All notifications cleared');
+                    
+                    // Close modal after a brief delay
+                    setTimeout(() => {
+                        const modal = document.getElementById('notificationModal');
+                        if (modal) {
+                            modal.style.display = 'none';
+                        }
+                    }, 500);
                 });
-            } else {
-                console.error('Notification bell button not found!');
             }
 
+            // Notification bell button handler - DIRECT AND SIMPLE
+            const notificationBell = document.querySelector('button[title="Notifications"]');
+            const modal = document.getElementById('notificationModal');
+            
+            console.log('Setting up bell button...');
+            console.log('Bell button:', notificationBell);
+            console.log('Modal:', modal);
+            
+            if (notificationBell) {
+                notificationBell.onclick = function(e) {
+                    console.log('Bell onclick fired!');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (modal) {
+                        if (modal.style.display === 'none' || modal.style.display === '') {
+                            console.log('Showing modal');
+                            modal.style.display = 'flex';
+                            updateNotifications();
+                        } else {
+                            console.log('Hiding modal');
+                            modal.style.display = 'none';
+                        }
+                        } else {
+                            console.error('Modal not found!');
+                        }
+                        
+                        return false;
+                    };
+                }
+
+            // Close button handlers
             const closeBtn = document.getElementById('closeNotificationModal');
             if (closeBtn) {
                 closeBtn.addEventListener('click', function(e) {
@@ -757,15 +906,10 @@ require_once "components/header.php";
                 });
             }
 
-            // Prevent modal from showing on page load by ensuring display is none
-            const modal = document.getElementById('notificationModal');
-            if (modal && modal.style.display !== 'none') {
-                modal.style.display = 'none';
-            }
-
             // Close modal when clicking outside of it
-            if (modal) {
-                modal.addEventListener('click', function(e) {
+            const modalElement = document.getElementById('notificationModal');
+            if (modalElement) {
+                modalElement.addEventListener('click', function(e) {
                     if (e.target === this) {
                         this.style.display = 'none';
                     }
@@ -791,69 +935,6 @@ require_once "components/header.php";
                 })
                 .catch(error => console.error('Error marking notification as read:', error));
             };
-
-            // Handle mark all as read button
-            const markAllReadBtn = document.getElementById('markAllRead');
-            if (markAllReadBtn) {
-                markAllReadBtn.addEventListener('click', function() {
-                    console.log('Clearing all notifications');
-
-                    // Clear order notifications
-                    const clearOrders = fetch('backend/end-points/notifications.php?action=mark-read', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    }).then(response => response.json());
-
-                    // Clear declined task notifications
-                    const clearDeclinedTasks = fetch('backend/end-points/task_declines.php?action=clear_all', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    }).then(response => response.json());
-
-                    Promise.all([clearOrders, clearDeclinedTasks])
-                    .then(([ordersResult, declinedResult]) => {
-                        console.log('Clear orders response:', ordersResult);
-                        console.log('Clear declined tasks response:', declinedResult);
-                        
-                        let allCleared = true;
-                        let messages = [];
-
-                        if (ordersResult.success) {
-                            messages.push('Order notifications cleared.');
-                        } else {
-                            allCleared = false;
-                            console.error('Could not clear order notifications.');
-                        }
-
-                        if (declinedResult.success) {
-                            messages.push('Declined task notifications cleared.');
-                        } else {
-                            allCleared = false;
-                            console.error('Could not clear declined task notifications.');
-                        }
-                        
-                        updateNotifications();
-
-                        if (typeof alertify !== 'undefined') {
-                            if(allCleared) {
-                                alertify.success('All notifications cleared.');
-                            } else {
-                                alertify.warning('Some notifications could not be cleared.');
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error clearing notifications:', error);
-                        if (typeof alertify !== 'undefined') {
-                            alertify.error('An error occurred while clearing notifications.');
-                        }
-                    });
-                });
-            }
 
             function updateOrderStatus(orderId, newStatus) {
                 fetch('backend/end-points/update_order_status.php', {
@@ -1265,6 +1346,144 @@ require_once "components/header.php";
             })
             .catch(error => console.error('Error loading task completion chart:', error));
     }
+
+    // Action handler functions for notifications
+    window.verifyMember = function(memberId) {
+        fetch('backend/end-points/verify_member.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ member_id: memberId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alertify.success('Member verified successfully!');
+                updateNotifications();
+            } else {
+                alertify.error('Error verifying member: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            alertify.error('Error: ' + error.message);
+            console.error('Error:', error);
+        });
+    };
+
+    window.rejectMember = function(memberId) {
+        fetch('backend/end-points/reject_member.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ member_id: memberId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alertify.error('Member rejected successfully.');
+                updateNotifications();
+            } else {
+                alertify.error('Error rejecting member: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            alertify.error('Error: ' + error.message);
+            console.error('Error:', error);
+        });
+    };
+
+    window.approveMemberTask = function(taskId) {
+        fetch('backend/end-points/approve_member_task.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ task_id: taskId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alertify.success('Member task approved!');
+                updateNotifications();
+            } else {
+                alertify.error('Error approving task: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            alertify.error('Error: ' + error.message);
+            console.error('Error:', error);
+        });
+    };
+
+    window.rejectMemberTask = function(taskId) {
+        fetch('backend/end-points/reject_member_task.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ task_id: taskId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alertify.error('Member task rejected.');
+                updateNotifications();
+            } else {
+                alertify.error('Error rejecting task: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            alertify.error('Error: ' + error.message);
+            console.error('Error:', error);
+        });
+    };
+
+    window.reassignTask = function(taskId) {
+        fetch('backend/end-points/reassign_task.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ task_id: taskId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alertify.success('Task reassigned successfully!');
+                updateNotifications();
+            } else {
+                alertify.error('Error reassigning task: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            alertify.error('Error: ' + error.message);
+            console.error('Error:', error);
+        });
+    };
+
+    window.clearDeclineNotification = function(taskId) {
+        fetch('backend/end-points/clear_decline_notification.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ task_id: taskId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alertify.success('Notification cleared.');
+            } else {
+                alertify.error('Error: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            alertify.error('Error: ' + error.message);
+            console.error('Error:', error);
+        });
+    };
     </script>
 
 </body>
