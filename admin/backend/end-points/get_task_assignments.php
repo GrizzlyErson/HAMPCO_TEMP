@@ -26,7 +26,6 @@ try {
     FROM production_line pl
     LEFT JOIN task_assignments ta ON pl.prod_line_id = ta.prod_line_id
     LEFT JOIN user_member um ON ta.member_id = um.id
-    WHERE ta.status != 'completed' OR ta.status IS NULL
     GROUP BY pl.prod_line_id
     
     UNION ALL
@@ -49,8 +48,7 @@ try {
         NULL as decline_reasons
     FROM member_self_tasks mst
     LEFT JOIN user_member um ON mst.member_id = um.id
-    WHERE mst.status != 'completed'
-    AND NOT EXISTS (
+    WHERE NOT EXISTS (
         SELECT 1 FROM production_line pl WHERE CAST(mst.production_id AS UNSIGNED) = pl.prod_line_id
     )
     GROUP BY mst.id

@@ -1019,8 +1019,8 @@ require_once "components/header.php";
                     badgeBgColor = '#0d6efd'; // Blue badge
                     badgeTextColor = '#ffffff';
                 } else if (task.status === 'in_progress') {
-                    badgeBgColor = '#ff6a07ff'; // Yellow badge
-                    badgeTextColor = '#000000';
+                    badgeBgColor = '#ff6a07ff'; // Orange badge
+                    badgeTextColor = '#ffffff';
                 } else if (task.status === 'completed') {
                     badgeBgColor = '#28a745'; // Green badge
                     badgeTextColor = '#ffffff';
@@ -1029,7 +1029,7 @@ require_once "components/header.php";
                     badgeTextColor = '#ffffff';
                 }
                 
-                const statusLabel = task.status.charAt(0).toUpperCase() + task.status.slice(1);
+                const statusLabel = task.status.charAt(0).toUpperCase() + task.status.slice(1).replace(/_/g, ' ');
                 
                 return `
                     <tr style="height: 40px; vertical-align: middle;">
@@ -1037,7 +1037,7 @@ require_once "components/header.php";
                         <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;">${task.product_name}</td>
                         <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;" title="${task.member_name}">${task.member_name}</td>
                         <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap;">
-                            <span style="display: inline-block; background-color: ${badgeBgColor}; color: ${badgeTextColor}; font-size: 12px; padding: 4px 8px; border-radius: 4px;">${statusLabel}</span>
+                            <span style="display: inline-block; background-color: ${badgeBgColor}; color: ${badgeTextColor}; font-size: 12px; padding: 6px 10px; border-radius: 4px; min-width: 70px; text-align: center; font-weight: 500;">${statusLabel}</span>
                         </td>
                         <td style="font-size: 13px; padding: 6px 10px; white-space: nowrap; color: #666;">
                             ${task.date_created ? new Date(task.date_created).toLocaleDateString() : '-'}

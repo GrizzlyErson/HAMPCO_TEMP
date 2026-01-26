@@ -29,7 +29,6 @@ try {
         um.role
     FROM member_self_tasks mst
     JOIN user_member um ON mst.member_id = um.id
-    WHERE mst.status = 'pending'
     ORDER BY mst.date_created DESC";
 
     $result = mysqli_query($db->conn, $query);
