@@ -2,8 +2,18 @@
 include "components/header.php";
 // Add custom CSS for tables
 echo '<link rel="stylesheet" href="css/table-styles.css">';
-
-// Check and add updated_at column to production_line if it doesn't exist
+?>
+<style>
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+</style>
+<?php
 $check_pl_updated = mysqli_query($db->conn, "SHOW COLUMNS FROM production_line LIKE 'updated_at'");
 if (mysqli_num_rows($check_pl_updated) == 0) {
     mysqli_query($db->conn, "ALTER TABLE production_line ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
@@ -2328,7 +2338,22 @@ function updateEditFormFieldsVisibility(selectedProduct) {
     <!-- Task Completion Confirmations Table -->
     <div class="bg-white rounded-lg shadow-sm p-6">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-semibold text-gray-800">Task Completion Confirmations</h3>
+            <div class="flex items-center gap-3">
+                <h3 class="text-xl font-semibold text-gray-800">Task Completion Confirmations</h3>
+                <div class="flex items-center gap-2">
+                    <span id="autoRefreshStatus" class="text-xs text-green-600 font-medium flex items-center gap-1">
+                        <span class="inline-block w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                        Real-time (3s)
+                    </span>
+                    <span id="lastUpdateTime" class="text-xs text-gray-500">Updated just now</span>
+                </div>
+            </div>
+            <button id="refreshTaskCompletionBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Refresh
+            </button>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200" id="taskCompletionTable">

@@ -1,26 +1,73 @@
+let taskCompletionRefreshInterval = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Get the Member Task Requests tab and content elements
     const memberTaskRequestsTab = document.getElementById('memberTaskRequestsTab');
     const memberTaskRequestsContent = document.getElementById('memberTaskRequestsContent');
+    const refreshBtn = document.getElementById('refreshTaskCompletionBtn');
+
+    // Start auto-refresh immediately on page load
+    loadTaskCompletions();
+    startTaskCompletionAutoRefresh();
 
     if (memberTaskRequestsTab && memberTaskRequestsContent) {
         // Add click event for Member Task Requests tab
         memberTaskRequestsTab.addEventListener('click', () => {
             loadTaskCompletions();
+            // Auto-refresh already running, no need to restart
         });
 
-        // Initial load if Member Task Requests tab is active
+        // If tab is initially visible, ensure refresh is started
         if (!memberTaskRequestsContent.classList.contains('hidden')) {
             loadTaskCompletions();
         }
     }
+
+    // Add manual refresh button listener
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            const btn = this;
+            btn.disabled = true;
+            btn.style.opacity = '0.6';
+            
+            const svg = btn.querySelector('svg');
+            svg.style.animation = 'spin 1s linear infinite';
+            
+            loadTaskCompletions().then(() => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                svg.style.animation = '';
+            });
+        });
+    }
 });
 
+function startTaskCompletionAutoRefresh() {
+    // Clear any existing interval
+    if (taskCompletionRefreshInterval) {
+        clearInterval(taskCompletionRefreshInterval);
+    }
+    
+    // Set up auto-refresh every 3 seconds for real-time updates
+    taskCompletionRefreshInterval = setInterval(function() {
+        loadTaskCompletions();
+    }, 3000);
+}
+
 function loadTaskCompletions() {
-    fetch('backend/end-points/get_task_completions.php')
+    return fetch('backend/end-points/get_task_completions.php')
         .then(response => response.json())
         .then(data => {
             const tableBody = document.querySelector('#taskCompletionTable tbody');
+            
+            // Update the "last updated" timestamp
+            const lastUpdateEl = document.getElementById('lastUpdateTime');
+            if (lastUpdateEl) {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                lastUpdateEl.textContent = `Updated at ${timeString}`;
+            }
+            
             if (!data || data.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
