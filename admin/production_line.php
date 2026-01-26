@@ -2565,8 +2565,7 @@ function calculateRequiredMaterials(productName) {
             baseRequirements: {
                 description: 'Raw materials needed (per meter):',
                 materials: [
-                    { name: 'Raw Loose Liniwan', perUnit: 15, unit: 'g per meter' },
-                    { name: 'Sikapat', perUnit: 4.5, unit: 'pieces per meter' }
+                    { name: 'Raw Loose Liniwan', perUnit: 15, unit: 'g per meter' }
                 ]
             },
             calculated: function() {
@@ -2581,12 +2580,6 @@ function calculateRequiredMaterials(productName) {
                             total: weight.toFixed(2), 
                             unit: 'g',
                             formula: `${weight}g (standard for ${meterEquivalent}m)`
-                        },
-                        { 
-                            name: 'Sikapat', 
-                            total: (4.5 * meterEquivalent).toFixed(2), 
-                            unit: 'pieces',
-                            formula: `4.5 × ${meterEquivalent}m = ${(4.5 * meterEquivalent).toFixed(2)} pieces`
                         }
                     ]
                 };
@@ -2597,8 +2590,7 @@ function calculateRequiredMaterials(productName) {
             baseRequirements: {
                 description: 'Raw materials needed (per meter):',
                 materials: [
-                    { name: 'Raw Loose Bastos', perUnit: 15, unit: 'g per meter' },
-                    { name: 'Sikapat', perUnit: 4.5, unit: 'pieces per meter' }
+                    { name: 'Raw Loose Bastos', perUnit: 15, unit: 'g per meter' }
                 ]
             },
             calculated: function() {
@@ -2613,12 +2605,6 @@ function calculateRequiredMaterials(productName) {
                             total: weight.toFixed(2), 
                             unit: 'g',
                             formula: `${weight}g (standard for ${meterEquivalent}m)`
-                        },
-                        { 
-                            name: 'Sikapat', 
-                            total: (4.5 * meterEquivalent).toFixed(2), 
-                            unit: 'pieces',
-                            formula: `4.5 × ${meterEquivalent}m = ${(4.5 * meterEquivalent).toFixed(2)} pieces`
                         }
                     ]
                 };
@@ -2676,19 +2662,15 @@ function getRequiredMaterialsInfo(productName) {
             title: 'KNOTTED LINIWAN REQUIREMENTS',
             description: 'Raw materials needed:',
             materials: [
-                { name: 'Raw Loose Liniwan', amount: '1 meter ≈ 15g (standard)' },
-                { name: 'Sikapat', amount: '1 sikapat = 3.5g' }
-            ],
-            note: '4.5 sikapat = 1 meter ≈ 15g'
+                { name: 'Raw Loose Liniwan', amount: '1 meter ≈ 15g (standard)' }
+            ]
         },
         'Knotted Bastos': {
             title: 'KNOTTED BASTOS REQUIREMENTS',
             description: 'Raw materials needed:',
             materials: [
-                { name: 'Raw Loose Bastos', amount: '1 meter ≈ 15g (standard)' },
-                { name: 'Sikapat', amount: '1 sikapat = 3.5g' }
-            ],
-            note: '4.5 sikapat = 1 meter ≈ 15g'
+                { name: 'Raw Loose Bastos', amount: '1 meter ≈ 15g (standard)' }
+            ]
         },
         'Warped Silk': {
             title: 'WARPED SILK REQUIREMENTS',
