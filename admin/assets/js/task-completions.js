@@ -80,47 +80,151 @@ function getStatusClass(status) {
 }
 
 function confirmTaskCompletion(productionId) {
-    Swal.fire({
-        title: 'Confirm Task Completion',
-        text: 'Are you sure you want to confirm this task completion? This will add the product to the Processed Materials inventory.',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, confirm it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const formData = new FormData();
-            formData.append('production_id', productionId);
+    console.log('confirmTaskCompletion called with productionId:', productionId);
+    
+    // First, fetch the task details to determine the type of inputs needed
+    const url = `backend/end-points/get_task_details.php?production_id=${encodeURIComponent(productionId)}`;
+    console.log('Fetching from:', url);
+    
+    fetch(url)
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then(taskData => {
+            console.log('Task data received:', taskData);
+            
+            if (!taskData.success) {
+                throw new Error(taskData.message || 'Failed to load task details');
+            }
+            
+            const task = taskData.data;
+            const productName = task.product_name;
+            
+            // Determine fields based on product name
+            const isWeightBased = ['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk'].includes(productName);
+            const isDimensionsBased = ['Piña Seda', 'Pure Piña Cloth'].includes(productName);
 
-            fetch('backend/end-points/confirm_task_completion.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: 'Task completion has been confirmed and product added to inventory.',
-                        showConfirmButton: false,
-                        timer: 1500
-                    }).then(() => {
-                        loadTaskCompletions();
-                    });
-                } else {
-                    throw new Error(data.message || 'Failed to confirm task completion');
+            let inputFields = '';
+            if (isWeightBased) {
+                inputFields = `
+                    <div class="mb-4 text-left">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Actual Weight (grams)</label>
+                        <input type="number" id="actual_weight" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter actual weight" step="0.01" min="0" value="${task.weight_g || ''}">
+                    </div>
+                `;
+            } else if (isDimensionsBased) {
+                inputFields = `
+                    <div class="mb-4 text-left">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Actual Length (meters)</label>
+                        <input type="number" id="actual_length" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter actual length" step="0.01" min="0" value="${task.length_m || ''}">
+                    </div>
+                    <div class="mb-4 text-left">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Actual Width (inches)</label>
+                        <input type="number" id="actual_width" class="swal2-input" style="margin: 0; width: 100%;" placeholder="Enter actual width" step="0.01" min="0" value="${task.width_m || ''}">
+                    </div>
+                `;
+            }
+
+            Swal.fire({
+                title: 'Confirm Task Completion',
+                html: `
+                    <div class="text-sm text-gray-600 mb-4">
+                        Please verify the actual product measurements before confirming completion.
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded mb-4 text-left">
+                        <p><strong>Production ID:</strong> ${productionId}</p>
+                        <p><strong>Product:</strong> ${productName}</p>
+                        <p><strong>Member:</strong> ${task.member_name}</p>
+                    </div>
+                    ${inputFields}
+                    <div class="mb-4 text-left">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Admin Notes (optional)</label>
+                        <textarea id="admin_notes" class="swal2-textarea" style="margin: 0; width: 100%;" placeholder="Any notes or observations..." rows="3"></textarea>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Confirm Completion',
+                preConfirm: () => {
+                    let measurements = {};
+                    const notes = document.getElementById('admin_notes').value;
+
+                    if (isWeightBased) {
+                        const weight = document.getElementById('actual_weight').value;
+                        if (!weight) {
+                            Swal.showValidationMessage('Please enter the actual weight');
+                            return false;
+                        }
+                        measurements.actual_weight = weight;
+                    } else if (isDimensionsBased) {
+                        const length = document.getElementById('actual_length').value;
+                        const width = document.getElementById('actual_width').value;
+                        if (!length || !width) {
+                            Swal.showValidationMessage('Please enter both length and width');
+                            return false;
+                        }
+                        measurements.actual_length = length;
+                        measurements.actual_width = width;
+                    }
+
+                    return { measurements, notes };
                 }
-            })
-            .catch(error => {
-                console.error('Error confirming task completion:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message || 'Failed to confirm task completion. Please try again.'
-                });
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitTaskCompletion(productionId, result.value);
+                }
             });
+        })
+        .catch(error => {
+            console.error('Error loading task details:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to load task details. Please try again.'
+            });
+        });
+}
+
+function submitTaskCompletion(productionId, data) {
+    const formData = new FormData();
+    formData.append('production_id', productionId);
+    
+    if (data.measurements) {
+        formData.append('measurements', JSON.stringify(data.measurements));
+    }
+    if (data.notes) {
+        formData.append('admin_notes', data.notes);
+    }
+
+    fetch('backend/end-points/confirm_task_completion.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Task completion has been confirmed and product added to inventory.',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                loadTaskCompletions();
+            });
+        } else {
+            throw new Error(data.message || 'Failed to confirm task completion');
         }
+    })
+    .catch(error => {
+        console.error('Error confirming task completion:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Failed to confirm task completion. Please try again.'
+        });
     });
 } 

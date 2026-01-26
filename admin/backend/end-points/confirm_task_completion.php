@@ -21,9 +21,32 @@ try {
     }
 
     $production_id = $_POST['production_id'];
-    $actual_output = isset($_POST['actual_output']) ? floatval($_POST['actual_output']) : 0;
-    $actual_length = isset($_POST['actual_length']) ? floatval($_POST['actual_length']) : 0;
-    $actual_width = isset($_POST['actual_width']) ? floatval($_POST['actual_width']) : 0;
+    
+    // Parse measurements from JSON if provided
+    $actual_weight = 0;
+    $actual_length = 0;
+    $actual_width = 0;
+    $admin_notes = isset($_POST['admin_notes']) ? $_POST['admin_notes'] : '';
+    
+    if (isset($_POST['measurements'])) {
+        $measurements = json_decode($_POST['measurements'], true);
+        if (is_array($measurements)) {
+            $actual_weight = isset($measurements['actual_weight']) ? floatval($measurements['actual_weight']) : 0;
+            $actual_length = isset($measurements['actual_length']) ? floatval($measurements['actual_length']) : 0;
+            $actual_width = isset($measurements['actual_width']) ? floatval($measurements['actual_width']) : 0;
+        }
+    }
+    
+    // Also check for direct POST parameters for backward compatibility
+    if (empty($actual_weight) && isset($_POST['actual_output'])) {
+        $actual_weight = floatval($_POST['actual_output']);
+    }
+    if (empty($actual_length) && isset($_POST['actual_length'])) {
+        $actual_length = floatval($_POST['actual_length']);
+    }
+    if (empty($actual_width) && isset($_POST['actual_width'])) {
+        $actual_width = floatval($_POST['actual_width']);
+    }
 
     // Get database connection
     $db = new mysqli($host, $username, $password, $dbname);
@@ -163,7 +186,7 @@ try {
         }
 
         // Update actual output in database if provided
-        if ($actual_output > 0 || ($actual_length > 0 && $actual_width > 0)) {
+        if ($actual_weight > 0 || ($actual_length > 0 && $actual_width > 0)) {
             $product_name = $task['product_name'];
             $is_weight_based = in_array($product_name, ['Knotted Liniwan', 'Knotted Bastos', 'Warped Silk']);
             $is_length_based = in_array($product_name, ['Piña Seda', 'Pure Piña Cloth']);
@@ -173,14 +196,14 @@ try {
             $params = [];
             $types = "";
 
-            if ($is_weight_based && $actual_output > 0) {
+            if ($is_weight_based && $actual_weight > 0) {
                 $update_pl_sql = "UPDATE production_line SET weight_g = ? WHERE prod_line_id = ?";
-                $params = [$actual_output, $production_id];
+                $params = [$actual_weight, $production_id];
                 $types = "ds";
-                $task['weight_g'] = $actual_output; // Update local variable for later use
+                $task['weight_g'] = $actual_weight; // Update local variable for later use
             } elseif ($is_length_based) {
-                // Use specific dimensions if provided, otherwise fallback to actual_output as length
-                $len = $actual_length > 0 ? $actual_length : $actual_output;
+                // Use specific dimensions if provided
+                $len = $actual_length > 0 ? $actual_length : $task['length_m'];
                 $wid = $actual_width > 0 ? $actual_width : $task['width_m'];
                 
                 $update_pl_sql = "UPDATE production_line SET length_m = ?, width_m = ? WHERE prod_line_id = ?";
@@ -203,13 +226,13 @@ try {
                 $mst_params = [];
                 $mst_types = "";
 
-                if ($is_weight_based && $actual_output > 0) {
+                if ($is_weight_based && $actual_weight > 0) {
                     $update_mst_sql = "UPDATE member_self_tasks SET weight_g = ? WHERE production_id = ?";
-                    $mst_params = [$actual_output, $production_id];
+                    $mst_params = [$actual_weight, $production_id];
                     $mst_types = "ds";
                 } elseif ($is_length_based) {
                     $update_mst_sql = "UPDATE member_self_tasks SET length_m = ?, width_in = ? WHERE production_id = ?";
-                    $mst_params = [$task['length_m'], $task['width_m'], $production_id];
+                    $mst_params = [$actual_length > 0 ? $actual_length : $task['length_m'], $actual_width > 0 ? $actual_width : $task['width_m'], $production_id];
                     $mst_types = "dds";
                 }
                 if ($update_mst_sql) {
